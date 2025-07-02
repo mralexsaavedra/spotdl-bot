@@ -7,6 +7,8 @@ import time
 import base64
 import urllib.parse
 
+from core.utils import send_message
+
 SCOPES="playlist-read-private user-follow-read user-library-read"
 TOKEN_PATH = '/root/.spotdl/.spotipy'
 
@@ -71,9 +73,9 @@ def authorize(bot, message):
     'scope': SCOPES
   }
   auth_url = f"https://accounts.spotify.com/authorize?{urllib.parse.urlencode(params)}"
-  bot.send_message(message.chat.id, get_text("authorize", auth_url))
+  send_message(bot, message=get_text("authorize", auth_url))
   time.sleep(5)
-  bot.send_message(message.chat.id, get_text("redirect_url"))
+  send_message(bot, message=get_text("redirect_url"))
   bot.register_next_step_handler(message, get_new_token)
 
 def get_valid_token(bot, message):
