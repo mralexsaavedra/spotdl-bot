@@ -5,7 +5,7 @@
   "auth_success": "✅ Autorización completada con éxito.\n\nAhora puedes usar el comando /downloadliked para descargar tus canciones favoritas.",
   "auth_token_refreshed": "✅ Token actualizado correctamente.",
   "bot_version_info": "⚙️ _Versión: $1_\nDesarrollado con ❤️ por [@mralexsaavedra](https://mralexsaavedra.com)\n\n¿Tienes sugerencias o has encontrado algún error? ¡No dudes en contactarme!\n\n🔗 [DockerHub](https://hub.docker.com/r/mralexandersaavedra/spotdl-bot)\n🔗 [GitHub](https://github.com/mralexsaavedra/spotdl-bot)",
-  "donation_message": "Este bot es un proyecto de código abierto que mantengo con mucho cariño en mi tiempo libre. No hay funciones premium ni pagos ocultos, solo mucho esfuerzo detrás. Si valoras el proyecto y quieres apoyar su desarrollo, puedes hacerlo con una donación.\n\n[Haz tu aporte aquí](https://donate.mralexsaavedra.com)\n¡Gracias por tu apoyo! ❤️",
+  "donation_message": "Este bot es un proyecto de código abierto que mantengo con mucho cariño en mi tiempo libre. No hay funciones premium ni pagos ocultos, solo mucho esfuerzo detrás. Si valoras el proyecto y quieres apoyar su desarrollo, puedes hacerlo con una donación.\n\n[Haz tu aporte aquí](https://coff.ee/mralexsaavedra)\n¡Gracias por tu apoyo! ❤️",
   "download_finished": "✅ Descarga completada correctamente.",
   "download_in_progress": "⏳ Descargando...",
   "download_prompt_url": "🔗 Por favor, introduce la URL de Spotify de la canción, álbum, artista o playlist que deseas descargar.",
