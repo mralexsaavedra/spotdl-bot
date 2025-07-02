@@ -1,5 +1,11 @@
 # 🎵 SpotDL Bot
 
+![Spotify Logo](https://upload.wikimedia.org/wikipedia/commons/2/26/Spotify_logo_with_text.svg)
+
+[![Python](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/)
+[![License](https://img.shields.io/github/license/mralexsaavedra/spotdl-bot)](LICENSE)
+[![Version](https://img.shields.io/github/v/release/mralexsaavedra/spotdl-bot)](https://github.com/mralexsaavedra/spotdl-bot/releases)
+
 [![GitHub](https://badgen.net/badge/icon/github?icon=github&label)](https://github.com/mralexsaavedra/spotdl-bot)
 [![Docker](https://badgen.net/badge/icon/docker?icon=docker&label)](https://hub.docker.com/r/mralexsaavedra/spotdl-bot)
 [![Telegram](https://badgen.net/badge/icon/telegram?icon=telegram&label)](https://t.me/spotdl_bot)
@@ -32,17 +38,27 @@ Bot de Telegram que permite descargar canciones, álbumes y playlists completas 
 
 ---
 
+---
+
+## 🔑 Variables de entorno
+
+| VARIABLE                | OBLIGATORIO  | DESCRIPCIÓN                                                        |
+| ----------------------- | ------------ | ------------------------------------------------------------------ |
+| TELEGRAM\_TOKEN         | ✅           | Token del bot de Telegram                                          |
+| TELEGRAM\_ADMIN         | ✅           | Chat ID del administrador (puede ser múltiple, separado por comas) |
+| SPOTIFY\_CLIENT\_ID     | ✅           | Client ID de la aplicación Spotify                                 |
+| SPOTIFY\_CLIENT\_SECRET | ✅           | Client Secret de la aplicación Spotify                             |
+| SPOTIFY\_REDIRECT\_URI  | ✅           | URI de redirección configurada en la app de Spotify                |
+| CONTAINER_NAME          | ✅           | Nombre del contenedor Docker (debe coincidir con docker-compose)   |
+| LANGUAGE                | ❌           | Idioma para el bot (por ejemplo: ES, EN). Por defecto ES           |
+| TZ                      | ❌           | Zona horaria (ejemplo: Europe/Madrid)                              |
+
+---
+
 <a id="telegram-bot-token"></a>
 ### 🤖 Cómo crear un bot de Telegram y obtener su token
 
-Para usar este proyecto necesitas un bot de Telegram y su token de acceso. Puedes crear uno fácilmente con el BotFather, la herramienta oficial de Telegram para gestionar bots.
-
-1. Abre Telegram y busca el usuario **@BotFather**.
-2. Inicia una conversación y escribe el comando `/newbot`.
-3. Sigue las instrucciones para darle un nombre y un usuario único a tu bot.
-4. Al finalizar, BotFather te proporcionará un **token de acceso**: una cadena larga que identifica tu bot y que deberás usar en la configuración del proyecto.
-
-Para más detalles, consulta la documentación oficial: [https://core.telegram.org/bots#6-botfather](https://core.telegram.org/bots#6-botfather)
+Sigue esta [guía oficial de Telegram](https://core.telegram.org/bots#6-botfather) para crear un bot y obtener el token.
 
 ---
 
@@ -81,46 +97,66 @@ Estas credenciales permiten al bot autenticar solicitudes y acceder a los datos 
 
 ---
 
-## 🔑 Variables de entorno
+## 📋 Comandos disponibles
 
-| VARIABLE                | OBLIGATORIO  | DESCRIPCIÓN                                                        |
-| ----------------------- | ------------ | ------------------------------------------------------------------ |
-| TELEGRAM\_TOKEN         | ✅           | Token del bot de Telegram                                          |
-| TELEGRAM\_ADMIN         | ✅           | Chat ID del administrador (puede ser múltiple, separado por comas) |
-| SPOTIFY\_CLIENT\_ID     | ✅           | Client ID de la aplicación Spotify                                 |
-| SPOTIFY\_CLIENT\_SECRET | ✅           | Client Secret de la aplicación Spotify                             |
-| SPOTIFY\_REDIRECT\_URI  | ✅           | URI de redirección configurada en la app de Spotify                |
-| CONTAINER_NAME          | ✅           | Nombre del contenedor Docker (debe coincidir con docker-compose)   |
-| LANGUAGE                | ❌           | Idioma para el bot (por ejemplo: ES, EN). Por defecto ES           |
-| TZ                      | ❌           | Zona horaria (ejemplo: Europe/Madrid)                              |
+| Comando           | Descripción                          |
+|-------------------|------------------------------------|
+| `/start`          | Mostrar menú inicial                |
+| `/authorize`      | Autorizar acceso a Spotify          |
+| `/download`       | Descargar canción/álbum/playlist    |
+| `/downloadliked`  | Descargar canciones favoritas    |
+| `/version`        | Mostrar versión del bot             |
+| `/donate`         | Información para donar              |
 
 ---
 
-## ⚙️ Instalación y ejecución
+## 🐳 Instalación con Docker
 
-### 🔧 Local
+Puedes ejecutar el bot fácilmente usando Docker o Docker Compose.
+A continuación, te explico ambas opciones.
+
+### ▶️ Opción 1: Usar docker run
 
 ```bash
-git clone https://github.com/mralexsaavedra/spotdl-bot.git
-cd spotdl-bot
-pip install -r requirements.txt
-cp .env.example .env  # Edita .env con tus credenciales
-python main.py
+docker run -d --name spotdl-bot \
+  -e TELEGRAM_TOKEN="tu_token" \
+  -e TELEGRAM_ADMIN="tu_chat_id" \
+  -e SPOTIFY_CLIENT_ID="tu_client_id" \
+  -e SPOTIFY_CLIENT_SECRET="tu_client_secret" \
+  -e SPOTIFY_REDIRECT_URI="tu_redirect_uri" \
+  -e LANGUAGE="es" \
+  mralexsaavedra/spotdl-bot
 ```
 
----
-
-### 🐳 Docker
+### ⚙️ Opción 2: Usar docker-compose
 
 1. Asegúrate de tener Docker y Docker Compose instalados.
 2. Crea un archivo `.env` con las credenciales necesarias.
-3. Levanta el contenedor:
+3. Crea el archivo `docker-compose.yml`:
+
+```yaml
+version: "3.8"
+
+services:
+  spotdl-bot:
+    image: mralexsaavedra/spotdl-bot
+    container_name: spotdl-bot
+    env_file: .env
+    restart: unless-stopped
+
+```
+
+4. Levanta el contenedor:
 
 ```bash
 docker compose up -d
 ```
 
 ---
+
+## 🤝 Contribuciones
+
+¡Las contribuciones son bienvenidas! Abre un issue o pull request para mejorar el proyecto.
 
 ## 📝 Licencia
 
@@ -131,3 +167,7 @@ MIT © 2025 [@mralexsaavedra](https://github.com/mralexsaavedra)
 ## 🙌 Créditos
 
 Proyecto basado en [spotDL](https://github.com/spotDL/spotify-downloader). Gracias a la comunidad por este gran software.
+
+---
+
+Hecho con ❤️ por [mralexsaavedra](https://mralexsaavedra.com)
