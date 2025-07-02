@@ -4,7 +4,7 @@
   "authorize_success": "✅ Autorización completada con éxito.\n\nAhora puedes usar el comando /downloadlikedsongs para descargar tus canciones favoritas.",
   "authorize": "Para poder descargar tus canciones favoritas, necesitas autorizar al bot a acceder a tu cuenta de Spotify.\n\n[🔗 Haz clic aquí para autorizar]($1)",
   "debug_starting_bot": "🔧 Iniciando SpotDL Bot (v$1)",
-  "donate": "Este proyecto es de código abierto y ha sido creado en mi tiempo libre. Las donaciones no desbloquean funciones extra: son solo una forma de apoyar y agradecer el trabajo detrás del proyecto.\n\nSi deseas colaborar, [haz clic aquí](https://donate.mralexsaavedra.com).\n¡Gracias de corazón! ❤️",
+  "donate": "Este bot es un proyecto de código abierto mantenido con cariño en mi tiempo libre. No hay funciones premium ni pagos ocultos, solo mucho trabajo detrás. Si valoras el esfuerzo y quieres apoyar su desarrollo, puedes hacerlo con una donación.\n\n[Haz tu aporte aquí](https://donate.mralexsaavedra.com)\n¡Gracias por tu apoyo! ❤️",
   "download_completed": "✅ Descarga completada correctamente.",
   "download_url": "🔗 Introduce la URL de Spotify de la canción, álbum, artista o playlist que deseas descargar.",
   "downloading": "⏳ Descargando...",
@@ -28,5 +28,5 @@
   "not_spotify_url": "❌ La URL introducida no es válida. Por favor, introduce una URL de Spotify.",
   "redirect_url": "🔁 Pega ahora el _'code'_ que aparece en la URL a la que fuiste redirigido.",
   "refresh_token_success": "✅ Token actualizado correctamente.",
-  "version": "⚙️ _Versión: $1_\nDesarrollado con ❤️ por [@mralexsaavedra](https://github.com/mralexsaavedra)\n\n¿Tienes sugerencias o has encontrado errores? ¡Contáctame!\n\n🔗 [Ver en DockerHub](https://hub.docker.com/r/mralexsaavedra/spotdl-bot)\n🔗 [Ver en GitHub](https://github.com/mralexsaavedra/spotdl-bot)"
+  "version": "⚙️ _Versión: $1_\nDesarrollado con ❤️ por [@mralexsaavedra](https://mralexsaavedra.com)\n\n¿Tienes sugerencias o has encontrado algún error? No dudes en escribirme.\n\n🔗 [DockerHub](https://hub.docker.com/r/mralexsaavedra/spotdl-bot)\n🔗 [GitHub](https://github.com/mralexsaavedra/spotdl-bot)"
 }
