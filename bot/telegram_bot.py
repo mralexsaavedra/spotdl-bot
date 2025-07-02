@@ -14,7 +14,13 @@ def run_bot():
 
   register_commands(bot)
 
-  starting_message = f"🫡 *{CONTAINER_NAME}\n{get_text('status_active')}*\n_⚙️ v{VERSION}_"
+  starting_message = (
+    f"🚀 *{CONTAINER_NAME}*\n"
+    f"{get_text('status_active')}\n"
+    f"🔧 Ejecutando la versión _v{VERSION}_\n"
+    "🎵 Preparado para gestionar tus descargas desde Spotify."
+  )
+
   send_message(bot, message=starting_message)
 
   bot.infinity_polling()
