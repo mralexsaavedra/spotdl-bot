@@ -22,28 +22,6 @@ Un bot de Telegram que permite descargar canciones, álbumes y playlists de Spot
 
 ---
 
-## 📁 Estructura del proyecto
-
-```
-spotdl-bot/
-├── bot/
-│   ├── commands.py         # Comandos de Telegram
-├── config/
-│   ├── loader.py           # Carga variables desde .env
-├── core/
-│   ├── downloader.py       # Lógica de descarga
-│   └── spotify_auth.py     # OAuth y token handling
-├── data/
-│   └── token/              # Carpeta donde se guarda el token
-├── main.py                 # Punto de entrada del bot
-├── requirements.txt
-├── Dockerfile
-├── docker-compose.yml
-└── .env.example
-```
-
----
-
 ## ⚙️ Instalación
 
 ### 🔧 Local
@@ -51,8 +29,6 @@ spotdl-bot/
 ```bash
 git clone https://github.com/mralexsaavedra/spotdl-bot.git
 cd spotdl-bot
-python3 -m venv venv
-source venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env  # Luego edita con tus datos
 python main.py
@@ -67,7 +43,7 @@ python main.py
 3. Lanza el bot:
 
 ```bash
-docker-compose up --build
+docker compose up -d
 ```
 
 ---
