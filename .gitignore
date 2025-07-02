@@ -16,4 +16,4 @@ __pycache__/
 # Sistema
 .DS_Store
 
-docker-compose.local.yml
+docker-compose.override.yml
