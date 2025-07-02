@@ -52,7 +52,7 @@ def download_liked(bot):
   except Exception as e:
     send_message(bot, message=get_text("error_download_failed"))
 
-def download_saved_albums(bot):
+def download_albums(bot):
   try:
     logger.debug("Downloading saved albums")
     x = send_message(bot, message=get_text("download_in_progress"))

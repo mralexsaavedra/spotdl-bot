@@ -92,14 +92,17 @@ Estas credenciales permiten al bot autenticar solicitudes y acceder a los datos 
 
 ## 📋 Comandos disponibles
 
-| Comando           | Descripción                          |
-|-------------------|------------------------------------|
-| `/start`          | Mostrar menú inicial                |
-| `/authorize`      | Autorizar acceso a Spotify          |
-| `/download`       | Descargar canción/álbum/playlist    |
-| `/downloadliked`  | Descargar canciones favoritas    |
-| `/version`        | Mostrar versión del bot             |
-| `/donate`         | Información para donar              |
+| Comando             | Descripción                                      |
+|---------------------|--------------------------------------------------|
+| `/start`            | Mostrar menú inicial                             |
+| `/authorize`        | Autorizar acceso a Spotify                       |
+| `/download`         | Descargar canción/álbum/playlist                 |
+| `/downloadliked`    | Descargar canciones favoritas                    |
+| `/downloadalbums`   | Descargar todos los álbumes guardados            |
+| `/downloadplaylists`| Descargar todas las playlists guardadas          |
+| `/version`          | Mostrar versión del bot                          |
+| `/donate`           | Información para donar                           |
+
 
 ---
 
