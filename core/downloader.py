@@ -1,18 +1,14 @@
-from core.locale import delete_message, error, get_text, is_valid_url, send_message
+from core.utils import is_spotify_url
+from core.locale import delete_message, get_text, send_message
 import subprocess
-import re
 
 DOWNLOAD_DIR = "/music"
-
-def is_valid_url(url):
-	match = re.match(r"https://open\.spotify\.com/([a-zA-Z0-9]+)", url)
-	return bool(match)
 
 def download(message):
   try:
     url = message.text.strip()
 	
-    if not is_valid_url(url):
+    if not is_spotify_url(url):
       send_message(message=get_text("rejected_url"))
       return
           

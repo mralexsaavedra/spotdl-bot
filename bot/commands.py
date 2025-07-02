@@ -2,6 +2,7 @@ from config.settings import VERSION
 from core.downloader import  download, download_liked_songs
 from core.spotify_auth import get_valid_token
 from core.locale import delete_message, get_text, send_message
+from core.utils import is_spotify_url
 import telebot
 import time
 
@@ -35,7 +36,7 @@ def register_commands(bot):
     time.sleep(45)
     delete_message(x.message_id)
 
-  @bot.message_handler(func=lambda message: message.text.startswith("https://open.spotify.com/"))
+  @bot.message_handler(func=lambda message: is_spotify_url(message.text))
   def process_direct_url(message):
     download(message)
 
