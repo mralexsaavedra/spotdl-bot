@@ -1,6 +1,6 @@
 from config.settings import CONTAINER_NAME, TELEGRAM_GROUP, TELEGRAM_TOKEN, VERSION
 from bot.commands import register_commands
-from core.locale import get_text
+from locale.locale import get_text
 from core.logger import setup_logger
 from core.utils import send_message
 import telebot

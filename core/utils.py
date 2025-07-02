@@ -1,5 +1,5 @@
 from config.settings import TELEGRAM_GROUP
-from core.locale import get_text
+from locale.locale import get_text
 from core.logger import setup_logger
 import re
 

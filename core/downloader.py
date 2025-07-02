@@ -1,6 +1,6 @@
 from config.settings import SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, TOKEN_PATH
 from core.utils import delete_message, is_spotify_url, send_message
-from core.locale import get_text
+from locale.locale import get_text
 import subprocess
 
 DOWNLOAD_DIR = "/music"

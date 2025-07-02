@@ -1,3 +1,4 @@
+import sys
 from core.logger import setup_logger
 import os
 import json
@@ -5,6 +6,10 @@ import json
 LANGUAGE = os.environ.get("LANGUAGE")
 
 logger = setup_logger(__name__)
+
+if LANGUAGE.lower() not in ("es", "en"):
+	logger.error("LANGUAGE only can be ES/EN")
+	sys.exit(1)
 
 def load_locale(locale):
 	with open(f"/app/locale/{locale}.json", "r", encoding="utf-8") as file:
