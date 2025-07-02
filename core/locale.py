@@ -13,10 +13,10 @@ def get_text(key, *args):
 	if key in messages:
 		translated_text = messages[key]
 	else:
-		messages_en = load_locale("en")
-		if key in messages_en:
+		messages_es = load_locale("es")
+		if key in messages_es:
 			logger.warning(f"key ['{key}'] is not in locale {LANGUAGE}")
-			translated_text = messages_en[key]
+			translated_text = messages_es[key]
 		else:
 			logger.error(f"key ['{key}'] is not in locale {LANGUAGE} or EN")
 			return f"key ['{key}'] is not in locale {LANGUAGE} or EN"
