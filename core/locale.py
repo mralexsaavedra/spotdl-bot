@@ -1,6 +1,8 @@
 from config.settings import LANGUAGE
-from logging import error, warning
+from core.logger import setup_logger
 import json
+
+logger = setup_logger(__name__)
 
 def load_locale(locale):
 	with open(f"/app/locale/{locale}.json", "r", encoding="utf-8") as file:
@@ -13,10 +15,10 @@ def get_text(key, *args):
 	else:
 		messages_en = load_locale("en")
 		if key in messages_en:
-			warning(f"key ['{key}'] is not in locale {LANGUAGE}")
+			logger.warning(f"key ['{key}'] is not in locale {LANGUAGE}")
 			translated_text = messages_en[key]
 		else:
-			error(f"key ['{key}'] is not in locale {LANGUAGE} or EN")
+			logger.error(f"key ['{key}'] is not in locale {LANGUAGE} or EN")
 			return f"key ['{key}'] is not in locale {LANGUAGE} or EN"
 
 	for i, arg in enumerate(args, start=1):
