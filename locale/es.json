@@ -1,6 +1,7 @@
 {
   "active": "🟢 Activo",
-  "authorize_success": "✅ Autorización exitosa. El bot ya tiene acceso a tu cuenta de Spotify.\n\nAhora puedes descargar tus canciones favoritas con el comando /download_liked_songs.",
+  "already_authorized": "✅ El bot ya está autorizado para acceder a tu cuenta de Spotify.",
+  "authorize_success": "✅ Autorización exitosa. El bot ya tiene acceso a tu cuenta de Spotify.\n\nAhora puedes descargar tus canciones favoritas con el comando /downloadlikedsongs.",
   "authorize": "Para descargar las canciones que te gustan de Spotify, primero debes autorizar el bot para acceder a tu cuenta de Spotify.\n\n[🔗 Haz click aquí para autorizar]($1)",
   "debug_starting_bot": "Arrancando SpotDl-Bot (v$1)",
   "donate": "Este proyecto es de código abierto y lo realizo en mi tiempo libre. La donación no habilitará ninguna función extra. Es simplemente, una forma ideal de agradecer el trabajo que un proyecto como éste lleva detrás.\nSi deseas hacerlo, [haz click aquí](https://donate.mralexsaavedra.com).\nMil gracias ❤️",
@@ -19,7 +20,7 @@
   "error_unknown_command": "❓ No entiendo el comando. Revisa los comandos disponibles en el menu principal.",
   "menu_authorize": "Autoriza al bot a acceder a tu cuenta de Spotify",
   "menu_donate": "Dona al desarrollador",
-  "menu_download_liked_songs": "Descargar canciones guardadas",
+  "menu_download_liked_songs": "Descargar las canciones que te gustan de Spotify",
   "menu_download": "Descargar",
   "menu_start": "Menú principal",
   "menu_version": "Muestra la versión actual",

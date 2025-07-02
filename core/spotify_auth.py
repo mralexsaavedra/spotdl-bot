@@ -52,7 +52,7 @@ def refresh_token(bot, refresh_token):
   else:
     raise Exception(f"❌ Error al refrescar el token: {r.text}")
   
-def get_new_token(bot, message):
+def get_new_token(message, bot):
   logger.debug("Received new token code")
   code = message.text.strip()
   logger.debug(f"Authorization code: {code}")
@@ -99,5 +99,8 @@ def get_valid_token(bot, message):
   if token:
     if not int(time.time()) < token.get('expires_at', 0):
       refresh_token(bot, refresh_token=token['refresh_token'])
+    else:
+      logger.debug("Token is valid and not expired")
+      send_message(bot, message=get_text("already_authorized"))
   else:
     authorize(bot, message)

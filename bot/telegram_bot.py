@@ -18,4 +18,4 @@ def run_bot():
   starting_message += f"\n_⚙️ v{VERSION}_"
   send_message(bot, message=starting_message)
 
-  bot.infinity_polling(60)
+  bot.infinity_polling()
