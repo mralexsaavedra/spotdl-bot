@@ -1,7 +1,7 @@
 # 🎵 SpotDL Bot
 
 [![GitHub](https://badgen.net/badge/icon/github?icon=github&label)](https://github.com/mralexsaavedra/spotdl-bot)
-[![Docker](https://badgen.net/badge/icon/docker?icon=docker&label)](https://hub.docker.com/r/mralexsaavedra/spotdl-bot)
+[![Docker](https://badgen.net/badge/icon/docker?icon=docker&label)](https://hub.docker.com/r/mralexandersaavedra/spotdl-bot)
 [![Telegram](https://badgen.net/badge/icon/telegram?icon=telegram&label)](https://t.me/spotdl_bot)
 ![GitHub stars](https://badgen.net/github/stars/mralexsaavedra/spotdl-bot)
 ![GitHub forks](https://badgen.net/github/forks/mralexsaavedra/spotdl-bot)
@@ -120,7 +120,7 @@ docker run -d --name spotdl-bot \
   -e SPOTIFY_CLIENT_SECRET="tu_client_secret" \
   -e SPOTIFY_REDIRECT_URI="tu_redirect_uri" \
   -e LANGUAGE="es" \
-  mralexsaavedra/spotdl-bot
+  mralexandersaavedra/spotdl-bot
 ```
 
 ### ⚙️ Opción 2: Usar docker-compose
@@ -134,7 +134,7 @@ version: "3.8"
 
 services:
   spotdl-bot:
-    image: mralexsaavedra/spotdl-bot
+    image: mralexandersaavedra/spotdl-bot
     container_name: spotdl-bot
     env_file: .env
     restart: unless-stopped
