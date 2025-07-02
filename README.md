@@ -42,7 +42,6 @@ Bot de Telegram que permite descargar canciones, álbumes y playlists completas 
 | SPOTIFY\_CLIENT\_ID     | ✅           | Client ID de la aplicación Spotify                                 |
 | SPOTIFY\_CLIENT\_SECRET | ✅           | Client Secret de la aplicación Spotify                             |
 | SPOTIFY\_REDIRECT\_URI  | ✅           | URI de redirección configurada en la app de Spotify                |
-| CONTAINER_NAME          | ✅           | Nombre del contenedor Docker (debe coincidir con docker-compose)   |
 | LANGUAGE                | ❌           | Idioma para el bot (por ejemplo: ES, EN). Por defecto ES           |
 | TZ                      | ❌           | Zona horaria (ejemplo: Europe/Madrid)                              |
 

@@ -1,4 +1,4 @@
-from config.settings import CONTAINER_NAME, TELEGRAM_GROUP, TELEGRAM_TOKEN, VERSION
+from config.settings import TELEGRAM_TOKEN, VERSION
 from bot.commands import register_commands
 from locale.locale import get_text
 from core.logger import setup_logger
@@ -15,7 +15,7 @@ def run_bot():
   register_commands(bot)
 
   starting_message = (
-    f"🚀 *{CONTAINER_NAME}*\n"
+    "🚀 *spotdl-bot*\n"
     f"{get_text('status_active')}\n"
     f"🔧 _v{VERSION}_\n"
   )

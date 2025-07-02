@@ -7,7 +7,6 @@ logger = setup_logger(__name__)
 
 VERSION = "0.0.1"
 TOKEN_PATH = '/cache/token.json'
-CONTAINER_NAME = os.environ.get("CONTAINER_NAME")
 
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
 TELEGRAM_GROUP = os.environ.get("TELEGRAM_GROUP")
@@ -17,9 +16,6 @@ SPOTIFY_CLIENT_ID = os.environ.get("SPOTIFY_CLIENT_ID")
 SPOTIFY_CLIENT_SECRET = os.environ.get("SPOTIFY_CLIENT_SECRET")
 SPOTIFY_REDIRECT_URI = os.environ.get("SPOTIFY_REDIRECT_URI")
 
-if CONTAINER_NAME is None or CONTAINER_NAME == '':
-	logger.error(get_text("error_bot_container_name"))
-	sys.exit(1)
 if TELEGRAM_TOKEN is None or TELEGRAM_TOKEN == '':
 	logger.error(get_text("error_missing_bot_token"))
 	sys.exit(1)
