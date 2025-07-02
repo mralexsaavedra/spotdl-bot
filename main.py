@@ -1,5 +1,5 @@
+from core.spotify_auth import get_valid_token
 from utils import debug, delete_message, get_text, error, send_message
-from spotify_auth import get_valid_token
 import telebot
 import sys
 import subprocess
@@ -16,11 +16,6 @@ TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
 CONTAINER_NAME = os.environ.get("CONTAINER_NAME")
 
 downloadId = None
-
-# Comprobación inicial de variables
-if TELEGRAM_TOKEN is None or TELEGRAM_TOKEN == '':
-	error(get_text("error_bot_token"))
-	sys.exit(1)
 
 # Instanciamos el bot
 bot = telebot.TeleBot(TELEGRAM_TOKEN)

@@ -1,3 +1,4 @@
+from config.settings import SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REDIRECT_URI
 from utils import get_text, error, send_message
 import requests
 import os
@@ -7,21 +8,8 @@ import base64
 import urllib.parse
 import sys
 
-SPOTIFY_CLIENT_ID = os.environ.get("SPOTIFY_CLIENT_ID")
-SPOTIFY_CLIENT_SECRET = os.environ.get("SPOTIFY_CLIENT_SECRET")
-SPOTIFY_REDIRECT_URI = os.environ.get("SPOTIFY_REDIRECT_URI")
 SCOPES="playlist-read-private user-follow-read user-library-read"
 TOKEN_PATH = '/root/.spotdl/.spotipy'
-
-if SPOTIFY_CLIENT_ID is None or SPOTIFY_CLIENT_ID == '':
-	error(get_text("error_bot_spotify_client_id"))
-	sys.exit(1)
-if SPOTIFY_CLIENT_SECRET is None or SPOTIFY_CLIENT_SECRET == '':
-	error(get_text("error_bot_spotify_client_secret"))
-	sys.exit(1)
-if SPOTIFY_REDIRECT_URI is None or SPOTIFY_REDIRECT_URI == '':
-	error(get_text("error_bot_spotify_client_secret"))
-	sys.exit(1)
 
 def save_token(token_data):
   token_data['expires_at'] = int(time.time()) + token_data['expires_in']

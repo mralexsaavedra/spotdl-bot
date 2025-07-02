@@ -1,11 +1,6 @@
 from datetime import datetime
 import json
-import os
-import sys
-
-TELEGRAM_GROUP = os.environ.get("TELEGRAM_GROUP")
-TELEGRAM_ADMIN = os.environ.get("TELEGRAM_ADMIN")
-LANGUAGE = os.environ.get("LANGUAGE")
+from config.settings import LANGUAGE, TELEGRAM_GROUP
 
 def debug(message):
 	print(f'{datetime.now().strftime("%Y-%m-%d %H:%M:%S")} - DEBUG: {message}')
@@ -39,18 +34,6 @@ def get_text(key, *args):
 		translated_text = translated_text.replace(placeholder, str(arg))
 
 	return translated_text
-
-if TELEGRAM_GROUP is None or TELEGRAM_GROUP == '':
-	if len(str(TELEGRAM_ADMIN).split(',')) > 1:
-		error(get_text("error_multiple_admin_only_with_group"))
-		sys.exit(1)
-if TELEGRAM_ADMIN is None or TELEGRAM_ADMIN == '':
-	error(get_text("error_bot_telegram_admin"))
-	sys.exit(1)
-	TELEGRAM_GROUP = TELEGRAM_ADMIN
-if LANGUAGE.lower() not in ("es"):
-	error("LANGUAGE only can be ES")
-	sys.exit(1)
 
 def send_message(chat_id=TELEGRAM_GROUP, message=None, reply_markup=None, parse_mode="markdown", disable_web_page_preview=True):
 	try:
