@@ -33,8 +33,6 @@ Bot de Telegram que permite descargar canciones, álbumes y playlists completas 
 
 ---
 
----
-
 ## 🔑 Variables de entorno
 
 | VARIABLE                | OBLIGATORIO  | DESCRIPCIÓN                                                        |
@@ -152,6 +150,8 @@ docker compose up -d
 ## 🤝 Contribuciones
 
 ¡Las contribuciones son bienvenidas! Abre un issue o pull request para mejorar el proyecto.
+
+---
 
 ## 📝 Licencia
 
