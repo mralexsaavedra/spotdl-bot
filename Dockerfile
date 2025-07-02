@@ -9,6 +9,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-RUN mkdir -p /music /data
+RUN mkdir -p /music /cache
 
 CMD ["python", "main.py"]

@@ -1,4 +1,4 @@
-from config.settings import SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REDIRECT_URI
+from config.settings import SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REDIRECT_URI, TOKEN_PATH
 from core.locale import get_text
 import requests
 import os
@@ -10,7 +10,6 @@ import urllib.parse
 from core.utils import send_message
 
 SCOPES="playlist-read-private user-follow-read user-library-read"
-TOKEN_PATH = '/root/.spotdl/.spotipy'
 
 def save_token(token_data):
   token_data['expires_at'] = int(time.time()) + token_data['expires_in']

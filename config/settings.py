@@ -6,6 +6,7 @@ import sys
 logger = setup_logger(__name__)
 
 VERSION = "0.0.1"
+TOKEN_PATH = '/cache/.spotipy'
 CONTAINER_NAME = os.environ.get("CONTAINER_NAME")
 
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
