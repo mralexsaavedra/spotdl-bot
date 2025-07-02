@@ -1,5 +1,5 @@
 services:
-  spotdl:
+  spotdl-bot:
     build: .
     container_name: spotdl-bot
     volumes:
