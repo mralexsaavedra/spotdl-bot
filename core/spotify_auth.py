@@ -1,12 +1,12 @@
+from bot.telegram_bot import register_next_message
 from config.settings import SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REDIRECT_URI
-from utils import get_text, error, send_message
+from core.locale import get_text, send_message
 import requests
 import os
 import json
 import time
 import base64
 import urllib.parse
-import sys
 
 SCOPES="playlist-read-private user-follow-read user-library-read"
 TOKEN_PATH = '/root/.spotdl/.spotipy'
@@ -39,7 +39,6 @@ def refresh_token(refresh_token):
     new_token = r.json()
     new_token['refresh_token'] = refresh_token  # mantener el mismo si no se devuelve uno nuevo
     save_token(new_token)
-    return new_token
   else:
     raise Exception(f"❌ Error al refrescar el token: {r.text}")
   
@@ -76,16 +75,12 @@ def authorize(message):
   send_message(message=get_text("authorize", auth_url))
   time.sleep(5)
   send_message(message=get_text("redirect_url"))
-  bot.register_next_step_handler(message, get_new_token)
+  register_next_message(message, get_new_token)
 
 def get_valid_token(message):
   token = load_token()
   if token:
-    if int(time.time()) < token.get('expires_at', 0):
-      print("✅ Token válido cargado desde archivo")
-      return token
-    else:
-      print("⏰ Token expirado")
-      return refresh_token(token['refresh_token'])
+    if not int(time.time()) < token.get('expires_at', 0):
+      refresh_token(token['refresh_token'])
   else:
-    return authorize(message)
+    authorize(message)

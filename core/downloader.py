@@ -1,10 +1,21 @@
-from utils import error, get_text, send_message
+from core.locale import delete_message, error, get_text, is_valid_url, send_message
 import subprocess
+import re
 
 DOWNLOAD_DIR = "/music"
 
-def download_from_url(url):
+def is_valid_url(url):
+	match = re.match(r"https://open\.spotify\.com/([a-zA-Z0-9]+)", url)
+	return bool(match)
+
+def download(message):
   try:
+    url = message.text.strip()
+	
+    if not is_valid_url(url):
+      send_message(message=get_text("rejected_url"))
+      return
+          
     if "track" in url:
       output = "{artist}/{artists} - {title}.{output-ext}"
     elif "album" in url:
@@ -15,37 +26,25 @@ def download_from_url(url):
       output = "{artist}/{artists} - {title}.{output-ext}"
     else:
       output = "{artists} - {title}.{output-ext}"
+
+    x = send_message(message=get_text("downloading"))
   
-    p = subprocess.Popen(["spotdl", "download", url, "--output", f'{DOWNLOAD_DIR}/{output}'])
-    
-    global downloadId
-    downloadId = p.pid
-    p.wait()
-    
-    if p.returncode == 0:
-      send_message(message=get_text("download_completed"))
-    else:
-      send_message(message=get_text("download_cancelled"))
-    
-    downloadId = None
-    return None
+    subprocess.run(["spotdl", "download", url, "--output", f'{DOWNLOAD_DIR}/{output}'])
+
+    delete_message(x.message_id)
+    send_message(message=get_text("download_completed"))
   except Exception as e:
-    error(get_text("error_download_with_error", url, e))
-    return get_text("error_download", url)
+    send_message(message=get_text("error_download"))
 
 def download_liked_songs():
   try:
-    output = DOWNLOAD_DIR + "/Liked Songs/{artists} - {title}.{output-ext}" 
-    p = subprocess.Popen(["spotdl", "download", "saved", "--output", output, "--user-auth"])
-    global downloadId
-    downloadId = p.pid
-    p.wait()
-    if p.returncode == 0:
-      send_message(message=get_text("liked_songs_download_completed"))
-    else:
-      send_message(message=get_text("download_cancelled"))
-    downloadId = None
-    return None
+    x = send_message(message=get_text("downloading"))
+    
+    output = "Liked Songs/{artists} - {title}.{output-ext}" 
+    
+    subprocess.run(["spotdl", "download", "saved", "--user-auth", "--output", f'{DOWNLOAD_DIR}/{output}'])
+    
+    delete_message(x.message_id)
+    send_message(message=get_text("download_completed"))
   except Exception as e:
-    error(get_text("liked_songs_error_download_with_error", e))
-    return get_text("liked_songs_error_download")
+    send_message(message=get_text("error_download"))
