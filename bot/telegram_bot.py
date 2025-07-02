@@ -17,8 +17,7 @@ def run_bot():
   starting_message = (
     f"🚀 *{CONTAINER_NAME}*\n"
     f"{get_text('status_active')}\n"
-    f"🔧 Ejecutando la versión _v{VERSION}_\n"
-    "🎵 Preparado para gestionar tus descargas desde Spotify."
+    f"🔧 _v{VERSION}_\n"
   )
 
   send_message(bot, message=starting_message)
