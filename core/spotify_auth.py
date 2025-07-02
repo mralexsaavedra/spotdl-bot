@@ -1,6 +1,5 @@
-from bot.telegram_bot import register_next_message
 from config.settings import SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REDIRECT_URI
-from core.locale import get_text, send_message
+from core.locale import get_text
 import requests
 import os
 import json
@@ -64,7 +63,7 @@ def get_new_token(message):
     raise Exception(f"❌ Error al obtener token: {r.text}")
    
 
-def authorize(message):
+def authorize(bot, message):
   params = {
     'client_id': SPOTIFY_CLIENT_ID,
     'response_type': 'code',
@@ -72,15 +71,15 @@ def authorize(message):
     'scope': SCOPES
   }
   auth_url = f"https://accounts.spotify.com/authorize?{urllib.parse.urlencode(params)}"
-  send_message(message=get_text("authorize", auth_url))
+  bot.send_message(chat_id=message.chat.id, message=get_text("authorize", auth_url))
   time.sleep(5)
-  send_message(message=get_text("redirect_url"))
-  register_next_message(message, get_new_token)
+  bot.send_message(chat_id=message.chat.id, message=get_text("redirect_url"))
+  bot.register_next_step_handler(message, get_new_token)
 
-def get_valid_token(message):
+def get_valid_token(bot, message):
   token = load_token()
   if token:
     if not int(time.time()) < token.get('expires_at', 0):
       refresh_token(token['refresh_token'])
   else:
-    authorize(message)
+    authorize(bot, message)

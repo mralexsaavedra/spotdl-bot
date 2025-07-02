@@ -22,6 +22,6 @@
   "menu_version": "Muestra la versión actual",
   "menu": "*🎙️ SpotDl Bot: Descarga tus canciones, albumnes, artistas o playlists de Spotify.*\n\nComandos disponibles:\n\n · /authorize Autoriza a este bot a tener acceso a Spotify para poder descargar las caciones que te gustas o sincronizar tus playlists.\n · /download Descarga una canción, album, artista o playlist mediante una URL de Spotify.\n · /download_liked_songs Descarga las canciones que te gustan de Spotify.\n · /version Muestra la versión actual.\n · /donate Dona al desarrollador.\n\nℹ️ También puedes poner directamente una URL de Spotify de esa canción, album, artista o playlist que quieras descargar.",
   "redirect_url": "⬇️ Ahora, por favor, pega el 'code' que aparece en la URL a la que has sido redirigido.",
-  "rejected_url": "❌ La URL introducida no es válida. Por favor, introduce una URL válida de Spotify.",
+  "not_spotify_url": "❌ La URL introducida no es una URL de Spotify válida. Por favor, introduce una URL de Spotify.",
   "version": "⚙️ _Versión: $1_\nDesarrollado con ❤️ por @mralexsaavedra\n\nSi encuentras cualquier fallo o sugerencia contáctame.\n\nPuedes encontrar todo lo relacionado con este bot en [DockerHub](https://hub.docker.com/r/mralexsaavedra/spotdl-bot) o en [GitHub](https://github.com/mralexsaavedra/spotdl-bot)."
 }
