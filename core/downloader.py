@@ -65,3 +65,17 @@ def download_saved_albums(bot):
     send_message(bot, message=get_text("download_finished"))
   except Exception as e:
     send_message(bot, message=get_text("error_download_failed"))
+
+def download_playlists(bot):
+  try:
+    logger.debug("Downloading playlists")
+    x = send_message(bot, message=get_text("download_in_progress"))
+    
+    output = "Playlists/{list-name}/{artists} - {title}.{output-ext}"
+    
+    subprocess.run(["spotdl", "download", "all-user-playlists", "--user-auth", "--output", f'{DOWNLOAD_DIR}/{output}', "--client-id", SPOTIFY_CLIENT_ID, "--client-secret", SPOTIFY_CLIENT_SECRET, "--cache-path", TOKEN_PATH])
+    
+    delete_message(bot, message_id=x.message_id)
+    send_message(bot, message=get_text("download_finished"))
+  except Exception as e:
+    send_message(bot, message=get_text("error_download_failed"))

@@ -1,5 +1,5 @@
 from config.settings import VERSION
-from core.downloader import  download, download_liked, download_saved_albums
+from core.downloader import  download, download_liked, download_playlists, download_saved_albums
 from core.spotify_auth import get_valid_token, load_token
 from locale.locale import get_text
 from core.utils import delete_message, is_spotify_url, send_message
@@ -35,6 +35,14 @@ def register_commands(bot):
       return
     download_saved_albums(bot)
 
+  @bot.message_handler(commands=['downloadplaylists'])
+  def download_playlists_command(message):
+    token = load_token()
+    if not token:
+      send_message(bot, message=get_text("error_no_valid_token"))
+      return
+    download_playlists(bot)
+
   @bot.message_handler(commands=['version'])
   def version_command(message):
     x = send_message(bot, message=get_text("bot_version_info", VERSION))
@@ -61,6 +69,7 @@ def register_commands(bot):
 		telebot.types.BotCommand("/download", get_text("menu_option_download_url")),
 		telebot.types.BotCommand("/downloadliked", get_text("menu_option_download_liked")),
     telebot.types.BotCommand("/downloadsavedalbums", get_text("menu_option_download_saved_albums")),
+    telebot.types.BotCommand("/downloadplaylists", get_text("menu_option_download_playlists")),
 		telebot.types.BotCommand("/version", get_text("menu_option_version")),
 		telebot.types.BotCommand("/donate", get_text("menu_option_donate")),
 	])
