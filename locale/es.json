@@ -1,6 +1,7 @@
 {
   "active": "🟢 Activo",
   "authorize": "Para descargar las canciones que te gustan de Spotify, primero debes autorizar el bot para acceder a tu cuenta de Spotify.\n\n[🔗 Haz click aquí para autorizar]($1)",
+  "debug_starting_bot": "Arrancando SpotDl-Bot (v$1)",
   "donate": "Este proyecto es de código abierto y lo realizo en mi tiempo libre. La donación no habilitará ninguna función extra. Es simplemente, una forma ideal de agradecer el trabajo que un proyecto como éste lleva detrás.\nSi deseas hacerlo, [haz click aquí](https://donate.mralexsaavedra.com).\nMil gracias ❤️",
   "download_completed": "✅ La descarga se ha completado correctamente.",
   "download_url": "🔗 Introduce la URL de Spotify de la canción, album, artista o playlist que quieras descargar.",

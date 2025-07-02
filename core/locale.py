@@ -1,6 +1,8 @@
-from config.settings import LANGUAGE
 from core.logger import setup_logger
+import os
 import json
+
+LANGUAGE = os.environ.get("LANGUAGE")
 
 logger = setup_logger(__name__)
 

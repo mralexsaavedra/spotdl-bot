@@ -9,7 +9,7 @@ import time
 def register_commands(bot):
   @bot.message_handler(commands=['start'])
   def start_command(message):
-    bot.send_message(chat_id=message.chat.id, message=get_text("menu"))
+    bot.send_message(message.chat.id, get_text("menu"))
 
   @bot.message_handler(commands=['authorize'])
   def authorize_command(message):
@@ -17,27 +17,27 @@ def register_commands(bot):
 
   @bot.message_handler(commands=['download'])
   def download_command(message):
-    bot.send_message(chat_id=message.chat.id, message=get_text("download_url"))
+    bot.send_message(message.chat.id, get_text("download_url"))
 
   @bot.message_handler(commands=['download_liked_songs'])
   def download_liked_songs_command(message):
     token = load_token()
     if not token:
-      bot.send_message(chat_id=message.chat.id, message=get_text("error_no_token"))
+      bot.send_message(message.chat.id, get_text("error_no_token"))
       return
     download_liked_songs(bot, message)
 
   @bot.message_handler(commands=['version'])
   def version_command(message):
-    x = bot.send_message(chat_id=message.chat.id, message=get_text("version", VERSION))
+    x = bot.send_message(message.chat.id, get_text("version", VERSION))
     time.sleep(15)
-    bot.delete_message(chat_id=message.chat.id, message=x.message_id)
+    bot.delete_message(message.chat.id, x.message_id)
 
   @bot.message_handler(commands=['donate'])
   def donate_command(message):
-    x = bot.send_message(chat_id=message.chat.id, message=get_text("donate"))
+    x = bot.send_message(message.chat.id, get_text("donate"))
     time.sleep(45)
-    bot.delete_message(chat_id=message.chat.id, message=x.message_id)
+    bot.delete_message(message.chat.id, x.message_id)
 
   @bot.message_handler(func=lambda message: is_spotify_url(message.text))
   def process_direct_url(message):
