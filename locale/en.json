@@ -22,11 +22,11 @@
   "error_unknown_command": "❓ I don't recognize that command. Use /start to see available commands.",
   "log_bot_start": "🔧 Starting SpotDL Bot (v$1)",
   "menu_main": "*🎙️ SpotDL Bot*\nDownload songs, albums, artists, or playlists directly from Spotify.\n\n📌 *Available commands:*\n\n• `/authorize` – Authorize the bot to access your Spotify account. Required to download your liked songs or sync your playlists.\n• `/download` – Download a song, album, artist, or playlist via a Spotify URL.\n• `/downloadliked` – Automatically download all your liked songs.\n• `/version` – Show the current bot version.\n• `/donate` – Support development with a donation.\n\nℹ️ *Tip:* You can also send a Spotify URL directly to download it automatically.",
-  "menu_option_authorize": "Authorize Spotify Access",
-  "menu_option_donate": "Donate to Developer",
-  "menu_option_download_liked": "Download Liked Songs",
-  "menu_option_download_url": "Download by URL",
-  "menu_option_start": "Main Menu",
-  "menu_option_version": "Show Current Version",
+  "menu_option_authorize": "Authorize Spotify access",
+  "menu_option_donate": "Support the project with a donation",
+  "menu_option_download_liked": "Download all your liked songs from Spotify",
+  "menu_option_download_url": "Download a song, album, or playlist from a URL",
+  "menu_option_start": "Show the main menu",
+  "menu_option_version": "Show the current bot version",
   "status_active": "🟢 Active"
 }
