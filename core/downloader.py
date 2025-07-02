@@ -1,3 +1,4 @@
+from config.settings import SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET
 from core.utils import is_spotify_url
 from core.locale import get_text
 import subprocess
@@ -25,7 +26,7 @@ def download(bot, message):
 
     x = bot.send_message(message.chat.id, get_text("downloading"))
   
-    subprocess.run(["spotdl", "download", url, "--output", f'{DOWNLOAD_DIR}/{output}'])
+    subprocess.run(["spotdl", "download", url, "--output", f'{DOWNLOAD_DIR}/{output}', "--client-id", SPOTIFY_CLIENT_ID, "--client-secret", SPOTIFY_CLIENT_SECRET])
 
     bot.delete_message(x.message_id)
     bot.send_message(message.chat.id, get_text("download_completed"))
@@ -38,7 +39,7 @@ def download_liked_songs(bot, message):
     
     output = "Liked Songs/{artists} - {title}.{output-ext}" 
     
-    subprocess.run(["spotdl", "download", "saved", "--user-auth", "--output", f'{DOWNLOAD_DIR}/{output}'])
+    subprocess.run(["spotdl", "download", "saved", "--user-auth", "--output", f'{DOWNLOAD_DIR}/{output}', "--client-id", SPOTIFY_CLIENT_ID, "--client-secret", SPOTIFY_CLIENT_SECRET])
     
     bot.delete_message(x.message_id)
     bot.send_message(message.chat.id, get_text("download_completed"))
