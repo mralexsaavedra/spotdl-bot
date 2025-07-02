@@ -1,15 +1,15 @@
 FROM python:3.11-slim
 
-WORKDIR /app
+RUN apt-get update && \
+    apt-get install -y ffmpeg curl && \
+    rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt .
+WORKDIR /app
+COPY . /app
+
 RUN pip install --no-cache-dir -r requirements.txt
 
-RUN apt-get update && apt-get install -y ffmpeg
-
-COPY . .
-
-RUN mkdir /music
-VOLUME /music
+RUN mkdir -p /music
+RUN mkdir -p /data
 
 CMD ["python", "main.py"]

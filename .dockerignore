@@ -1,4 +1,13 @@
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+.Python
+.env
 .env.*
-config
+*.env
+data/
+venv/
+build/
+dist/
+docker-compose.local.yml
