@@ -1,8 +1,7 @@
+from core.locale import get_text
 from logging import error
 import os
 import sys
-
-from core.locale import get_text
 
 VERSION = "v0.0.1"
 CONTAINER_NAME = os.environ.get("CONTAINER_NAME")

@@ -1,6 +1,6 @@
 from config.settings import VERSION
 from core.downloader import  download, download_liked_songs
-from core.spotify_auth import get_valid_token
+from core.spotify_auth import get_valid_token, load_token
 from core.locale import delete_message, get_text, send_message
 from core.utils import is_spotify_url
 import telebot
@@ -22,6 +22,10 @@ def register_commands(bot):
 
   @bot.message_handler(commands=['download_liked_songs'])
   def download_liked_songs_command(message):
+    token = load_token()
+    if not token:
+      send_message(message=get_text("error_no_token"))
+      return
     download_liked_songs()
 
   @bot.message_handler(commands=['version'])
