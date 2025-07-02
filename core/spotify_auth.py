@@ -48,7 +48,7 @@ def refresh_token(bot, refresh_token):
     logger.debug(f"New token received: {new_token}")
     new_token['refresh_token'] = refresh_token  # mantener el mismo si no se devuelve uno nuevo
     save_token(new_token)
-    send_message(bot, message=get_text("refresh_token_success"))
+    send_message(bot, message=get_text("auth_token_refreshed"))
   else:
     raise Exception(f"❌ Error al refrescar el token: {r.text}")
   
@@ -73,7 +73,7 @@ def get_new_token(message, bot):
     token = r.json()
     logger.debug(f"Token received: {token}")
     save_token(token)
-    send_message(bot, message=get_text("authorize_success"))
+    send_message(bot, message=get_text("auth_success"))
   else:
     raise Exception(f"❌ Error al obtener token: {r.text}")
    
@@ -88,9 +88,9 @@ def authorize(bot, message):
   }
   auth_url = f"https://accounts.spotify.com/authorize?{urllib.parse.urlencode(params)}"
   logger.debug(f"Authorization URL: {auth_url}")
-  send_message(bot, message=get_text("authorize", auth_url))
+  send_message(bot, message=get_text("auth_request", auth_url))
   time.sleep(5)
-  send_message(bot, message=get_text("redirect_url"))
+  send_message(bot, message=get_text("auth_redirect_prompt"))
   bot.register_next_step_handler(message, get_new_token, bot)
 
 def get_valid_token(bot, message):
@@ -101,6 +101,6 @@ def get_valid_token(bot, message):
       refresh_token(bot, refresh_token=token['refresh_token'])
     else:
       logger.debug("Token is valid and not expired")
-      send_message(bot, message=get_text("already_authorized"))
+      send_message(bot, message=get_text("auth_already_done"))
   else:
     authorize(bot, message)

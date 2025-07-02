@@ -21,22 +21,22 @@ if CONTAINER_NAME is None or CONTAINER_NAME == '':
 	logger.error(get_text("error_bot_container_name"))
 	sys.exit(1)
 if TELEGRAM_TOKEN is None or TELEGRAM_TOKEN == '':
-	logger.error(get_text("error_bot_token"))
+	logger.error(get_text("error_missing_bot_token"))
 	sys.exit(1)
 if TELEGRAM_ADMIN is None or TELEGRAM_ADMIN == '':
-	logger.error(get_text("error_bot_telegram_admin"))
+	logger.error(get_text("error_missing_admin_id"))
 	sys.exit(1)
 if TELEGRAM_GROUP is None or TELEGRAM_GROUP == '':
 	if len(str(TELEGRAM_ADMIN).split(',')) > 1:
-		logger.error(get_text("error_multiple_admin_only_with_group"))
+		logger.error(get_text("error_admins_group_only"))
 		sys.exit(1)
 	TELEGRAM_GROUP = TELEGRAM_ADMIN
 if SPOTIFY_CLIENT_ID is None or SPOTIFY_CLIENT_ID == '':
-	logger.error(get_text("error_bot_spotify_client_id"))
+	logger.error(get_text("error_missing_client_id"))
 	sys.exit(1)
 if SPOTIFY_CLIENT_SECRET is None or SPOTIFY_CLIENT_SECRET == '':
-	logger.error(get_text("error_bot_spotify_client_secret"))
+	logger.error(get_text("error_missing_client_secret"))
 	sys.exit(1)
 if SPOTIFY_REDIRECT_URI is None or SPOTIFY_REDIRECT_URI == '':
-	logger.error(get_text("error_bot_spotify_redirect_uri"))
+	logger.error(get_text("error_missing_redirect_uri"))
 	sys.exit(1)

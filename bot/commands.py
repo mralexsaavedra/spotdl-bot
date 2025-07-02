@@ -9,7 +9,7 @@ import time
 def register_commands(bot):
   @bot.message_handler(commands=['start'])
   def start_command(message):
-    send_message(bot, message=get_text("menu"))
+    send_message(bot, message=get_text("menu_main"))
 
   @bot.message_handler(commands=['authorize'])
   def authorize_command(message):
@@ -17,25 +17,25 @@ def register_commands(bot):
 
   @bot.message_handler(commands=['download'])
   def download_command(message):
-    send_message(bot, message=get_text("download_url"))
+    send_message(bot, message=get_text("download_prompt_url"))
 
   @bot.message_handler(commands=['downloadlikedsongs'])
   def download_liked_songs_command(message):
     token = load_token()
     if not token:
-      send_message(bot, message=get_text("error_no_token"))
+      send_message(bot, message=get_text("error_no_valid_token"))
       return
     download_liked_songs(bot, message)
 
   @bot.message_handler(commands=['version'])
   def version_command(message):
-    x = send_message(bot, message=get_text("version", VERSION))
+    x = send_message(bot, message=get_text("bot_version_info", VERSION))
     time.sleep(15)
     delete_message(bot, message_id=x.message_id)
 
   @bot.message_handler(commands=['donate'])
   def donate_command(message):
-    x = send_message(bot, message=get_text("donate"))
+    x = send_message(bot, message=get_text("donation_message"))
     time.sleep(45)
     delete_message(bot, message_id=x.message_id)
 
@@ -48,10 +48,10 @@ def register_commands(bot):
     bot.reply_to(message, get_text("error_unknown_command"))
 
   bot.set_my_commands([
-		telebot.types.BotCommand("/start", get_text("menu_start")),
-    telebot.types.BotCommand("/authorize", get_text("menu_authorize")),
-		telebot.types.BotCommand("/download", get_text("menu_download")),
-		telebot.types.BotCommand("/downloadlikedsongs", get_text("menu_download_liked_songs")),
-		telebot.types.BotCommand("/version", get_text("menu_version")),
-		telebot.types.BotCommand("/donate", get_text("menu_donate")),
+		telebot.types.BotCommand("/start", get_text("menu_option_start")),
+    telebot.types.BotCommand("/authorize", get_text("menu_option_authorize")),
+		telebot.types.BotCommand("/download", get_text("menu_option_download_url")),
+		telebot.types.BotCommand("/downloadlikedsongs", get_text("menu_option_download_liked")),
+		telebot.types.BotCommand("/version", get_text("menu_option_version")),
+		telebot.types.BotCommand("/donate", get_text("menu_option_donate")),
 	])
