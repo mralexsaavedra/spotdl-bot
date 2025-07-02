@@ -1,6 +1,6 @@
 services:
   spotdl-bot:
-    image: mralexsaavedra/spotdl-bot:latest
+    build: .
     container_name: spotdl-bot
     volumes:
       - ./music:/music # CAMBIA ESTA RUTA A TU DIRECTORIO DE MÚSICA
