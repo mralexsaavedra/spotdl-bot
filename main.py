@@ -1,76 +1,18 @@
+from config.settings import CONTAINER_NAME, TELEGRAM_TOKEN
+from core.downloader import download_from_url, download_liked_songs
 from core.spotify_auth import get_valid_token
 from utils import debug, delete_message, get_text, error, send_message
 import telebot
-import sys
-import subprocess
 import os
 import re
 import time
 
 VERSION = "0.0.1"
-DOWNLOAD_DIR = "/music"
-REDIRECT_URI = "http://127.0.0.1:9900/"
-SCOPES="playlist-read-private user-follow-read user-library-read"
-
-TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
-CONTAINER_NAME = os.environ.get("CONTAINER_NAME")
 
 downloadId = None
 
 # Instanciamos el bot
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
-
-class SpotDl:
-	def download(self, url):
-		try:
-			output = download_output(url)
-			p = subprocess.Popen(["spotdl", "download", url, "--output", output])
-			global downloadId
-			downloadId = p.pid
-			p.wait()
-			if p.returncode == 0:
-				send_message(message=get_text("download_completed"))
-			else:
-				send_message(message=get_text("download_cancelled"))
-			downloadId = None
-			return None
-		except Exception as e:
-			error(get_text("error_download_with_error", url, e))
-			return get_text("error_download", url)
-	
-	def download_liked_songs(self):
-		try:
-			output = DOWNLOAD_DIR + "/Liked Songs/{artists} - {title}.{output-ext}" 
-			p = subprocess.Popen(["spotdl", "download", "saved", "--output", output, "--user-auth"])
-			global downloadId
-			downloadId = p.pid
-			p.wait()
-			if p.returncode == 0:
-				send_message(message=get_text("liked_songs_download_completed"))
-			else:
-				send_message(message=get_text("download_cancelled"))
-			downloadId = None
-			return None
-		except Exception as e:
-			error(get_text("liked_songs_error_download_with_error", e))
-			return get_text("liked_songs_error_download")
-
-# Instanciamos el SpotDl
-spotdl = SpotDl()
-
-def download_output(url):
-	output = DOWNLOAD_DIR
-	if "track" in url:
-		output += "/{artist}/{artists} - {title}.{output-ext}"
-	elif "album" in url:
-		output += "/{album-artist}/{album}/{artists} - {title}.{output-ext}"
-	elif "playlist" in url:
-		output += "/Playlists/{list-name}/{artists} - {title}.{output-ext}"
-	elif "artist" in url:
-		output += "/{artist}/{artists} - {title}.{output-ext}"
-	else:
-		output += "/{artists} - {title}.{output-ext}"
-	return output
 
 def is_valid_url(url):
 	match = re.match(r"https://open\.spotify\.com/([a-zA-Z0-9]+)", url)
@@ -78,12 +20,13 @@ def is_valid_url(url):
 
 def download(message):
 	url = message.text.strip()
+	
 	if not is_valid_url(url):
 		send_message(message=get_text("rejected_url"))
 		return
 
 	x = send_message(message=get_text("downloading"))
-	result = spotdl.download(url=url)
+	result = download_from_url(url=url)
 	delete_message(x.message_id)
 	if result:
 		send_message(message=result)
@@ -104,7 +47,7 @@ def download_command(message):
 @bot.message_handler(commands=['download_liked_songs'])
 def download_liked_songs_command(message):
 	x = send_message(message=get_text("downloading"))
-	result = spotdl.download_liked_songs()
+	result = download_liked_songs()
 	delete_message(x.message_id)
 	if result:
 		send_message(message=result)
