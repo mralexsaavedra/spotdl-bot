@@ -4,7 +4,7 @@ services:
     container_name: spotdl-bot
     volumes:
       - ./music:/music # CAMBIA ESTA RUTA A TU DIRECTORIO DE MÚSICA
-      - ./spotdl-bot/data:/root/.spotdl/.spotipy # CAMBIA ESTA RUTA A TU DIRECTORIO
+      - ./data:/root/.spotdl # CAMBIA ESTA RUTA A TU DIRECTORIO
     environment:
       - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
       - TELEGRAM_ADMIN=${TELEGRAM_ADMIN}
