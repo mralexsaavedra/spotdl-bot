@@ -1,11 +1,5 @@
 # 🎵 SpotDL Bot
 
-![Spotify Logo](https://upload.wikimedia.org/wikipedia/commons/2/26/Spotify_logo_with_text.svg)
-
-[![Python](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/)
-[![License](https://img.shields.io/github/license/mralexsaavedra/spotdl-bot)](LICENSE)
-[![Version](https://img.shields.io/github/v/release/mralexsaavedra/spotdl-bot)](https://github.com/mralexsaavedra/spotdl-bot/releases)
-
 [![GitHub](https://badgen.net/badge/icon/github?icon=github&label)](https://github.com/mralexsaavedra/spotdl-bot)
 [![Docker](https://badgen.net/badge/icon/docker?icon=docker&label)](https://hub.docker.com/r/mralexsaavedra/spotdl-bot)
 [![Telegram](https://badgen.net/badge/icon/telegram?icon=telegram&label)](https://t.me/spotdl_bot)
@@ -13,6 +7,7 @@
 ![GitHub forks](https://badgen.net/github/forks/mralexsaavedra/spotdl-bot)
 ![GitHub last-commit](https://badgen.net/github/last-commit/mralexsaavedra/spotdl-bot)
 ![License](https://badgen.net/github/license/mralexsaavedra/spotdl-bot)
+[![Version](https://img.shields.io/github/v/release/mralexsaavedra/spotdl-bot)](https://github.com/mralexsaavedra/spotdl-bot/releases)
 
 Bot de Telegram que permite descargar canciones, álbumes y playlists completas de Spotify de forma rápida y sencilla, utilizando la potencia de [spotDL](https://github.com/spotDL/spotify-downloader).
 
