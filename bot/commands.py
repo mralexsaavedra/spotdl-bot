@@ -19,7 +19,7 @@ def register_commands(bot):
   def download_command(message):
     send_message(bot, message=get_text("download_prompt_url"))
 
-  @bot.message_handler(commands=['downloadlikedsongs'])
+  @bot.message_handler(commands=['downloadliked'])
   def download_liked_songs_command(message):
     token = load_token()
     if not token:
@@ -51,7 +51,7 @@ def register_commands(bot):
 		telebot.types.BotCommand("/start", get_text("menu_option_start")),
     telebot.types.BotCommand("/authorize", get_text("menu_option_authorize")),
 		telebot.types.BotCommand("/download", get_text("menu_option_download_url")),
-		telebot.types.BotCommand("/downloadlikedsongs", get_text("menu_option_download_liked")),
+		telebot.types.BotCommand("/downloadliked", get_text("menu_option_download_liked")),
 		telebot.types.BotCommand("/version", get_text("menu_option_version")),
 		telebot.types.BotCommand("/donate", get_text("menu_option_donate")),
 	])
