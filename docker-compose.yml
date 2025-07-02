@@ -4,6 +4,7 @@ services:
     container_name: spotdl-bot
     volumes:
       - /Users/mralexsaavedra/Music:/music
+      - /Users/mralexsaavedra/Developer/spotdl-bot/config:/root/.spotdl/.spotipy
     environment:
       - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
       - TELEGRAM_ADMIN=${TELEGRAM_ADMIN}
