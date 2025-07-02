@@ -1,5 +1,6 @@
 {
   "active": "🟢 Activo",
+  "authorize_success": "✅ Autorización exitosa. El bot ya tiene acceso a tu cuenta de Spotify.\n\nAhora puedes descargar tus canciones favoritas con el comando /download_liked_songs.",
   "authorize": "Para descargar las canciones que te gustan de Spotify, primero debes autorizar el bot para acceder a tu cuenta de Spotify.\n\n[🔗 Haz click aquí para autorizar]($1)",
   "debug_starting_bot": "Arrancando SpotDl-Bot (v$1)",
   "donate": "Este proyecto es de código abierto y lo realizo en mi tiempo libre. La donación no habilitará ninguna función extra. Es simplemente, una forma ideal de agradecer el trabajo que un proyecto como éste lleva detrás.\nSi deseas hacerlo, [haz click aquí](https://donate.mralexsaavedra.com).\nMil gracias ❤️",
@@ -25,5 +26,6 @@
   "menu": "*🎙️ SpotDl Bot: Descarga tus canciones, albumnes, artistas o playlists de Spotify.*\n\nComandos disponibles:\n\n · /authorize Autoriza a este bot a tener acceso a Spotify para poder descargar las caciones que te gustas o sincronizar tus playlists.\n · /download Descarga una canción, album, artista o playlist mediante una URL de Spotify.\n · /download_liked_songs Descarga las canciones que te gustan de Spotify.\n · /version Muestra la versión actual.\n · /donate Dona al desarrollador.\n\nℹ️ También puedes poner directamente una URL de Spotify de esa canción, album, artista o playlist que quieras descargar.",
   "not_spotify_url": "❌ La URL introducida no es una URL de Spotify válida. Por favor, introduce una URL de Spotify.",
   "redirect_url": "⬇️ Ahora, por favor, pega el 'code' que aparece en la URL a la que has sido redirigido.",
+  "refresh_token_success": "✅ El token se ha refrescado correctamente.",
   "version": "⚙️ _Versión: $1_\nDesarrollado con ❤️ por @mralexsaavedra\n\nSi encuentras cualquier fallo o sugerencia contáctame.\n\nPuedes encontrar todo lo relacionado con este bot en [DockerHub](https://hub.docker.com/r/mralexsaavedra/spotdl-bot) o en [GitHub](https://github.com/mralexsaavedra/spotdl-bot)."
 }
