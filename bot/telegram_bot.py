@@ -15,10 +15,12 @@ def run_bot():
   register_commands(bot)
 
   starting_message = (
-    "🚀 *spotdl-bot*\n"
-    f"{get_text('status_active')}\n"
-    f"🔧 _v{VERSION}_\n"
-  )
+    f"{get_text("bot_started_title")}\n"
+    f"{get_text("status_active")}\n"
+    f"{get_text('bot_version_label', VERSION)}\n\n"
+    f"{get_text('bot_description')}"
+)
+
 
   send_message(bot, message=starting_message)
 

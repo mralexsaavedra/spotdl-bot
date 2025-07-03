@@ -4,7 +4,11 @@
   "auth_request": "Para descargar tus canciones favoritas, primero necesitas autorizar al bot a acceder a tu cuenta de Spotify.\n\n[🔗 Haz clic aquí para autorizar]($1)",
   "auth_success": "✅ Autorización completada con éxito.\n\nAhora puedes usar el comando /downloadliked para descargar tus canciones favoritas, /downloadalbums para descargar tus álbumes guardados, o /downloadplaylists para tus playlists guardadas.",
   "auth_token_refreshed": "✅ Token actualizado correctamente.",
+  "bot_description": "Usa /start para ver el menú.\n🎧 ¡Listo para descargar música desde Spotify!",
+  "bot_started_title": "🚀 *SpotDL Bot iniciado*",
+  "bot_status_label": "🟢 *Estado:* Activo",
   "bot_version_info": "⚙️ _Versión: $1_\nDesarrollado con ❤️ por [@mralexsaavedra](https://mralexsaavedra.com)\n\n¿Tienes sugerencias o has encontrado algún error? ¡No dudes en contactarme!\n\n🔗 [DockerHub](https://hub.docker.com/r/mralexandersaavedra/spotdl-bot)\n🔗 [GitHub](https://github.com/mralexsaavedra/spotdl-bot)",
+  "bot_version_label": "🔧 *Versión:* _v{$1}_",
   "donation_message": "Este bot es un proyecto de código abierto que mantengo con mucho cariño en mi tiempo libre. No hay funciones premium ni pagos ocultos, solo mucho esfuerzo detrás. Si valoras el proyecto y quieres apoyar su desarrollo, puedes hacerlo con una donación.\n\n[Haz tu aporte aquí](https://coff.ee/mralexsaavedra)\n¡Gracias por tu apoyo! ❤️",
   "download_finished": "✅ Descarga completada correctamente.",
   "download_in_progress": "⏳ Descargando...",
@@ -25,11 +29,10 @@
   "menu_main": "*🎙️ SpotDL Bot*\nDescarga canciones, álbumes, artistas o playlists directamente desde Spotify.\n\n📌 *Comandos disponibles:*\n\n• `/authorize` – Autoriza al bot para acceder a tu cuenta de Spotify. Necesario para descargar tus canciones favoritas o sincronizar tus playlists.\n• `/download` – Descarga una canción, álbum, artista o playlist mediante una URL de Spotify.\n• `/downloadliked` – Descarga automáticamente todas las canciones que te gustan.\n• `/downloadalbums` – Descarga automáticamente todos los álbumes guardados en tu biblioteca de Spotify.\n• `/downloadplaylists` – Descarga automáticamente todas las playlists guardadas en tu biblioteca de Spotify.\n• `/version` – Muestra la versión actual del bot.\n• `/donate` – Apoya el desarrollo con una donación.\n\nℹ️ *Tip:* También puedes enviar directamente una URL de Spotify para descargarla automáticamente.",
   "menu_option_authorize": "Autorizar acceso a Spotify",
   "menu_option_donate": "Apoyar el proyecto con una donación",
+  "menu_option_download_albums": "Descargar tus álbumes guardados de Spotify",
   "menu_option_download_liked": "Descargar todas tus canciones favoritas de Spotify",
   "menu_option_download_playlists": "Descargar todas tus playlists guardadas de Spotify",
-  "menu_option_download_albums": "Descargar tus álbumes guardados de Spotify",
   "menu_option_download_url": "Descargar canción, álbum o playlist desde una URL",
   "menu_option_start": "Mostrar el menú principal",
-  "menu_option_version": "Mostrar la versión actual del bot",
-  "status_active": "🟢 Activo"
+  "menu_option_version": "Mostrar la versión actual del bot"
 }
