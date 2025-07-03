@@ -93,14 +93,18 @@ def authorize(bot, message):
   send_message(bot, message=get_text("auth_redirect_prompt"))
   bot.register_next_step_handler(message, get_new_token, bot)
 
-def get_valid_token(bot, message):
-  token = load_token()
-  logger.debug(f"Token loaded: {token}")
-  if token:
-    if not int(time.time()) < token.get('expires_at', 0):
-      refresh_token(bot, refresh_token=token['refresh_token'])
+def auth(bot, message):
+  try:
+    token = load_token()
+    logger.debug(f"Token loaded: {token}")
+    if token and token.get('refresh_token'):
+      if not int(time.time()) < token.get('expires_at', 0):
+        refresh_token(bot, refresh_token=token['refresh_token'])
+      else:
+        logger.debug("Token is valid and not expired")
+        send_message(bot, message=get_text("auth_already_done"))
     else:
-      logger.debug("Token is valid and not expired")
-      send_message(bot, message=get_text("auth_already_done"))
-  else:
-    authorize(bot, message)
+      authorize(bot, message)
+  except Exception as e:
+    logger.error(f"Error in auth: {e}")
+    send_message(bot, message=get_text("error_auth_failed"))

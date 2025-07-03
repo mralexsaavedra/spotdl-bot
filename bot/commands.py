@@ -1,6 +1,6 @@
 from config.settings import VERSION
 from core.downloader import  download, download_liked, download_playlists, download_albums
-from core.spotify_auth import get_valid_token, load_token
+from core.spotify_auth import auth, load_token
 from locale.locale import get_text
 from core.utils import delete_message, is_spotify_url, send_message
 import telebot
@@ -13,7 +13,7 @@ def register_commands(bot):
 
   @bot.message_handler(commands=['authorize'])
   def authorize_command(message):
-    get_valid_token(bot, message)
+    auth(bot, message)
 
   @bot.message_handler(commands=['download'])
   def download_command(message):
