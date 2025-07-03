@@ -5,7 +5,7 @@ import sys
 
 logger = setup_logger(__name__)
 
-VERSION = "1.0.0"
+VERSION = "0.1.0"
 TOKEN_PATH = '/cache/token.json'
 
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
