@@ -26,11 +26,13 @@ SPOTIFY_CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
 SPOTIFY_CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
 SPOTIFY_REDIRECT_URI = os.getenv("SPOTIFY_REDIRECT_URI")
 
+
 # Helper for validation
 def require_env(var_value, var_name, description):
     if not var_value or not var_value.strip():
         logger.warning(f"Missing {description} in the `{var_name}` variable.")
         sys.exit(1)
+
 
 # Required checks
 require_env(TELEGRAM_TOKEN, "TELEGRAM_TOKEN", "bot token")
