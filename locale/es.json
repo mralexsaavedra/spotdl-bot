@@ -17,6 +17,7 @@
   "error_download_failed": "❌ Error durante la descarga. Revisa los logs del bot para más detalles.",
   "error_invalid_spotify_url": "❌ La URL introducida no es válida. Por favor, asegúrate de introducir una URL de Spotify correcta.",
   "error_no_valid_token": "❌ No se encontró un token válido. Por favor, autoriza al bot para acceder a tu cuenta de Spotify.",
+  "error_obtain_token": "❌ No se pudo obtener un token de acceso. Asegúrate de haber autorizado correctamente al bot con el comando `/authorize`.",
   "error_rate_limited": "⚠️ Se ha superado el límite de peticiones. Inténtalo más tarde.",
   "error_unknown_command": "❓ No reconozco ese comando. Usa /start para ver los comandos disponibles.",
   "log_bot_start": "🔧 Iniciando SpotDL Bot (v$1)",

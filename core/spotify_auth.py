@@ -1,3 +1,12 @@
+import base64
+import json
+import os
+import time
+import urllib.parse
+from typing import Optional, Dict, Any
+
+import requests
+
 from config.config import (
     SPOTIFY_CLIENT_ID,
     SPOTIFY_CLIENT_SECRET,
@@ -7,39 +16,66 @@ from config.config import (
 from core.locale import get_text
 from core.logger import setup_logger
 from core.utils import send_message
-import requests
-import os
-import json
-import time
-import base64
-import urllib.parse
 
 SCOPES = "playlist-read-private user-follow-read user-library-read"
 
 logger = setup_logger(__name__)
 
 
-def save_token(token_data):
-    logger.debug("Saving token to file")
-    token_data["expires_at"] = int(time.time()) + token_data["expires_in"]
-    os.makedirs(os.path.dirname(TOKEN_PATH), exist_ok=True)
-    with open(TOKEN_PATH, "w") as f:
-        logger.debug(f"Token data to save: {token_data}")
-        json.dump(token_data, f)
+def save_token(token_data: Dict[str, Any]) -> None:
+    """
+    Save the Spotify token data to a file, adding the expires_at timestamp.
+
+    Args:
+        token_data: The token data dictionary returned from Spotify API.
+
+    Raises:
+        Exception: If saving fails.
+    """
+    try:
+        logger.info(f"Saving token to file at {TOKEN_PATH}")
+        token_data["expires_at"] = int(time.time()) + token_data.get("expires_in", 0)
+        os.makedirs(os.path.dirname(TOKEN_PATH), exist_ok=True)
+        with open(TOKEN_PATH, "w") as f:
+            logger.debug(f"Token data being saved: {token_data}")
+            json.dump(token_data, f)
+    except Exception as e:
+        logger.error(f"Failed to save token: {e}")
+        raise Exception(get_text("error_save_token")) from e
 
 
-def load_token():
-    logger.debug("Loading token")
-    if os.path.exists(TOKEN_PATH):
+def load_token() -> Optional[Dict[str, Any]]:
+    """
+    Load the Spotify token data from a file, if it exists.
+
+    Returns:
+        The token dictionary if available, otherwise None.
+    """
+    if not os.path.exists(TOKEN_PATH):
+        logger.info(f"Token file does not exist at {TOKEN_PATH}")
+        return None
+    try:
         with open(TOKEN_PATH, "r") as f:
-            logger.debug("Loading token from file")
-            return json.load(f)
-    logger.debug("Token file does not exist")
-    return None
+            token = json.load(f)
+            logger.debug(f"Token loaded from file: {token}")
+            return token
+    except Exception as e:
+        logger.error(f"Failed to load token: {e}")
+        raise Exception(get_text("error_load_token")) from e
 
 
-def refresh_token(bot, refresh_token):
-    logger.debug("Refreshing token")
+def refresh_token(bot: Any, refresh_token: str) -> None:
+    """
+    Refresh the Spotify access token using the refresh token.
+
+    Args:
+        bot: Telegram bot instance, to send messages.
+        refresh_token: The refresh token string.
+
+    Raises:
+        Exception: If refresh fails.
+    """
+    logger.info("Refreshing Spotify token...")
     token_url = "https://accounts.spotify.com/api/token"
     auth_header = base64.b64encode(
         f"{SPOTIFY_CLIENT_ID}:{SPOTIFY_CLIENT_SECRET}".encode()
@@ -48,24 +84,41 @@ def refresh_token(bot, refresh_token):
         "Authorization": f"Basic {auth_header}",
         "Content-Type": "application/x-www-form-urlencoded",
     }
-    data = {"grant_type": "refresh_token", "refresh_token": refresh_token}
-    r = requests.post(token_url, headers=headers, data=data)
-    if r.status_code == 200:
-        new_token = r.json()
-        logger.debug(f"New token received: {new_token}")
-        new_token["refresh_token"] = (
-            refresh_token  # mantener el mismo si no se devuelve uno nuevo
-        )
-        save_token(new_token)
+    data = {
+        "grant_type": "refresh_token",
+        "refresh_token": refresh_token,
+    }
+    try:
+        response = requests.post(token_url, headers=headers, data=data)
+        if response.status_code != 200:
+            logger.error(f"Refresh token failed: {response.text}")
+            raise Exception(get_text("error_refresh_token"))
+        token_data = response.json()
+        logger.debug(f"Received new token data: {token_data}")
+        # Spotify may or may not return a new refresh_token; keep the old if missing
+        if "refresh_token" not in token_data:
+            token_data["refresh_token"] = refresh_token
+        save_token(token_data)
         send_message(bot, message=get_text("auth_token_refreshed"))
-    else:
-        raise Exception(f"❌ Error al refrescar el token: {r.text}")
+    except Exception as e:
+        logger.error(f"Exception during token refresh: {e}")
+        raise
 
 
-def get_new_token(message, bot):
-    logger.debug("Received new token code")
+def get_new_token(message: Any, bot: Any) -> None:
+    """
+    Exchange the authorization code received via Telegram message for an access token.
+
+    Args:
+        message: Telegram message containing the authorization code.
+        bot: Telegram bot instance.
+
+    Raises:
+        Exception: If token retrieval fails.
+    """
     code = message.text.strip()
-    logger.debug(f"Authorization code: {code}")
+    logger.info(f"Received authorization code: {code}")
+
     token_url = "https://accounts.spotify.com/api/token"
     auth_header = base64.b64encode(
         f"{SPOTIFY_CLIENT_ID}:{SPOTIFY_CLIENT_SECRET}".encode()
@@ -79,19 +132,29 @@ def get_new_token(message, bot):
         "code": code,
         "redirect_uri": SPOTIFY_REDIRECT_URI,
     }
-
-    r = requests.post(token_url, headers=headers, data=data)
-    if r.status_code == 200:
-        token = r.json()
-        logger.debug(f"Token received: {token}")
-        save_token(token)
+    try:
+        response = requests.post(token_url, headers=headers, data=data)
+        if response.status_code != 200:
+            logger.error(f"Failed to obtain token: {response.text}")
+            raise Exception(get_text("error_obtain_token"))
+        token_data = response.json()
+        logger.debug(f"Token obtained: {token_data}")
+        save_token(token_data)
         send_message(bot, message=get_text("auth_success"))
-    else:
-        raise Exception(f"❌ Error al obtener token: {r.text}")
+    except Exception as e:
+        logger.error(f"Exception during token retrieval: {e}")
+        raise
 
 
-def authorize(bot, message):
-    logger.debug("Starting authorization process")
+def authorize(bot: Any, message: Any) -> None:
+    """
+    Start the Spotify authorization by sending the authorization URL to the user.
+
+    Args:
+        bot: Telegram bot instance.
+        message: Telegram message triggering authorization.
+    """
+    logger.info("Starting Spotify authorization process")
     params = {
         "client_id": SPOTIFY_CLIENT_ID,
         "response_type": "code",
@@ -108,18 +171,30 @@ def authorize(bot, message):
     bot.register_next_step_handler(message, get_new_token, bot)
 
 
-def auth(bot, message):
+def auth(bot: Any, message: Any) -> None:
+    """
+    Main entry for Spotify authentication.
+
+    Loads existing token and refreshes if needed, or initiates authorization.
+
+    Args:
+        bot: Telegram bot instance.
+        message: Telegram message.
+
+    """
     try:
         token = load_token()
-        logger.debug(f"Token loaded: {token}")
+        logger.debug(f"Loaded token: {token}")
         if token and token.get("refresh_token"):
-            if not int(time.time()) < token.get("expires_at", 0):
-                refresh_token(bot, refresh_token=token["refresh_token"])
+            if int(time.time()) >= token.get("expires_at", 0):
+                logger.info("Token expired, refreshing...")
+                refresh_token(bot, token["refresh_token"])
             else:
-                logger.debug("Token is valid and not expired")
+                logger.info("Token valid and active")
                 send_message(bot, message=get_text("auth_already_done"))
         else:
+            logger.info("No valid token found, starting authorization")
             authorize(bot, message)
     except Exception as e:
-        logger.error(f"Error in auth: {e}")
+        logger.error(f"Authentication error: {e}")
         send_message(bot, message=get_text("error_auth_failed"))
