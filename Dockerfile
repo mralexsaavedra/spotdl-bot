@@ -13,5 +13,9 @@ RUN mkdir -p /music /cache
 
 ENV RUNNING_IN_DOCKER=true
 ENV LOG_LEVEL=INFO
+ENV DOWNLOAD_DIR="/music"
+ENV CACHE_DIR="/app/cache"
+ENV LOCALE_DIR="/app/locale"
+ENV LOG_DIR="/app/logs"
 
 CMD ["python", "main.py"]

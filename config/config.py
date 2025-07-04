@@ -12,13 +12,15 @@ logger = setup_logger(__name__)
 
 # App metadata
 VERSION = "0.1.0"
-TOKEN_PATH = "/cache/token.json"
-DOWNLOAD_DIR = "/music"
-LOCALE_DIR = "/app/locale" if os.getenv("RUNNING_IN_DOCKER") else "./locale"
+
+# Directory paths
+DOWNLOAD_DIR = os.getenv("DOWNLOAD_DIR")
+CACHE_DIR = os.getenv("CACHE_DIR")
+LOCALE_DIR = os.getenv("LOCALE_DIR")
 
 # Logging configuration (optional but supported)
 LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG")
-LOG_DIR = os.getenv("LOG_DIR", "./logs")
+LOG_DIR = os.getenv("LOG_DIR")
 
 # Environment variables
 LANGUAGE = os.getenv("LANGUAGE")

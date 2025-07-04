@@ -11,7 +11,7 @@ from config.config import (
     SPOTIFY_CLIENT_ID,
     SPOTIFY_CLIENT_SECRET,
     SPOTIFY_REDIRECT_URI,
-    TOKEN_PATH,
+    CACHE_DIR,
 )
 from core.locale import get_text
 from core.logger import setup_logger
@@ -20,6 +20,8 @@ from core.utils import send_message
 SCOPES = "playlist-read-private user-follow-read user-library-read"
 
 logger = setup_logger(__name__)
+
+TOKEN_PATH = f"{CACHE_DIR}/spotify_token.json"
 
 
 def save_token(token_data: Dict[str, Any]) -> None:
