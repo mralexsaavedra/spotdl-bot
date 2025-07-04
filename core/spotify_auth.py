@@ -1,5 +1,5 @@
-from config.settings import SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REDIRECT_URI, TOKEN_PATH
-from locale.locale import get_text
+from config.config import SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REDIRECT_URI, TOKEN_PATH
+from core.locale import get_text
 from core.logger import setup_logger
 from core.utils import send_message
 import requests

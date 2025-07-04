@@ -1,5 +1,4 @@
-from config.settings import TELEGRAM_GROUP
-from locale.locale import get_text
+from config.config import TELEGRAM_GROUP
 from core.logger import setup_logger
 import re
 
@@ -13,7 +12,7 @@ def send_message(bot, chat_id=TELEGRAM_GROUP, message=None, reply_markup=None, p
   try:
     return bot.send_message(chat_id, message, parse_mode=parse_mode, reply_markup=reply_markup, disable_web_page_preview=disable_web_page_preview)
   except Exception as e:
-    logger.error(get_text("error_sending_message", chat_id, message, e))
+    logger.error(f"Error sending message to {chat_id}: {e}")
     pass
 
 def delete_message(bot, message_id):

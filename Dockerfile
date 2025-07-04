@@ -11,4 +11,6 @@ COPY . .
 
 RUN mkdir -p /music /cache
 
+ENV RUNNING_IN_DOCKER=true
+
 CMD ["python", "main.py"]

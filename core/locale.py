@@ -1,9 +1,8 @@
-import sys
+from config.config import LANGUAGE, LOCALE_DIR
 from core.logger import setup_logger
+import sys
 import os
 import json
-
-LANGUAGE = os.environ.get("LANGUAGE")
 
 logger = setup_logger(__name__)
 
@@ -12,7 +11,7 @@ if LANGUAGE.lower() not in ("es", "en"):
 	sys.exit(1)
 
 def load_locale(locale):
-	with open(f"/app/locale/{locale}.json", "r", encoding="utf-8") as file:
+	with open(f"{LOCALE_DIR}/{locale}.json", "r", encoding="utf-8") as file:
 		return json.load(file)
 
 def get_text(key, *args):

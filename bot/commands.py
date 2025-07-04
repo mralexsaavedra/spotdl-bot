@@ -1,7 +1,7 @@
-from config.settings import VERSION
+from config.config import VERSION
 from core.downloader import  download, download_liked, download_playlists, download_albums
 from core.spotify_auth import auth, load_token
-from locale.locale import get_text
+from core.locale import get_text
 from core.utils import delete_message, is_spotify_url, send_message
 import telebot
 import time

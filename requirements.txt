@@ -1,3 +1,4 @@
 requests
 spotdl
 pyTelegramBotAPI
+python-dotenv
