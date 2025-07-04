@@ -12,5 +12,6 @@ COPY . .
 RUN mkdir -p /music /cache
 
 ENV RUNNING_IN_DOCKER=true
+ENV LOG_LEVEL=INFO
 
 CMD ["python", "main.py"]

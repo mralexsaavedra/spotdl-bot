@@ -3,18 +3,22 @@ import sys
 from dotenv import load_dotenv
 from core.logger import setup_logger
 
+# Load environment variables early
+if not os.getenv("RUNNING_IN_DOCKER"):
+    load_dotenv()
+
+# Logger
+logger = setup_logger(__name__)
+
 # App metadata
 VERSION = "0.1.0"
 TOKEN_PATH = "/cache/token.json"
 DOWNLOAD_DIR = "/music"
 LOCALE_DIR = "/app/locale" if os.getenv("RUNNING_IN_DOCKER") else "./locale"
 
-# Load environment variables
-if not os.getenv("RUNNING_IN_DOCKER"):
-    load_dotenv()
-
-# Logger
-logger = setup_logger(__name__)
+# Logging configuration (optional but supported)
+LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG")
+LOG_DIR = os.getenv("LOG_DIR", "./logs")
 
 # Environment variables
 LANGUAGE = os.getenv("LANGUAGE")

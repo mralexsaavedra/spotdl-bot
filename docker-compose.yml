@@ -5,6 +5,7 @@ services:
     volumes:
       - ./music:/music # CAMBIA ESTA RUTA A TU DIRECTORIO DE MÚSICA
       - ./cache:/cache # CAMBIA ESTA RUTA AL DIRECTORIO QUE QUIERAS PARA LA CACHE
+      - ./logs:/logs # CAMBIA ESTA RUTA AL DIRECTORIO QUE QUIERAS PARA LOS LOGS
     environment:
       - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
       - TELEGRAM_ADMIN=${TELEGRAM_ADMIN}
