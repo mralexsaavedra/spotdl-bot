@@ -1,27 +1,35 @@
-from config.settings import TELEGRAM_TOKEN, VERSION
+from config.config import TELEGRAM_TOKEN, VERSION
 from bot.commands import register_commands
-from locale.locale import get_text
+from core.locale import get_text
 from core.logger import setup_logger
 from core.utils import send_message
 import telebot
 
 logger = setup_logger(__name__)
 
-bot = telebot.TeleBot(TELEGRAM_TOKEN)
-
-def run_bot():
-  logger.debug(get_text("log_bot_start", VERSION))
-
-  register_commands(bot)
-
-  starting_message = (
-    f"{get_text("bot_started_title")}\n"
-    f"{get_text("status_active")}\n"
-    f"{get_text('bot_version_label', VERSION)}\n\n"
-    f"{get_text('bot_description')}"
-)
+bot: telebot.TeleBot = telebot.TeleBot(TELEGRAM_TOKEN)
 
 
-  send_message(bot, message=starting_message)
+def run_bot() -> None:
+    """
+    Starts the Telegram bot, registers commands, sends a startup message,
+    and begins polling for updates.
+    """
+    logger.info(get_text("log_bot_start", VERSION))
 
-  bot.infinity_polling()
+    register_commands(bot)
+
+    starting_message = (
+        f"{get_text('bot_started_title')}\n"
+        f"{get_text('status_active')}\n"
+        f"{get_text('bot_version_label', VERSION)}\n\n"
+        f"{get_text('bot_description')}"
+    )
+
+    send_message(bot, message=starting_message)
+
+    try:
+        bot.infinity_polling()
+    except Exception as e:
+        logger.error(f"Error during bot polling: {e}")
+        # Optional: decide if you want to restart polling or exit
