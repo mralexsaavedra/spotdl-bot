@@ -2,19 +2,17 @@
 import time
 
 # --- Third-party imports ---
-from core.downloader import (
-    download,
-    download_albums,
-    download_liked,
-    download_playlists,
-)
+from core.downloader import download
+from core.logger import setup_logger
 import telebot
 
 # --- Project imports ---
 from config.config import VERSION
-from core.spotify_auth import auth, load_token
+from core.spotify_auth import auth
 from core.locale import get_text
 from core.utils import delete_message, is_spotify_url, send_message
+
+logger = setup_logger(__name__)
 
 
 def register_commands(bot: telebot.TeleBot):
@@ -36,27 +34,23 @@ def register_commands(bot: telebot.TeleBot):
     @bot.message_handler(commands=["download"])
     def download_command(message):
         """Requests a Spotify URL to download."""
-        token = load_token()
-        if not token:
-            send_message(bot, message=get_text("error_token_required"))
-            return
         send_message(bot, message=get_text("download_prompt_url"))
 
     # --- Downloads ---
     @bot.message_handler(commands=["downloadliked"])
     def download_liked_command(message):
         """Downloads songs marked as favorites."""
-        download_liked(bot)
+        download(bot=bot, query="saved", user_auth=True)
 
     @bot.message_handler(commands=["downloadalbums"])
     def download_albums_command(message):
         """Downloads albums saved by the user."""
-        download_albums(bot)
+        download(bot=bot, query="all-user-saved-albums", user_auth=True)
 
     @bot.message_handler(commands=["downloadplaylists"])
     def download_playlists_command(message):
         """Downloads playlists saved by the user."""
-        download_playlists(bot)
+        download(bot=bot, query="all-user-playlists", user_auth=True)
 
     # --- Utilities ---
     @bot.message_handler(commands=["version"])
@@ -77,7 +71,14 @@ def register_commands(bot: telebot.TeleBot):
     @bot.message_handler(func=lambda message: is_spotify_url(message.text))
     def process_direct_url(message):
         """Processes a Spotify URL directly."""
-        download(bot, message)
+        url = message.text.strip()
+        logger.info(f"Downloading from Spotify URL: {url}")
+
+        if not is_spotify_url(url):
+            logger.error(f"Invalid Spotify URL: {url}")
+            send_message(bot, message=get_text("error_invalid_spotify_url"))
+            return
+        download(bot=bot, query=url)
 
     # --- Fallback ---
     @bot.message_handler(func=lambda message: True)

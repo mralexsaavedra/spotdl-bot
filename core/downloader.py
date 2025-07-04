@@ -5,8 +5,7 @@ from config.config import (
     CACHE_DIR,
 )
 from core.logger import setup_logger
-from core.spotify_auth import load_token
-from core.utils import delete_message, is_spotify_url, send_message
+from core.utils import delete_message, send_message
 from core.locale import get_text
 import subprocess
 import time
@@ -22,9 +21,26 @@ def is_rate_limit_error(e):
     return "429" in message or "rate limit" in message or "too many requests" in message
 
 
-def run_spotdl_command(bot, command):
+def download(bot, query, user_auth=False):
     retries = 0
     message_id = None
+
+    output = get_output_pattern(query)
+    command = [
+        "spotdl",
+        "download",
+        query,
+        "--output",
+        f"{DOWNLOAD_DIR}/{output}",
+        "--client-id",
+        SPOTIFY_CLIENT_ID,
+        "--client-secret",
+        SPOTIFY_CLIENT_SECRET,
+        "--cache-path",
+        f"{CACHE_DIR}/spotify_token.json",
+    ]
+    if user_auth:
+        command.append("--user-auth")
 
     while retries < MAX_RETRIES:
         try:
@@ -78,60 +94,3 @@ def get_output_pattern(identifier: str) -> str:
         return "Liked Songs/{artists} - {title}.{output-ext}"
     else:
         return "{artists} - {title}.{output-ext}"
-
-
-def build_command(source: str, output: str, user_auth: bool = False):
-    command = [
-        "spotdl",
-        "download",
-        source,
-        "--output",
-        f"{DOWNLOAD_DIR}/{output}",
-        "--client-id",
-        SPOTIFY_CLIENT_ID,
-        "--client-secret",
-        SPOTIFY_CLIENT_SECRET,
-        "--cache-path",
-        f"{CACHE_DIR}/spotify_token.json",
-    ]
-    if user_auth:
-        command.append("--user-auth")
-    return command
-
-
-def download(bot, message):
-    url = message.text.strip()
-    logger.info(f"Downloading from Spotify URL: {url}")
-
-    if not is_spotify_url(url):
-        logger.error(f"Invalid Spotify URL: {url}")
-        send_message(bot, message=get_text("error_invalid_spotify_url"))
-        return
-
-    output = get_output_pattern(url)
-    command = build_command(source=url, output=output)
-    run_spotdl_command(bot, command)
-
-
-def download_liked(bot):
-    logger.info("Downloading liked songs")
-    source = "saved"
-    output = get_output_pattern(source)
-    command = build_command(source=source, output=output, user_auth=True)
-    run_spotdl_command(bot, command)
-
-
-def download_albums(bot):
-    logger.info("Downloading saved albums")
-    source = "all-user-saved-albums"
-    output = get_output_pattern(source)
-    command = build_command(source=source, output=output, user_auth=True)
-    run_spotdl_command(bot, command)
-
-
-def download_playlists(bot):
-    logger.info("Downloading playlists")
-    source = "all-user-playlists"
-    output = get_output_pattern(source)
-    command = build_command(source=source, output=output, user_auth=True)
-    run_spotdl_command(bot, command)

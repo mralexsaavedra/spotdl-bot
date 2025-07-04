@@ -8,6 +8,8 @@ using the spotDL library.
 
 from typing import List, Optional, Union
 import telebot
+import asyncio
+import threading
 
 from config.config import (
     DOWNLOAD_DIR,
@@ -109,7 +111,9 @@ class SpotifyDownloader:
         msg = send_message(bot, message=get_text("download_in_progress"))
         message_id = msg.message_id
 
-        self.downloader.download_multiple_songs(songs)
+        thread = threading.Thread(target=self._run_download_in_thread, args=(songs,))
+        thread.start()
+        thread.join()
 
         logger.info("Download finished successfully.")
         delete_message(bot, message_id=message_id)
@@ -135,3 +139,9 @@ class SpotifyDownloader:
         """
         output = "Playlists/{list-name}/{artists} - {title}.{output-ext}"
         self.download(bot=bot, query="all-user-playlists", output=output)
+
+    def _run_download_in_thread(self, songs):
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(self.downloader.download_multiple_songs(songs))
+        loop.close()
