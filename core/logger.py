@@ -2,45 +2,61 @@ import logging
 import sys
 import os
 from datetime import datetime
+from logging.handlers import RotatingFileHandler
 
 
-def setup_logger(name=None):
+def setup_logger(
+    name: str = None,
+    level: str = None,
+    log_dir: str = None,
+    max_bytes: int = 10 * 1024 * 1024,
+    backup_count: int = 5,
+) -> logging.Logger:
     """
-    Configura y devuelve un logger con salida a consola y archivo.
+    Configure and return a logger with console output and rotating file handler.
 
-    Usa DEBUG si está en modo desarrollo, INFO en producción.
+    Parameters:
+    - name: Logger name (default is root logger).
+    - level: Logging level (default read from LOG_LEVEL env or DEBUG).
+    - log_dir: Directory to store logs (default ./logs or from LOG_DIR env).
+    - max_bytes: Max file size in bytes before rotating (default 10 MB).
+    - backup_count: Number of backup files to keep (default 5).
 
-    Variables de entorno:
-      - LOG_LEVEL: Nivel de log (opcional)
-      - LOG_DIR: Carpeta donde guardar el archivo de logs (opcional)
+    Environment variables used:
+    - LOG_LEVEL
+    - LOG_DIR
+
+    Returns:
+    - Configured logger with console and rotating file handlers.
     """
 
     logger = logging.getLogger(name)
     if logger.hasHandlers():
-        return logger  # Evita añadir múltiples handlers
+        return logger  # Avoid adding duplicate handlers
 
-    # Nivel de log desde entorno o predeterminado
-    log_level_str = os.getenv("LOG_LEVEL", "DEBUG").upper()
-    log_level = getattr(logging, log_level_str, logging.DEBUG)
-    logger.setLevel(log_level)
+    # Determine logging level from parameter or environment or default DEBUG
+    level = level or os.getenv("LOG_LEVEL", "DEBUG")
+    numeric_level = getattr(logging, level.upper(), logging.DEBUG)
+    logger.setLevel(numeric_level)
 
-    # Formato de los mensajes
+    # Log format
     log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     date_format = "%Y-%m-%d %H:%M:%S"
     formatter = logging.Formatter(log_format, datefmt=date_format)
 
-    # Handler de consola
+    # Console handler
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setFormatter(formatter)
     logger.addHandler(console_handler)
 
-    # Handler de archivo
-    log_dir = os.getenv("LOG_DIR", "./logs")
+    # File logs directory and rotating file handler
+    log_dir = log_dir or os.getenv("LOG_DIR", "./logs")
     os.makedirs(log_dir, exist_ok=True)
-    log_file_path = os.path.join(
-        log_dir, f"{name or 'app'}_{datetime.now().date()}.log"
+    log_file = os.path.join(log_dir, f"{name or 'app'}_{datetime.now().date()}.log")
+
+    file_handler = RotatingFileHandler(
+        log_file, maxBytes=max_bytes, backupCount=backup_count, encoding="utf-8"
     )
-    file_handler = logging.FileHandler(log_file_path, encoding="utf-8")
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
 
