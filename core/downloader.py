@@ -5,6 +5,7 @@ from config.config import (
     CACHE_DIR,
 )
 from core.logger import setup_logger
+from core.spotify_auth import load_token
 from core.utils import delete_message, is_spotify_url, send_message
 from core.locale import get_text
 import subprocess
@@ -91,7 +92,7 @@ def build_command(source: str, output: str, user_auth: bool = False):
         "--client-secret",
         SPOTIFY_CLIENT_SECRET,
         "--cache-path",
-        CACHE_DIR,
+        f"{CACHE_DIR}/spotify_token.json",
     ]
     if user_auth:
         command.append("--user-auth")
