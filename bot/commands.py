@@ -2,7 +2,12 @@
 import time
 
 # --- Third-party imports ---
-from spotifyDownloader import SpotifyDownloader
+from core.downloader import (
+    download,
+    download_albums,
+    download_liked,
+    download_playlists,
+)
 import telebot
 
 # --- Project imports ---
@@ -10,8 +15,6 @@ from config.config import VERSION
 from core.spotify_auth import auth, load_token
 from core.locale import get_text
 from core.utils import delete_message, is_spotify_url, send_message
-
-spotidyDownloader = SpotifyDownloader()
 
 
 def register_commands(bot: telebot.TeleBot):
@@ -43,29 +46,17 @@ def register_commands(bot: telebot.TeleBot):
     @bot.message_handler(commands=["downloadliked"])
     def download_liked_command(message):
         """Downloads songs marked as favorites."""
-        token = load_token()
-        if not token:
-            send_message(bot, message=get_text("error_token_required"))
-            return
-        spotidyDownloader.download_liked(bot=bot)
+        download_liked(bot)
 
     @bot.message_handler(commands=["downloadalbums"])
     def download_albums_command(message):
         """Downloads albums saved by the user."""
-        token = load_token()
-        if not token:
-            send_message(bot, message=get_text("error_token_required"))
-            return
-        spotidyDownloader.download_albums(bot=bot)
+        download_albums(bot)
 
     @bot.message_handler(commands=["downloadplaylists"])
     def download_playlists_command(message):
         """Downloads playlists saved by the user."""
-        token = load_token()
-        if not token:
-            send_message(bot, message=get_text("error_token_required"))
-            return
-        spotidyDownloader.download_playlists(bot=bot)
+        download_playlists(bot)
 
     # --- Utilities ---
     @bot.message_handler(commands=["version"])
@@ -86,12 +77,7 @@ def register_commands(bot: telebot.TeleBot):
     @bot.message_handler(func=lambda message: is_spotify_url(message.text))
     def process_direct_url(message):
         """Processes a Spotify URL directly."""
-        token = load_token()
-        if not token:
-            send_message(bot, message=get_text("error_token_required"))
-            return
-        url = message.text.strip()
-        spotidyDownloader.download(bot=bot, query=url)
+        download(bot, message)
 
     # --- Fallback ---
     @bot.message_handler(func=lambda message: True)
