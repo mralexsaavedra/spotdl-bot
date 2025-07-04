@@ -1,11 +1,10 @@
 from config.config import TELEGRAM_TOKEN, VERSION
 from bot.commands import register_commands
 from core.locale import get_text
-from core.logger import setup_logger
+from loguru import logger
 from core.utils import send_message
 import telebot
 
-logger = setup_logger(__name__)
 
 bot: telebot.TeleBot = telebot.TeleBot(TELEGRAM_TOKEN)
 

@@ -2,3 +2,4 @@ requests
 spotdl
 pyTelegramBotAPI
 python-dotenv
+loguru

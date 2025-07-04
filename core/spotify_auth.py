@@ -15,13 +15,10 @@ from config.config import (
     CACHE_DIR,
 )
 from core.locale import get_text
-from core.logger import setup_logger
+from loguru import logger
 from core.utils import send_message
 
 SCOPES = "playlist-read-private user-follow-read user-library-read"
-
-logger = setup_logger(__name__)
-
 TOKEN_PATH = f"{CACHE_DIR}/spotify_token.json"
 
 
@@ -40,7 +37,7 @@ def save_token(token_data: Dict[str, Any]) -> None:
         token_data["expires_at"] = int(time.time()) + token_data.get("expires_in", 0)
         os.makedirs(os.path.dirname(TOKEN_PATH), exist_ok=True)
         with open(TOKEN_PATH, "w") as f:
-            logger.debug(f"Token data being saved: {token_data}")
+            logger.info(f"Token data being saved: {token_data}")
             json.dump(token_data, f)
     except Exception as e:
         logger.error(f"Failed to save token: {e}")
@@ -60,7 +57,7 @@ def load_token() -> Optional[Dict[str, Any]]:
     try:
         with open(TOKEN_PATH, "r") as f:
             token = json.load(f)
-            logger.debug(f"Token loaded from file: {token}")
+            logger.info(f"Token loaded from file: {token}")
             return token
     except Exception as e:
         logger.error(f"Failed to load token: {e}")
@@ -97,7 +94,7 @@ def refresh_token(bot: telebot.TeleBot, refresh_token: str) -> None:
             logger.error(f"Refresh token failed: {response.text}")
             raise Exception(get_text("error_refresh_token"))
         token_data = response.json()
-        logger.debug(f"Received new token data: {token_data}")
+        logger.info(f"Received new token data: {token_data}")
         # Spotify may or may not return a new refresh_token; keep the old if missing
         if "refresh_token" not in token_data:
             token_data["refresh_token"] = refresh_token
@@ -141,7 +138,7 @@ def get_new_token(message: Any, bot: telebot.TeleBot) -> None:
             logger.error(f"Failed to obtain token: {response.text}")
             raise Exception(get_text("error_obtain_token"))
         token_data = response.json()
-        logger.debug(f"Token obtained: {token_data}")
+        logger.info(f"Token obtained: {token_data}")
         save_token(token_data)
         send_message(bot, message=get_text("auth_success"))
     except Exception as e:
@@ -167,7 +164,7 @@ def authorize(bot: telebot.TeleBot, message: Any) -> None:
     auth_url = (
         f"https://accounts.spotify.com/authorize?{urllib.parse.urlencode(params)}"
     )
-    logger.debug(f"Authorization URL: {auth_url}")
+    logger.info(f"Authorization URL: {auth_url}")
     send_message(bot, message=get_text("auth_request", auth_url))
     time.sleep(5)
     send_message(bot, message=get_text("auth_redirect_prompt"))
@@ -187,7 +184,7 @@ def auth(bot: telebot.TeleBot, message: Any) -> None:
     """
     try:
         token = load_token()
-        logger.debug(f"Loaded token: {token}")
+        logger.info(f"Loaded token: {token}")
         if token and token.get("refresh_token"):
             if int(time.time()) >= token.get("expires_at", 0):
                 logger.info("Token expired, refreshing...")

@@ -3,9 +3,7 @@ import os
 import json
 from typing import Dict, Any
 from config.config import LANGUAGE, LOCALE_DIR
-from core.logger import setup_logger
-
-logger = setup_logger(__name__)
+from loguru import logger
 
 SUPPORTED_LANGUAGES = ("es", "en")
 DEFAULT_LANGUAGE = "es"
@@ -34,7 +32,7 @@ def load_locale(locale: str) -> Dict[str, Any]:
     try:
         with open(path, "r", encoding="utf-8") as file:
             data = json.load(file)
-            logger.debug(f"Locale '{locale}' loaded successfully from {path}")
+            logger.info(f"Locale '{locale}' loaded successfully from {path}")
             return data
     except FileNotFoundError:
         logger.error(f"Locale file not found: {path}")

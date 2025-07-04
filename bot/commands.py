@@ -3,7 +3,7 @@ import time
 
 # --- Third-party imports ---
 from core.downloader import download
-from core.logger import setup_logger
+from loguru import logger
 import telebot
 
 # --- Project imports ---
@@ -11,8 +11,6 @@ from config.config import VERSION
 from core.spotify_auth import auth
 from core.locale import get_text
 from core.utils import delete_message, is_spotify_url, send_message
-
-logger = setup_logger(__name__)
 
 
 def register_commands(bot: telebot.TeleBot):

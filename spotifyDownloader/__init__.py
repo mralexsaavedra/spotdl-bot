@@ -18,14 +18,12 @@ from config.config import (
     CACHE_DIR,
 )
 from core.locale import get_text
-from core.logger import setup_logger
+from loguru import logger
 from core.utils import delete_message, send_message
 from spotdl.download.downloader import Downloader
 from spotdl.utils.spotify import SpotifyClient
 from spotdl.utils.search import get_simple_songs
 from spotdl.utils.config import DEFAULT_CONFIG, DOWNLOADER_OPTIONS
-
-logger = setup_logger(__name__)
 
 
 class SpotifyDownloader:

@@ -9,7 +9,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-RUN mkdir -p /music /cache
+RUN mkdir -p /music /cache /logs
 
 ENV RUNNING_IN_DOCKER=true
 ENV DOWNLOAD_DIR="/music"

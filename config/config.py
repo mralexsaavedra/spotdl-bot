@@ -1,14 +1,11 @@
 import os
 import sys
 from dotenv import load_dotenv
-from core.logger import setup_logger
+from loguru import logger
 
 # Load environment variables early
 if not os.getenv("RUNNING_IN_DOCKER"):
     load_dotenv()
-
-# Logger
-logger = setup_logger(__name__)
 
 # App metadata
 VERSION = "0.1.0"
@@ -19,7 +16,7 @@ CACHE_DIR = os.getenv("CACHE_DIR")
 LOCALE_DIR = os.getenv("LOCALE_DIR")
 
 # Logging configuration (optional but supported)
-LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG")
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 LOG_DIR = os.getenv("LOG_DIR")
 
 # Environment variables

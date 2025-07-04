@@ -4,7 +4,7 @@ from config.config import (
     SPOTIFY_CLIENT_SECRET,
     CACHE_DIR,
 )
-from core.logger import setup_logger
+from loguru import logger
 from core.spotify_auth import load_token
 from core.utils import delete_message, send_message
 from core.locale import get_text
@@ -13,8 +13,6 @@ import time
 
 MAX_RETRIES = 5
 WAIT_TIME = 30  # Tiempo de espera en segundos para reintentos
-
-logger = setup_logger(__name__)
 
 
 def is_rate_limit_error(e):

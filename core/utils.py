@@ -2,9 +2,7 @@ import re
 import telebot
 
 from config.config import TELEGRAM_GROUP
-from core.logger import setup_logger
-
-logger = setup_logger(__name__)
+from loguru import logger
 
 
 def is_spotify_url(url: str) -> bool:
