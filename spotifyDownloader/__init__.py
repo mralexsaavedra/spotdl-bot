@@ -1,7 +1,13 @@
 """
-Init module for spotifyDownloader. This module contains the main entry point for spotifyDownloader.
-And SpotifyDownloader class
+spotifyDownloader module
+
+Contains the main SpotifyDownloader class that simplifies
+downloading songs, albums, and playlists from Spotify
+using the spotDL library.
 """
+
+from typing import List, Optional, Union
+import telebot
 
 from config.config import (
     DOWNLOAD_DIR,
@@ -11,13 +17,7 @@ from config.config import (
 )
 from core.locale import get_text
 from core.logger import setup_logger
-
-from typing import List
-from core.spotify_auth import load_token
-from core.utils import delete_message, is_spotify_url, send_message
-import telebot
-
-from spotdl._version import __version__
+from core.utils import delete_message, send_message
 from spotdl.download.downloader import Downloader
 from spotdl.utils.spotify import SpotifyClient
 from spotdl.utils.search import get_simple_songs
@@ -28,19 +28,20 @@ logger = setup_logger(__name__)
 
 class SpotifyDownloader:
     """
-    SpotifyDownloader simplifies the process of downloading songs from Spotify using spotDL.
+    Encapsulates the logic for downloading music from Spotify
+    using spotDL, managing configuration and authentication.
     """
 
     def __init__(self) -> None:
         """
-        Initialize the SpotifyDownloader by setting up Spotify client and downloader.
+        Initializes the Spotify client and downloader with default settings.
         """
         self._initialize_spotify_client()
         self.downloader = self._initialize_downloader()
 
     def _initialize_spotify_client(self) -> None:
         """
-        Initialize the Spotify client with provided credentials.
+        Initializes the Spotify client configuration with credentials.
         """
         SpotifyClient.init(
             client_id=SPOTIFY_CLIENT_ID,
@@ -53,27 +54,40 @@ class SpotifyDownloader:
 
     def _initialize_downloader(self) -> Downloader:
         """
-        Create and return a configured Downloader instance.
+        Creates and returns a configured Downloader instance.
         """
-        downloader_settings = DOWNLOADER_OPTIONS.copy()
-        downloader_settings["output"] = DOWNLOAD_DIR
-        return Downloader(settings=downloader_settings, loop=None)
+        settings = DOWNLOADER_OPTIONS.copy()
+        settings["output"] = DOWNLOAD_DIR
+        return Downloader(settings=settings, loop=None)
 
-    def download(self, bot: telebot.TeleBot, query: List[str], output: str) -> None:
+    def download(
+        self,
+        bot: telebot.TeleBot,
+        query: Union[str, List[str]],
+        output: Optional[str] = None,
+    ) -> None:
         """
-        Search for songs using the provided query list and download them to disk.
+        Downloads songs, albums, or playlists from a URL or list of URLs.
 
         Args:
-            query (List[str]): List of Spotify URLs or search queries.
+            bot (telebot.TeleBot): Telegram bot instance to send messages.
+            query (Union[str, List[str]]): URL(s) or search terms to download.
+            output (Optional[str]): Optional pattern for output directory/filename.
+                                    If not specified, it is inferred based on content type.
         """
+        if isinstance(query, str):
+            query = [query]
+
+        # If output pattern not specified, infer based on the content type in the URL
         if output is None:
-            if "track" in query:
+            url = query[0] if query else ""
+            if "track" in url:
                 output = "{artist}/{artists} - {title}.{output-ext}"
-            elif "album" in query:
+            elif "album" in url:
                 output = "{album-artist}/{album}/{artists} - {title}.{output-ext}"
-            elif "playlist" in query:
+            elif "playlist" in url:
                 output = "Playlists/{list-name}/{artists} - {title}.{output-ext}"
-            elif "artist" in query:
+            elif "artist" in url:
                 output = "{artist}/{artists} - {title}.{output-ext}"
             else:
                 output = "{artists} - {title}.{output-ext}"
@@ -103,21 +117,21 @@ class SpotifyDownloader:
 
     def download_liked(self, bot: telebot.TeleBot) -> None:
         """
-        Download all songs marked as liked by the user.
+        Downloads all songs liked by the user.
         """
         output = "Liked Songs/{artists} - {title}.{output-ext}"
-        self.download(bot=bot, query=["all-user-saved-songs"], output=output)
+        self.download(bot=bot, query="all-user-saved-songs", output=output)
 
     def download_albums(self, bot: telebot.TeleBot) -> None:
         """
-        Download all albums from the user's library.
+        Downloads all albums saved in the user's library.
         """
         output = "{album-artist}/{album}/{artists} - {title}.{output-ext}"
-        self.download(bot=bot, query=["all-user-saved-albums"], output=output)
+        self.download(bot=bot, query="all-user-saved-albums", output=output)
 
     def download_playlists(self, bot: telebot.TeleBot) -> None:
         """
-        Download all playlists from the user's library.
+        Downloads all playlists saved in the user's library.
         """
         output = "Playlists/{list-name}/{artists} - {title}.{output-ext}"
-        self.download(bot=bot, query=["all-user-playlists"], output=output)
+        self.download(bot=bot, query="all-user-playlists", output=output)
