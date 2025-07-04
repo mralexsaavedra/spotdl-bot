@@ -1,23 +1,51 @@
+import re
+import telebot
+
 from config.config import TELEGRAM_GROUP
 from core.logger import setup_logger
-import re
 
 logger = setup_logger(__name__)
 
 
-def is_spotify_url(url):
-    match = re.match(r"https://open\.spotify\.com/([a-zA-Z0-9]+)", url)
-    return bool(match)
+def is_spotify_url(url: str) -> bool:
+    """
+    Check if the given URL is a valid Spotify link.
+
+    Args:
+        url (str): The URL to validate.
+
+    Returns:
+        bool: True if it's a Spotify URL, False otherwise.
+    """
+    pattern = r"^https:\/\/open\.spotify\.com\/(track|album|playlist|artist)\/[a-zA-Z0-9]+(?:\?.*)?$"
+    return bool(re.match(pattern, url))
 
 
 def send_message(
-    bot,
-    chat_id=TELEGRAM_GROUP,
-    message=None,
+    bot: telebot.TeleBot,
+    chat_id: int = TELEGRAM_GROUP,
+    message: str | None = None,
     reply_markup=None,
-    parse_mode="markdown",
-    disable_web_page_preview=True,
-):
+    parse_mode: str = "markdown",
+    disable_web_page_preview: bool = True,
+) -> object | None:
+    """
+    Sends a message to a Telegram chat.
+
+    Args:
+        bot (telebot.TeleBot): The bot instance.
+        chat_id (int): The chat ID to send the message to.
+        message (str | None): The message content.
+        reply_markup: Optional reply markup.
+        parse_mode (str): Text parse mode.
+        disable_web_page_preview (bool): Disable link previews.
+
+    Returns:
+        The sent message object or None.
+    """
+    if not message:
+        return None
+
     try:
         return bot.send_message(
             chat_id,
@@ -28,11 +56,18 @@ def send_message(
         )
     except Exception as e:
         logger.error(f"Error sending message to {chat_id}: {e}")
-        pass
+        raise
 
 
-def delete_message(bot, message_id):
+def delete_message(bot: telebot.TeleBot, message_id: int) -> None:
+    """
+    Deletes a message in a Telegram chat.
+
+    Args:
+        bot (telebot.TeleBot): The bot instance.
+        message_id (int): The ID of the message to delete.
+    """
     try:
         bot.delete_message(TELEGRAM_GROUP, message_id)
-    except:
-        pass
+    except Exception as e:
+        logger.warning(f"Failed to delete message {message_id}: {e}")
