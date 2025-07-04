@@ -19,7 +19,7 @@ from loguru import logger
 from core.utils import send_message
 
 SCOPES = "playlist-read-private user-follow-read user-library-read"
-TOKEN_PATH = f"{CACHE_DIR}/spotify_token.json"
+TOKEN_PATH = f"{CACHE_DIR}/.spotipy"
 
 
 def save_token(token_data: Dict[str, Any]) -> None:
