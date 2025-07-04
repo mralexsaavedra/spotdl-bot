@@ -17,7 +17,7 @@ def is_spotify_url(url: str) -> bool:
     Returns:
         bool: True if it's a Spotify URL, False otherwise.
     """
-    pattern = r"^https:\/\/open\.spotify\.com\/(track|album|playlist|artist)\/[a-zA-Z0-9]+(?:\?.*)?$"
+    pattern = r"^https:\/\/open\.spotify\.com\/(?:intl-[a-z]{2}\/)?(track|album|playlist|artist)\/[a-zA-Z0-9]+(?:\?.*)?$"
     return bool(re.match(pattern, url))
 
 
