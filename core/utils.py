@@ -19,6 +19,21 @@ def is_spotify_url(url: str) -> bool:
     return bool(re.match(pattern, url))
 
 
+def get_output_pattern(identifier: str) -> str:
+    if "track" in identifier:
+        return "{artist}/{artists} - {title}.{output-ext}"
+    elif "album" in identifier or identifier == "all-user-saved-albums":
+        return "{album-artist}/{album}/{artists} - {title}.{output-ext}"
+    elif "playlist" in identifier or identifier == "all-user-playlists":
+        return "Playlists/{list-name}/{artists} - {title}.{output-ext}"
+    elif "artist" in identifier:
+        return "{artist}/{artists} - {title}.{output-ext}"
+    elif identifier == "saved":
+        return "Liked Songs/{artists} - {title}.{output-ext}"
+    else:
+        return "{artists} - {title}.{output-ext}"
+
+
 def send_message(
     bot: telebot.TeleBot,
     chat_id: int = TELEGRAM_GROUP,

@@ -6,7 +6,7 @@ from config.config import (
 )
 from loguru import logger
 from core.spotify_auth import load_token
-from core.utils import delete_message, send_message
+from core.utils import delete_message, get_output_pattern, send_message
 from core.locale import get_text
 import subprocess
 import time
@@ -82,18 +82,3 @@ def download(bot, query, user_auth=False):
     send_message(bot, message=get_text("error_rate_limited"))
     logger.error("❌ Max retries reached. Please try again later.")
     return "rate_limited"
-
-
-def get_output_pattern(identifier: str) -> str:
-    if "track" in identifier:
-        return "{artist}/{artists} - {title}.{output-ext}"
-    elif "album" in identifier or identifier == "all-user-saved-albums":
-        return "{album-artist}/{album}/{artists} - {title}.{output-ext}"
-    elif "playlist" in identifier or identifier == "all-user-playlists":
-        return "Playlists/{list-name}/{artists} - {title}.{output-ext}"
-    elif "artist" in identifier:
-        return "{artist}/{artists} - {title}.{output-ext}"
-    elif identifier == "saved":
-        return "Liked Songs/{artists} - {title}.{output-ext}"
-    else:
-        return "{artists} - {title}.{output-ext}"
