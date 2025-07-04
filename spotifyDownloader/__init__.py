@@ -74,7 +74,7 @@ class SpotifyDownloader:
             output (Optional[str]): Optional pattern for output directory/filename.
                                     If not specified, it is inferred based on content type.
         """
-        self.spotify_client.settings["user_auth"] = user_auth
+        self.spotify_client.user_auth = user_auth
 
         output = get_output_pattern(query)
         self.downloader.settings["output"] = f"{DOWNLOAD_DIR}/{output}"
@@ -103,7 +103,9 @@ class SpotifyDownloader:
         send_message(bot, message=get_text("download_finished"))
 
     def _run_download_in_thread(self, songs):
-        loop = asyncio.new_event_loop()
+        loop = self.downloader.loop
+        if loop.is_closed():
+            loop = asyncio.new_event_loop()
+            self.downloader.loop = loop
         asyncio.set_event_loop(loop)
         loop.run_until_complete(self.downloader.download_multiple_songs(songs))
-        loop.close()
