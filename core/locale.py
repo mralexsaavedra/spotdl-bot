@@ -9,7 +9,7 @@ logger = setup_logger(__name__)
 
 SUPPORTED_LANGUAGES = ("es", "en")
 DEFAULT_LANGUAGE = "es"
-_language = LANGUAGE.lower()
+_language = (LANGUAGE or DEFAULT_LANGUAGE).lower()
 
 if _language not in SUPPORTED_LANGUAGES:
     logger.error(
