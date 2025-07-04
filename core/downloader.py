@@ -5,6 +5,7 @@ from config.config import (
     CACHE_DIR,
 )
 from core.logger import setup_logger
+from core.spotify_auth import load_token
 from core.utils import delete_message, send_message
 from core.locale import get_text
 import subprocess
@@ -41,6 +42,10 @@ def download(bot, query, user_auth=False):
     ]
     if user_auth:
         command.append("--user-auth")
+        token = load_token()
+        if not token:
+            send_message(bot, message=get_text("error_token_required"))
+            return
 
     while retries < MAX_RETRIES:
         try:
