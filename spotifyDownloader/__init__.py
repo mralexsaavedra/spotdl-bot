@@ -6,7 +6,9 @@ downloading songs, albums, and playlists from Spotify
 using the spotDL library.
 """
 
+import json
 from typing import List, Optional, Union
+from core.spotify_auth import load_token, refresh_token
 import telebot
 import asyncio
 import threading
@@ -24,6 +26,34 @@ from spotdl.download.downloader import Downloader
 from spotdl.utils.spotify import SpotifyClient
 from spotdl.utils.search import get_simple_songs
 from spotdl.utils.config import DEFAULT_CONFIG, DOWNLOADER_OPTIONS
+from spotdl.utils.config import DEFAULT_CONFIG, get_config_file
+
+
+def generate_config():
+    """
+    Generate the config file if it doesn't exist
+    This is done before the argument parser so it doesn't requires `operation`
+    and `query` to be passed.
+    """
+
+    config_path = get_config_file()
+    token = load_token()
+    settings = DOWNLOADER_OPTIONS.copy()
+    settings["client_id"] = SPOTIFY_CLIENT_ID
+    settings["client_secret"] = SPOTIFY_CLIENT_SECRET
+    settings["user_auth"] = True
+    settings["cache_path"] = f"{CACHE_DIR}/.spotipy"
+    settings["no_cache"] = DEFAULT_CONFIG["no_cache"]
+    settings["headless"] = DEFAULT_CONFIG["headless"]
+    settings["auth_token"] = token["access_token"]
+    settings["output"] = DOWNLOAD_DIR
+
+    with open(config_path, "w", encoding="utf-8") as config_file:
+        json.dump(settings, config_file, indent=4)
+
+    print(f"Config file generated at {config_path}")
+
+    return None
 
 
 class SpotifyDownloader:
@@ -36,6 +66,7 @@ class SpotifyDownloader:
         """
         Initializes the Spotify client and downloader with default settings.
         """
+        generate_config()
         self._initialize_spotify_client()
         self.downloader = self._initialize_downloader()
 
@@ -43,16 +74,16 @@ class SpotifyDownloader:
         """
         Initializes the Spotify client configuration with credentials.
         """
+        token = load_token()
         SpotifyClient.init(
             client_id=SPOTIFY_CLIENT_ID,
             client_secret=SPOTIFY_CLIENT_SECRET,
-            user_auth=False,
-            cache_path=f"{CACHE_DIR}/spotify_token.json",
+            user_auth=True,
+            cache_path=f"{CACHE_DIR}/.spotipy",
             no_cache=DEFAULT_CONFIG["no_cache"],
             headless=DEFAULT_CONFIG["headless"],
+            auth_token=token["access_token"],
         )
-        spotify_client = SpotifyClient()
-        self.spotify_client = spotify_client
 
     def _initialize_downloader(self) -> Downloader:
         """
@@ -74,10 +105,11 @@ class SpotifyDownloader:
             output (Optional[str]): Optional pattern for output directory/filename.
                                     If not specified, it is inferred based on content type.
         """
-        self.spotify_client.user_auth = user_auth
-
         output = get_output_pattern(query)
         self.downloader.settings["output"] = f"{DOWNLOAD_DIR}/{output}"
+
+        spotify_client = SpotifyClient()
+        spotify_client.user_auth = user_auth
 
         songs = get_simple_songs(
             query,
@@ -90,17 +122,19 @@ class SpotifyDownloader:
             ],
         )
 
-        logger.info("Starting download...")
-        msg = send_message(bot, message=get_text("download_in_progress"))
-        message_id = msg.message_id
+        print(songs)
 
-        thread = threading.Thread(target=self._run_download_in_thread, args=(songs,))
-        thread.start()
-        thread.join()
+        # logger.info("Starting download...")
+        # msg = send_message(bot, message=get_text("download_in_progress"))
+        # message_id = msg.message_id
 
-        logger.info("Download finished successfully.")
-        delete_message(bot, message_id=message_id)
-        send_message(bot, message=get_text("download_finished"))
+        # thread = threading.Thread(target=self._run_download_in_thread, args=(songs,))
+        # thread.start()
+        # thread.join()
+
+        # logger.info("Download finished successfully.")
+        # delete_message(bot, message_id=message_id)
+        # send_message(bot, message=get_text("download_finished"))
 
     def _run_download_in_thread(self, songs):
         loop = self.downloader.loop
