@@ -31,7 +31,11 @@ def setup_logger(
     """
 
     logger = logging.getLogger(name)
-    if logger.hasHandlers():
+    if name is None:
+        # Always configure root logger
+        for handler in logger.handlers:
+            logger.removeHandler(handler)
+    elif logger.hasHandlers():
         return logger  # Avoid adding duplicate handlers
 
     # Determine logging level from parameter or environment or default DEBUG
@@ -44,9 +48,27 @@ def setup_logger(
     date_format = "%Y-%m-%d %H:%M:%S"
     formatter = logging.Formatter(log_format, datefmt=date_format)
 
+    # Colored formatter for console
+    class ColoredFormatter(logging.Formatter):
+        COLORS = {
+            "DEBUG": "\033[94m",  # Blue
+            "INFO": "\033[92m",  # Green
+            "WARNING": "\033[93m",  # Yellow
+            "ERROR": "\033[91m",  # Red
+            "CRITICAL": "\033[95m",  # Magenta
+        }
+        RESET = "\033[0m"
+
+        def format(self, record):
+            color = self.COLORS.get(record.levelname, self.RESET)
+            message = super().format(record)
+            return f"{color}{message}{self.RESET}"
+
+    colored_formatter = ColoredFormatter(log_format, datefmt=date_format)
+
     # Console handler
     console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setFormatter(formatter)
+    console_handler.setFormatter(colored_formatter)
     logger.addHandler(console_handler)
 
     # File logs directory and rotating file handler
@@ -60,6 +82,6 @@ def setup_logger(
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
 
-    logger.propagate = False
+    # logger.propagate = False
 
     return logger
