@@ -1,34 +1,57 @@
-from config.config import LANGUAGE, LOCALE_DIR
-from core.logger import setup_logger
 import sys
 import os
 import json
+from config.config import LANGUAGE, LOCALE_DIR
+from core.logger import setup_logger
 
 logger = setup_logger(__name__)
 
-if LANGUAGE.lower() not in ("es", "en"):
-	logger.error("LANGUAGE only can be ES/EN")
-	sys.exit(1)
+SUPPORTED_LANGUAGES = ("es", "en")
+DEFAULT_LANGUAGE = "es"
+_language = LANGUAGE.lower()
+
+if _language not in SUPPORTED_LANGUAGES:
+    logger.error("LANGUAGE must be 'es' or 'en'")
+    sys.exit(1)
+
+# Locale cache
+_locale_cache = {}
+
 
 def load_locale(locale):
-	with open(f"{LOCALE_DIR}/{locale}.json", "r", encoding="utf-8") as file:
-		return json.load(file)
+    path = os.path.join(LOCALE_DIR, f"{locale}.json")
+    try:
+        with open(path, "r", encoding="utf-8") as file:
+            return json.load(file)
+    except FileNotFoundError:
+        logger.error(f"Locale file not found: {path}")
+        return {}
+
+
+def get_locale(locale):
+    if locale not in _locale_cache:
+        _locale_cache[locale] = load_locale(locale)
+    return _locale_cache[locale]
+
 
 def get_text(key, *args):
-	messages = load_locale(LANGUAGE.lower())
-	if key in messages:
-		translated_text = messages[key]
-	else:
-		messages_es = load_locale("es")
-		if key in messages_es:
-			logger.warning(f"key ['{key}'] is not in locale {LANGUAGE}")
-			translated_text = messages_es[key]
-		else:
-			logger.error(f"key ['{key}'] is not in locale {LANGUAGE} or EN")
-			return f"key ['{key}'] is not in locale {LANGUAGE} or EN"
+    messages = get_locale(_language)
 
-	for i, arg in enumerate(args, start=1):
-		placeholder = f"${i}"
-		translated_text = translated_text.replace(placeholder, str(arg))
+    if key in messages:
+        text = messages[key]
+    else:
+        fallback = get_locale(DEFAULT_LANGUAGE)
+        if key in fallback:
+            logger.warning(
+                f"Key '{key}' not found in locale '{_language}', using fallback '{DEFAULT_LANGUAGE}'."
+            )
+            text = fallback[key]
+        else:
+            error_msg = f"Key '{key}' missing in both '{_language}' and fallback '{DEFAULT_LANGUAGE}' locales."
+            logger.error(error_msg)
+            return error_msg
 
-	return translated_text
+    for i, arg in enumerate(args, start=1):
+        text = text.replace(f"${i}", str(arg))
+
+    return text
