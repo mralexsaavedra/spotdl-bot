@@ -2,30 +2,16 @@
 import time
 
 # --- Third-party imports ---
+from spotifyDownloader import SpotifyDownloader
 import telebot
 
 # --- Project imports ---
 from config.config import VERSION
-from core.downloader import (
-    download,
-    download_liked,
-    download_playlists,
-    download_albums,
-)
 from core.spotify_auth import auth, load_token
 from core.locale import get_text
 from core.utils import delete_message, is_spotify_url, send_message
 
-
-def require_token(bot: telebot.TeleBot) -> bool:
-    """
-    Checks if a valid Spotify token exists, sending an error message if it does not.
-    """
-    token = load_token()
-    if not token:
-        send_message(bot, message=get_text("error_no_valid_token"))
-        return False
-    return True
+spotidyDownloader = SpotifyDownloader()
 
 
 def register_commands(bot: telebot.TeleBot):
@@ -47,26 +33,39 @@ def register_commands(bot: telebot.TeleBot):
     @bot.message_handler(commands=["download"])
     def download_command(message):
         """Requests a Spotify URL to download."""
+        token = load_token()
+        if not token:
+            send_message(bot, message=get_text("error_token_required"))
+            return
         send_message(bot, message=get_text("download_prompt_url"))
 
     # --- Downloads ---
     @bot.message_handler(commands=["downloadliked"])
     def download_liked_command(message):
         """Downloads songs marked as favorites."""
-        if require_token(bot):
-            download_liked(bot)
+        token = load_token()
+        if not token:
+            send_message(bot, message=get_text("error_token_required"))
+            return
+        spotidyDownloader.download_liked(bot=bot)
 
     @bot.message_handler(commands=["downloadalbums"])
     def download_albums_command(message):
         """Downloads albums saved by the user."""
-        if require_token(bot):
-            download_albums(bot)
+        token = load_token()
+        if not token:
+            send_message(bot, message=get_text("error_token_required"))
+            return
+        spotidyDownloader.download_albums(bot=bot)
 
     @bot.message_handler(commands=["downloadplaylists"])
     def download_playlists_command(message):
         """Downloads playlists saved by the user."""
-        if require_token(bot):
-            download_playlists(bot)
+        token = load_token()
+        if not token:
+            send_message(bot, message=get_text("error_token_required"))
+            return
+        spotidyDownloader.download_playlists(bot=bot)
 
     # --- Utilities ---
     @bot.message_handler(commands=["version"])
@@ -87,7 +86,12 @@ def register_commands(bot: telebot.TeleBot):
     @bot.message_handler(func=lambda message: is_spotify_url(message.text))
     def process_direct_url(message):
         """Processes a Spotify URL directly."""
-        download(bot, message)
+        token = load_token()
+        if not token:
+            send_message(bot, message=get_text("error_token_required"))
+            return
+        url = message.text.strip()
+        spotidyDownloader.download(bot=bot, query=url)
 
     # --- Fallback ---
     @bot.message_handler(func=lambda message: True)

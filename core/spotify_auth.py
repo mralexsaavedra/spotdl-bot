@@ -6,6 +6,7 @@ import urllib.parse
 from typing import Optional, Dict, Any
 
 import requests
+import telebot
 
 from config.config import (
     SPOTIFY_CLIENT_ID,
@@ -66,7 +67,7 @@ def load_token() -> Optional[Dict[str, Any]]:
         raise Exception(get_text("error_load_token")) from e
 
 
-def refresh_token(bot: Any, refresh_token: str) -> None:
+def refresh_token(bot: telebot.TeleBot, refresh_token: str) -> None:
     """
     Refresh the Spotify access token using the refresh token.
 
@@ -107,7 +108,7 @@ def refresh_token(bot: Any, refresh_token: str) -> None:
         raise
 
 
-def get_new_token(message: Any, bot: Any) -> None:
+def get_new_token(message: Any, bot: telebot.TeleBot) -> None:
     """
     Exchange the authorization code received via Telegram message for an access token.
 
@@ -148,7 +149,7 @@ def get_new_token(message: Any, bot: Any) -> None:
         raise
 
 
-def authorize(bot: Any, message: Any) -> None:
+def authorize(bot: telebot.TeleBot, message: Any) -> None:
     """
     Start the Spotify authorization by sending the authorization URL to the user.
 
@@ -173,7 +174,7 @@ def authorize(bot: Any, message: Any) -> None:
     bot.register_next_step_handler(message, get_new_token, bot)
 
 
-def auth(bot: Any, message: Any) -> None:
+def auth(bot: telebot.TeleBot, message: Any) -> None:
     """
     Main entry for Spotify authentication.
 

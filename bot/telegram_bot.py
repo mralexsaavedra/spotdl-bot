@@ -15,13 +15,13 @@ def run_bot() -> None:
     Starts the Telegram bot, registers commands, sends a startup message,
     and begins polling for updates.
     """
-    logger.info(get_text("log_bot_start", VERSION))
+    logger.info(f"🔧 Starting SpotDL Bot (v{VERSION})")
 
     register_commands(bot)
 
     starting_message = (
         f"{get_text('bot_started_title')}\n"
-        f"{get_text('status_active')}\n"
+        f"{get_text('bot_status_label')}\n"
         f"{get_text('bot_version_label', VERSION)}\n\n"
         f"{get_text('bot_description')}"
     )
