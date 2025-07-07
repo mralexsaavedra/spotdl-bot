@@ -21,7 +21,7 @@ from spotdl.utils.search import (
 
 
 class SpotifyDownloader:
-    def __init__(self, bot):
+    def __init__(self):
         SpotifyClient.init(
             client_id=SPOTIFY_CLIENT_ID,
             client_secret=SPOTIFY_CLIENT_SECRET,
@@ -72,7 +72,7 @@ class SpotifyDownloader:
             ],
         )
 
-    def download_songs(self, songs, output):
+    def download_songs(self, bot, songs, output):
         self.downloader_settings["output"] = f"{DOWNLOAD_DIR}/{output}"
         downloader = Downloader(
             settings=self.downloader_settings,
@@ -80,10 +80,10 @@ class SpotifyDownloader:
         )
 
         downloader.download_multiple_songs(songs)
-        delete_message(bot=self.bot, message_id=self.message_id)
-        send_message(bot=self.bot, message=get_text("download_finished"))
+        delete_message(bot=bot, message_id=self.message_id)
+        send_message(bot=bot, message=get_text("download_finished"))
 
-    def download(self, query: str):
+    def download(self, bot, query: str):
         """
         Download songs based on a search query.
 
@@ -93,16 +93,16 @@ class SpotifyDownloader:
         ### Returns
         - None
         """
-        msg = send_message(bot=self.bot, message=get_text("download_in_progress"))
+        msg = send_message(bot=bot, message=get_text("download_in_progress"))
         self.message_id = msg.message_id
 
-        songs = self.search(query)
+        songs = self.search([query])
         if not songs:
             logger.info("No songs found for the given query.")
             return
 
         output = self.get_output_pattern(identifier=query)
-        self.download_songs(songs=songs, output=output)
+        self.download_songs(bot=bot, songs=songs, output=output)
 
     def get_all_user_songs(self):
         """
@@ -171,8 +171,8 @@ class SpotifyDownloader:
 
         return songs
 
-    def download_all_user_songs(self):
-        msg = send_message(bot=self.bot, message=get_text("download_in_progress"))
+    def download_all_user_songs(self, bot):
+        msg = send_message(bot=bot, message=get_text("download_in_progress"))
         self.message_id = msg.message_id
 
         songs = self.get_all_user_songs()
@@ -182,7 +182,7 @@ class SpotifyDownloader:
             return
 
         output = self.get_output_pattern(identifier="saved")
-        self.download_songs(songs=songs, output=output)
+        self.download_songs(bot=bot, songs=songs, output=output)
 
     def download_lists(self, lists: List[str], output: str):
         songs: List[Song] = []
@@ -235,8 +235,8 @@ class SpotifyDownloader:
 
         self.download_songs(songs=songs, output=output)
 
-    def download_all_user_playlists(self):
-        msg = send_message(bot=self.bot, message=get_text("download_in_progress"))
+    def download_all_user_playlists(self, bot):
+        msg = send_message(bot=bot, message=get_text("download_in_progress"))
         self.message_id = msg.message_id
 
         playlists = get_all_user_playlists()
@@ -248,8 +248,8 @@ class SpotifyDownloader:
         output = self.get_output_pattern(identifier="all-user-playlists")
         self.download_lists(lists=playlists, output=output)
 
-    def download_all_user_albums(self):
-        msg = send_message(bot=self.bot, message=get_text("download_in_progress"))
+    def download_all_user_albums(self, bot):
+        msg = send_message(bot=bot, message=get_text("download_in_progress"))
         self.message_id = msg.message_id
 
         albums = get_user_saved_albums()

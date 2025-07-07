@@ -34,17 +34,17 @@ def register_commands(bot: telebot.TeleBot):
     @bot.message_handler(commands=["downloadliked"])
     def download_liked_command(message):
         """Downloads songs marked as favorites."""
-        spotdl.download_all_user_songs()
+        spotdl.download_all_user_songs(bot=bot)
 
     @bot.message_handler(commands=["downloadalbums"])
     def download_albums_command(message):
         """Downloads albums saved by the user."""
-        spotdl.download_all_user_albums()
+        spotdl.download_all_user_albums(bot=bot)
 
     @bot.message_handler(commands=["downloadplaylists"])
     def download_playlists_command(message):
         """Downloads playlists saved by the user."""
-        spotdl.download_all_user_playlists()
+        spotdl.download_all_user_playlists(bot=bot)
 
     # --- Utilities ---
     @bot.message_handler(commands=["version"])
@@ -66,7 +66,7 @@ def register_commands(bot: telebot.TeleBot):
     def process_direct_url(message):
         """Processes a Spotify URL directly."""
         url = message.text.strip()
-        spotdl.download(query=url)
+        spotdl.download(bot=bot, query=url)
 
     # --- Fallback ---
     @bot.message_handler(func=lambda message: True)
