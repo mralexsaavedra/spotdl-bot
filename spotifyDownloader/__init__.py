@@ -5,6 +5,8 @@ from config.config import (
     CACHE_DIR,
 )
 from typing import List
+from core.locale import get_text
+from core.utils import delete_message, send_message
 from loguru import logger
 from spotdl.utils.config import DEFAULT_CONFIG, DOWNLOADER_OPTIONS
 from spotdl.download.downloader import Downloader
@@ -19,7 +21,7 @@ from spotdl.utils.search import (
 
 
 class SpotifyDownloader:
-    def __init__(self):
+    def __init__(self, bot):
         SpotifyClient.init(
             client_id=SPOTIFY_CLIENT_ID,
             client_secret=SPOTIFY_CLIENT_SECRET,
@@ -78,6 +80,8 @@ class SpotifyDownloader:
         )
 
         downloader.download_multiple_songs(songs)
+        delete_message(bot=self.bot, message_id=self.message_id)
+        send_message(bot=self.bot, message=get_text("download_finished"))
 
     def download(self, query: str):
         """
@@ -89,6 +93,9 @@ class SpotifyDownloader:
         ### Returns
         - None
         """
+        msg = send_message(bot=self.bot, message=get_text("download_in_progress"))
+        self.message_id = msg.message_id
+
         songs = self.search(query)
         if not songs:
             logger.info("No songs found for the given query.")
@@ -160,9 +167,14 @@ class SpotifyDownloader:
 
             songs.append(song)
 
+        logger.debug(f"Found {len(songs)} songs in user's saved songs")
+
         return songs
 
     def download_all_user_songs(self):
+        msg = send_message(bot=self.bot, message=get_text("download_in_progress"))
+        self.message_id = msg.message_id
+
         songs = self.get_all_user_songs()
 
         if not songs:
@@ -224,6 +236,9 @@ class SpotifyDownloader:
         self.download_songs(songs=songs, output=output)
 
     def download_all_user_playlists(self):
+        msg = send_message(bot=self.bot, message=get_text("download_in_progress"))
+        self.message_id = msg.message_id
+
         playlists = get_all_user_playlists()
 
         if not playlists:
@@ -234,6 +249,9 @@ class SpotifyDownloader:
         self.download_lists(lists=playlists, output=output)
 
     def download_all_user_albums(self):
+        msg = send_message(bot=self.bot, message=get_text("download_in_progress"))
+        self.message_id = msg.message_id
+
         albums = get_user_saved_albums()
 
         if not albums:
