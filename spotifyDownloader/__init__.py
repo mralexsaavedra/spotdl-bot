@@ -55,7 +55,7 @@ class SpotifyDownloader:
         settings["output"] = f"{DOWNLOAD_DIR}/{output}"
         return Downloader(settings=settings, loop=None)
 
-    def download_query(self, bot, query: str):
+    def download(self, bot, query: str):
         """
         Downloads the content for the given Spotify query.
         Sends messages to the user via the Telegram bot.
