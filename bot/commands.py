@@ -34,17 +34,17 @@ def register_commands(bot: telebot.TeleBot):
     @bot.message_handler(commands=["downloadliked"])
     def download_liked_command(message):
         """Downloads songs marked as favorites."""
-        spotdl.download_all_user_songs(bot=bot)
+        spotdl.download(bot=bot, query="saved")
 
     @bot.message_handler(commands=["downloadalbums"])
     def download_albums_command(message):
         """Downloads albums saved by the user."""
-        spotdl.download_all_user_albums(bot=bot)
+        spotdl.download(bot=bot, query="all-user-saved-albums")
 
     @bot.message_handler(commands=["downloadplaylists"])
     def download_playlists_command(message):
         """Downloads playlists saved by the user."""
-        spotdl.download_all_user_playlists(bot=bot)
+        spotdl.download(bot=bot, query="all-user-playlists")
 
     # --- Utilities ---
     @bot.message_handler(commands=["version"])
