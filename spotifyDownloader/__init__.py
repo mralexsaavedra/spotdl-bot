@@ -1,80 +1,20 @@
-"""
-spotifyDownloader module
-
-Contains the main SpotifyDownloader class that simplifies
-downloading songs, albums, and playlists from Spotify
-using the spotDL library.
-"""
-
-import json
-from typing import List, Optional, Union
-from core.spotify_auth import load_token, refresh_token
-import telebot
-import asyncio
-import threading
-
 from config.config import (
     DOWNLOAD_DIR,
     SPOTIFY_CLIENT_ID,
     SPOTIFY_CLIENT_SECRET,
     CACHE_DIR,
 )
-from core.locale import get_text
 from loguru import logger
-from core.utils import delete_message, get_output_pattern, send_message
+from typing import List
+from spotdl.utils.config import DEFAULT_CONFIG, DOWNLOADER_OPTIONS
 from spotdl.download.downloader import Downloader
 from spotdl.utils.spotify import SpotifyClient
-from spotdl.utils.search import get_simple_songs
-from spotdl.utils.config import DEFAULT_CONFIG, DOWNLOADER_OPTIONS
-from spotdl.utils.config import DEFAULT_CONFIG, get_config_file
-
-
-def generate_config():
-    """
-    Generate the config file if it doesn't exist
-    This is done before the argument parser so it doesn't requires `operation`
-    and `query` to be passed.
-    """
-
-    config_path = get_config_file()
-    token = load_token()
-    settings = DOWNLOADER_OPTIONS.copy()
-    settings["client_id"] = SPOTIFY_CLIENT_ID
-    settings["client_secret"] = SPOTIFY_CLIENT_SECRET
-    settings["user_auth"] = True
-    settings["cache_path"] = f"{CACHE_DIR}/.spotipy"
-    settings["no_cache"] = DEFAULT_CONFIG["no_cache"]
-    settings["headless"] = DEFAULT_CONFIG["headless"]
-    settings["auth_token"] = token["access_token"]
-    settings["output"] = DOWNLOAD_DIR
-
-    with open(config_path, "w", encoding="utf-8") as config_file:
-        json.dump(settings, config_file, indent=4)
-
-    print(f"Config file generated at {config_path}")
-
-    return None
+from spotdl.types.song import Song
+from spotdl.utils.search import parse_query
 
 
 class SpotifyDownloader:
-    """
-    Encapsulates the logic for downloading music from Spotify
-    using spotDL, managing configuration and authentication.
-    """
-
-    def __init__(self) -> None:
-        """
-        Initializes the Spotify client and downloader with default settings.
-        """
-        generate_config()
-        self._initialize_spotify_client()
-        self.downloader = self._initialize_downloader()
-
-    def _initialize_spotify_client(self) -> None:
-        """
-        Initializes the Spotify client configuration with credentials.
-        """
-        token = load_token()
+    def __init__(self):
         SpotifyClient.init(
             client_id=SPOTIFY_CLIENT_ID,
             client_secret=SPOTIFY_CLIENT_SECRET,
@@ -82,64 +22,145 @@ class SpotifyDownloader:
             cache_path=f"{CACHE_DIR}/.spotipy",
             no_cache=DEFAULT_CONFIG["no_cache"],
             headless=DEFAULT_CONFIG["headless"],
-            auth_token=token["access_token"],
         )
 
-    def _initialize_downloader(self) -> Downloader:
-        """
-        Creates and returns a configured Downloader instance.
-        """
-        settings = DOWNLOADER_OPTIONS.copy()
-        settings["output"] = DOWNLOAD_DIR
-        return Downloader(settings=settings, loop=None)
+    def get_output_pattern(identifier: str) -> str:
+        if "track" in identifier:
+            return "{artist}/{artists} - {title}.{output-ext}"
+        elif "album" in identifier or identifier == "all-user-saved-albums":
+            return "{album-artist}/{album}/{artists} - {title}.{output-ext}"
+        elif "playlist" in identifier or identifier == "all-user-playlists":
+            return "Playlists/{list-name}/{artists} - {title}.{output-ext}"
+        elif "artist" in identifier:
+            return "{artist}/{artists} - {title}.{output-ext}"
+        elif identifier == "saved":
+            return "Liked Songs/{artists} - {title}.{output-ext}"
+        else:
+            return "{artists} - {title}.{output-ext}"
 
-    def download(
-        self, bot: telebot.TeleBot, query: Union[str, List[str]], user_auth=False
-    ) -> None:
+    def search(self, query: List[str]) -> List[Song]:
         """
-        Downloads songs, albums, or playlists from a URL or list of URLs.
+        Search for songs.
 
-        Args:
-            bot (telebot.TeleBot): Telegram bot instance to send messages.
-            query (Union[str, List[str]]): URL(s) or search terms to download.
-            output (Optional[str]): Optional pattern for output directory/filename.
-                                    If not specified, it is inferred based on content type.
+        ### Arguments
+        - query: List of search queries
+
+        ### Returns
+        - A list of Song objects
+
+        ### Notes
+        - query can be a list of song titles, urls, uris
         """
-        output = get_output_pattern(query)
-        self.downloader.settings["output"] = f"{DOWNLOAD_DIR}/{output}"
 
-        spotify_client = SpotifyClient()
-        spotify_client.user_auth = user_auth
-
-        songs = get_simple_songs(
-            query,
+        return parse_query(
+            query=query,
+            threads=self.downloader.settings["threads"],
             use_ytm_data=self.downloader.settings["ytm_data"],
             playlist_numbering=self.downloader.settings["playlist_numbering"],
-            albums_to_ignore=self.downloader.settings["ignore_albums"],
             album_type=self.downloader.settings["album_type"],
             playlist_retain_track_cover=self.downloader.settings[
                 "playlist_retain_track_cover"
             ],
         )
 
-        print(songs)
+    def download_songs(self, songs, output):
+        downloader_settings = DOWNLOADER_OPTIONS.copy()
+        downloader_settings["output"] = f"{DOWNLOAD_DIR}/{output}"
+        downloader = Downloader(
+            settings=downloader_settings,
+            loop=None,
+        )
 
-        # logger.info("Starting download...")
-        # msg = send_message(bot, message=get_text("download_in_progress"))
-        # message_id = msg.message_id
+        downloader.download_multiple_songs(songs)
 
-        # thread = threading.Thread(target=self._run_download_in_thread, args=(songs,))
-        # thread.start()
-        # thread.join()
+    def download(self, query: List[str]):
+        """
+        Download songs based on a search query.
 
-        # logger.info("Download finished successfully.")
-        # delete_message(bot, message_id=message_id)
-        # send_message(bot, message=get_text("download_finished"))
+        ### Arguments
+        - query: List of search queries
 
-    def _run_download_in_thread(self, songs):
-        loop = self.downloader.loop
-        if loop.is_closed():
-            loop = asyncio.new_event_loop()
-            self.downloader.loop = loop
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(self.downloader.download_multiple_songs(songs))
+        ### Returns
+        - None
+        """
+
+        songs = self.search(query)
+        if not songs:
+            logger.info("No songs found for the given query.")
+            return
+
+        output = self.get_output_pattern(query)
+        self.download_songs(songs=songs, output=output)
+
+    def get_all_user_songs(self):
+        """
+        Get all songs saved by the user.
+
+        ### Returns
+        - A list of Song objects representing the user's saved songs.
+        """
+        spotify_client = SpotifyClient()
+
+        saved_tracks_response = spotify_client.current_user_saved_tracks()
+        if saved_tracks_response is None:
+            raise logger.error("Couldn't get saved tracks")
+
+        saved_tracks = saved_tracks_response["items"]
+
+        while saved_tracks_response and saved_tracks_response["next"]:
+            response = spotify_client.next(saved_tracks_response)
+            if response is None:
+                break
+
+            saved_tracks_response = response
+            saved_tracks.extend(saved_tracks_response["items"])
+
+        songs = []
+        for track in saved_tracks:
+            if not isinstance(track, dict) or track.get("track", {}).get("is_local"):
+                continue
+
+            track_meta = track["track"]
+            album_meta = track_meta["album"]
+
+            release_date = album_meta["release_date"]
+            artists = artists = [artist["name"] for artist in track_meta["artists"]]
+
+            song = Song.from_missing_data(
+                name=track_meta["name"],
+                artists=artists,
+                artist=artists[0],
+                album_id=album_meta["id"],
+                album_name=album_meta["name"],
+                album_artist=album_meta["artists"][0]["name"],
+                album_type=album_meta["album_type"],
+                disc_number=track_meta["disc_number"],
+                duration=int(track_meta["duration_ms"] / 1000),
+                year=release_date[:4],
+                date=release_date,
+                track_number=track_meta["track_number"],
+                tracks_count=album_meta["total_tracks"],
+                song_id=track_meta["id"],
+                explicit=track_meta["explicit"],
+                url=track_meta["external_urls"]["spotify"],
+                isrc=track_meta.get("external_ids", {}).get("isrc"),
+                cover_url=(
+                    max(album_meta["images"], key=lambda i: i["width"] * i["height"])[
+                        "url"
+                    ]
+                    if album_meta["images"]
+                    else None
+                ),
+            )
+
+            songs.append(song)
+
+    def download_all_user_songs(self):
+        songs = self.get_all_user_songs()
+
+        if not songs:
+            logger.info("No saved songs found.")
+            return
+
+        output = self.get_output_pattern("saved")
+        self.download_songs(songs=songs, output=output)
