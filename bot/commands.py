@@ -1,19 +1,12 @@
-# --- Standard library imports ---
 import time
-
-# --- Third-party imports ---
 from core.downloader import download
-from loguru import logger
-
-# from spotifyDownloader.download_all_user_songs import download_all_user_songs
 from spotifyDownloader import SpotifyDownloader
-import telebot
-
-# --- Project imports ---
 from config.config import VERSION
 from core.spotify_auth import auth
 from core.locale import get_text
 from core.utils import delete_message, is_spotify_url, send_message
+from loguru import logger
+import telebot
 
 spotdl = SpotifyDownloader()
 
@@ -53,7 +46,7 @@ def register_commands(bot: telebot.TeleBot):
     @bot.message_handler(commands=["downloadplaylists"])
     def download_playlists_command(message):
         """Downloads playlists saved by the user."""
-        download(bot=bot, query="all-user-playlists", user_auth=True)
+        spotdl.download_all_user_playlists()
 
     # --- Utilities ---
     @bot.message_handler(commands=["version"])

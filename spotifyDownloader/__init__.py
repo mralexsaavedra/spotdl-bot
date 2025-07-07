@@ -10,7 +10,8 @@ from spotdl.utils.config import DEFAULT_CONFIG, DOWNLOADER_OPTIONS
 from spotdl.download.downloader import Downloader
 from spotdl.utils.spotify import SpotifyClient
 from spotdl.types.song import Song
-from spotdl.utils.search import parse_query
+from spotdl.utils.search import parse_query, get_all_user_playlists
+from spotdl.types.playlist import Playlist
 
 
 class SpotifyDownloader:
@@ -23,8 +24,10 @@ class SpotifyDownloader:
             no_cache=DEFAULT_CONFIG["no_cache"],
             headless=DEFAULT_CONFIG["headless"],
         )
+        downloader_settings = DOWNLOADER_OPTIONS.copy()
+        self.downloader_settings = downloader_settings
 
-    def get_output_pattern(identifier: str) -> str:
+    def get_output_pattern(self, identifier: str) -> str:
         if "track" in identifier:
             return "{artist}/{artists} - {title}.{output-ext}"
         elif "album" in identifier or identifier == "all-user-saved-albums":
@@ -54,20 +57,19 @@ class SpotifyDownloader:
 
         return parse_query(
             query=query,
-            threads=self.downloader.settings["threads"],
-            use_ytm_data=self.downloader.settings["ytm_data"],
-            playlist_numbering=self.downloader.settings["playlist_numbering"],
-            album_type=self.downloader.settings["album_type"],
-            playlist_retain_track_cover=self.downloader.settings[
+            threads=self.downloader_settings["threads"],
+            use_ytm_data=self.downloader_settings["ytm_data"],
+            playlist_numbering=self.downloader_settings["playlist_numbering"],
+            album_type=self.downloader_settings["album_type"],
+            playlist_retain_track_cover=self.downloader_settings[
                 "playlist_retain_track_cover"
             ],
         )
 
     def download_songs(self, songs, output):
-        downloader_settings = DOWNLOADER_OPTIONS.copy()
-        downloader_settings["output"] = f"{DOWNLOAD_DIR}/{output}"
+        self.downloader_settings["output"] = f"{DOWNLOAD_DIR}/{output}"
         downloader = Downloader(
-            settings=downloader_settings,
+            settings=self.downloader_settings,
             loop=None,
         )
 
@@ -89,7 +91,7 @@ class SpotifyDownloader:
             logger.info("No songs found for the given query.")
             return
 
-        output = self.get_output_pattern(query)
+        output = self.get_output_pattern(identifier=query)
         self.download_songs(songs=songs, output=output)
 
     def get_all_user_songs(self):
@@ -155,6 +157,8 @@ class SpotifyDownloader:
 
             songs.append(song)
 
+        return songs
+
     def download_all_user_songs(self):
         songs = self.get_all_user_songs()
 
@@ -162,5 +166,63 @@ class SpotifyDownloader:
             logger.info("No saved songs found.")
             return
 
-        output = self.get_output_pattern("saved")
+        output = self.get_output_pattern(identifier="saved")
+        self.download_songs(songs=songs, output=output)
+
+    def download_all_user_playlists(self):
+        playlists = get_all_user_playlists()
+
+        if not playlists:
+            logger.info("No playlists found.")
+            return
+
+        songs: List[Song] = []
+        for song_list in playlists:
+            logger.info(
+                f"Found {len(song_list.urls)} songs in {song_list.name} ({song_list.__class__.__name__})"
+            )
+
+            for index, song in enumerate(song_list.songs):
+                song_data = song.json
+                song_data["list_name"] = song_list.name
+                song_data["list_url"] = song_list.url
+                song_data["list_position"] = song.list_position
+                song_data["list_length"] = song_list.length
+
+                if self.downloader_settings["playlist_numbering"]:
+                    song_data["track_number"] = song_data["list_position"]
+                    song_data["tracks_count"] = song_data["list_length"]
+                    song_data["album_name"] = song_data["list_name"]
+                    song_data["disc_number"] = 1
+                    song_data["disc_count"] = 1
+                    if isinstance(song_list, Playlist):
+                        song_data["album_artist"] = song_list.author_name
+                        song_data["cover_url"] = song_list.cover_url
+
+                if self.downloader_settings["playlist_retain_track_cover"]:
+                    song_data["track_number"] = song_data["list_position"]
+                    song_data["tracks_count"] = song_data["list_length"]
+                    song_data["album_name"] = song_data["list_name"]
+                    song_data["disc_number"] = 1
+                    song_data["disc_count"] = 1
+                    song_data["cover_url"] = song_data["cover_url"]
+                    if isinstance(song_list, Playlist):
+                        song_data["album_artist"] = song_list.author_name
+
+                songs.append(Song.from_dict(song_data))
+
+        # removing songs for --ignore-albums
+        original_length = len(songs)
+        album_type = self.downloader_settings["album_type"]
+
+        if album_type:
+            songs = [song for song in songs if song.album_type == album_type]
+
+            logger.info(
+                f"Skipped {original_length - len(songs)} songs for Album Type {album_type}"
+            )
+
+        logger.debug(f"Found {len(songs)} songs in {len(playlists)} lists")
+
+        output = self.get_output_pattern(identifier="all-user-playlists")
         self.download_songs(songs=songs, output=output)
