@@ -21,13 +21,14 @@
   "error_rate_limited": "⚠️ Se ha superado el límite de peticiones. Inténtalo más tarde.",
   "error_token_required": "❗️ Necesitas autorizar al bot para acceder a tu cuenta de Spotify. Usa el comando /authorize.",
   "error_unknown_command": "❓ No reconozco ese comando. Usa /start para ver los comandos disponibles.",
-  "menu_main": "*🎙️ SpotDL Bot*\nDescarga canciones, álbumes, artistas o playlists directamente desde Spotify.\n\n📌 *Comandos disponibles:*\n\n• /authorize – Autoriza al bot para acceder a tu cuenta de Spotify. Necesario para descargar tus canciones favoritas o sincronizar tus playlists.\n• /download – Descarga una canción, álbum, artista o playlist mediante una URL de Spotify.\n• /downloadliked – Descarga automáticamente todas las canciones que te gustan.\n• /downloadalbums – Descarga automáticamente todos los álbumes guardados en tu biblioteca de Spotify.\n• /downloadplaylists – Descarga automáticamente todas las playlists guardadas en tu biblioteca de Spotify.\n• /version – Muestra la versión actual del bot.\n• /donate – Apoya el desarrollo con una donación.\n\nℹ️ *Tip:* También puedes enviar directamente una URL de Spotify para descargarla automáticamente.",
+  "menu_main": "*🎙️ SpotDL Bot*\nDescarga canciones, álbumes, artistas o playlists directamente desde Spotify.\n\n📌 *Comandos disponibles:*\n\n• /authorize – Autoriza al bot para acceder a tu cuenta de Spotify. Necesario para descargar tus canciones favoritas o sincronizar tus playlists.\n• /download – Descarga una canción, álbum, artista o playlist mediante una URL de Spotify.\n• /downloadsavedsongs – Descarga todas las canciones que te gustan.\n• /downloadsavedalbums – Descarga todos los álbumes guardados en tu biblioteca de Spotify.\n• /downloadsavedplaylists – Descarga todas las playlists guardadas en tu biblioteca de Spotify.\n• /downloaduserplaylists – Descarga todas las playlists creadas en tu Spotify.\n• /version – Muestra la versión actual del bot.\n• /donate – Apoya el desarrollo con una donación.\n\nℹ️ *Tip:* También puedes enviar directamente una URL de Spotify para descargarla automáticamente.",
   "menu_option_authorize": "Autorizar acceso a Spotify",
   "menu_option_donate": "Apoyar el proyecto con una donación",
-  "menu_option_download_albums": "Descargar tus álbumes guardados de Spotify",
-  "menu_option_download_liked": "Descargar todas tus canciones favoritas de Spotify",
-  "menu_option_download_playlists": "Descargar todas tus playlists guardadas de Spotify",
+  "menu_option_download_saved_albums": "Descargar tus álbumes guardados de Spotify",
+  "menu_option_download_saved_playlists": "Descargar todas tus playlists guardadas de Spotify",
+  "menu_option_download_saved_songs": "Descargar todas tus canciones favoritas de Spotify",
   "menu_option_download_url": "Descargar canción, álbum o playlist desde una URL",
+  "menu_option_download_user_playlists": "Descargar todas tus playlists creadas en Spotify",
   "menu_option_start": "Mostrar el menú principal",
   "menu_option_version": "Mostrar la versión actual del bot"
 }

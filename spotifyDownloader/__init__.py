@@ -4,7 +4,6 @@ from config.config import (
     SPOTIFY_CLIENT_SECRET,
     CACHE_DIR,
 )
-from typing import List
 from core.locale import get_text
 from core.utils import delete_message, send_message
 from loguru import logger

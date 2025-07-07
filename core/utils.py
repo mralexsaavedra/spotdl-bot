@@ -24,7 +24,11 @@ def get_output_pattern(identifier: str) -> str:
         return "{artist}/{artists} - {title}.{output-ext}"
     elif "album" in identifier or identifier == "all-user-saved-albums":
         return "{album-artist}/{album}/{artists} - {title}.{output-ext}"
-    elif "playlist" in identifier or identifier == "all-user-playlists":
+    elif (
+        "playlist" in identifier
+        or identifier == "all-user-playlists"
+        or identifier == "all-saved-playlists"
+    ):
         return "Playlists/{list-name}/{artists} - {title}.{output-ext}"
     elif "artist" in identifier:
         return "{artist}/{artists} - {title}.{output-ext}"

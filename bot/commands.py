@@ -31,20 +31,25 @@ def register_commands(bot: telebot.TeleBot):
         send_message(bot, message=get_text("download_prompt_url"))
 
     # --- Downloads ---
-    @bot.message_handler(commands=["downloadliked"])
-    def download_liked_command(message):
-        """Downloads songs marked as favorites."""
+    @bot.message_handler(commands=["downloadsavedsongs"])
+    def download_saved_song_command(message):
+        """Downloads songs saved by the user."""
         spotdl.download(bot=bot, query="saved")
 
-    @bot.message_handler(commands=["downloadalbums"])
-    def download_albums_command(message):
+    @bot.message_handler(commands=["downloadsavedalbums"])
+    def download_saved_albums_command(message):
         """Downloads albums saved by the user."""
         spotdl.download(bot=bot, query="all-user-saved-albums")
 
-    @bot.message_handler(commands=["downloadplaylists"])
-    def download_playlists_command(message):
+    @bot.message_handler(commands=["downloaduserplaylists"])
+    def download_user_playlists_command(message):
         """Downloads playlists saved by the user."""
         spotdl.download(bot=bot, query="all-user-playlists")
+
+    @bot.message_handler(commands=["downloadsavedplaylists"])
+    def download_saved_playlists_command(message):
+        """Downloads all saved playlists."""
+        spotdl.download(bot=bot, query="all-saved-playlists")
 
     # --- Utilities ---
     @bot.message_handler(commands=["version"])
@@ -81,13 +86,18 @@ def register_commands(bot: telebot.TeleBot):
             telebot.types.BotCommand("/authorize", get_text("menu_option_authorize")),
             telebot.types.BotCommand("/download", get_text("menu_option_download_url")),
             telebot.types.BotCommand(
-                "/downloadliked", get_text("menu_option_download_liked")
+                "/downloadsavedsongs", get_text("menu_option_download_saved_songs")
             ),
             telebot.types.BotCommand(
-                "/downloadalbums", get_text("menu_option_download_albums")
+                "/downloadsavedalbums", get_text("menu_option_download_saved_albums")
             ),
             telebot.types.BotCommand(
-                "/downloadplaylists", get_text("menu_option_download_playlists")
+                "/downloadsavedplaylists",
+                get_text("menu_option_download_saved_playlists"),
+            ),
+            telebot.types.BotCommand(
+                "/downloaduserplaylists",
+                get_text("menu_option_download_user_playlists"),
             ),
             telebot.types.BotCommand("/version", get_text("menu_option_version")),
             telebot.types.BotCommand("/donate", get_text("menu_option_donate")),

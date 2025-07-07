@@ -22,12 +22,13 @@
   "error_rate_limited": "⚠️ Too many requests. Please try again later.",
   "error_token_required": "❗️ You need to authorize the bot to access your Spotify account. Use the `/authorize` command.",
   "error_unknown_command": "❓ I don't recognize that command. Use /start to see available commands.",
-  "menu_main": "*🎙️ SpotDL Bot*\nDownload songs, albums, artists, or playlists directly from Spotify.\n\n📌 *Available commands:*\n\n• `/authorize` – Authorize the bot to access your Spotify account. Required to download your liked songs or sync your playlists.\n• `/download` – Download a song, album, artist, or playlist via a Spotify URL.\n• `/downloadliked` – Automatically download all your liked songs.\n• `/downloadalbums` – Automatically download all albums saved in your Spotify library.\n• `/downloadplaylists` – Automatically download all playlists saved in your Spotify library.\n• `/version` – Show the current bot version.\n• `/donate` – Support development with a donation.\n\nℹ️ *Tip:* You can also send a Spotify URL directly to download it automatically.",
+  "menu_main": "*🎙️ SpotDL Bot*\nDownload songs, albums, artists, or playlists directly from Spotify.\n\n📌 *Available commands:*\n\n• /authorize – Authorize the bot to access your Spotify account. Required to download your liked songs or sync your playlists.\n• /download – Download a song, album, artist, or playlist using a Spotify URL.\n• /downloadsavedsongs – Download all your liked songs.\n• /downloadsavedalbums – Download all albums saved in your Spotify library.\n• /downloadsavedplaylists – Download all playlists saved in your Spotify library.\n• /downloaduserplaylists – Download all playlists you’ve created on Spotify.\n• /version – Show the current bot version.\n• /donate – Support development with a donation.\n\nℹ️ *Tip:* You can also send a Spotify URL directly to download it automatically.",
   "menu_option_donate": "Support the project with a donation",
-  "menu_option_download_albums": "Download your saved albums from Spotify",
-  "menu_option_download_liked": "Download all your liked songs from Spotify",
-  "menu_option_download_playlists": "Download all your saved playlists from Spotify",
+  "menu_option_download_saved_albums": "Download your saved albums from Spotify",
+  "menu_option_download_saved_songs": "Download all your liked songs from Spotify",
+  "menu_option_download_saved_playlists": "Download all your saved playlists from Spotify",
   "menu_option_download_url": "Download a song, album, or playlist from a URL",
+  "menu_option_download_user_playlists": "Download all your created playlists on Spotify",
   "menu_option_start": "Show the main menu",
   "menu_option_version": "Show the current bot version"
 }
