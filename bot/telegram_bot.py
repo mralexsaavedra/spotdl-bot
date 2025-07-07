@@ -28,7 +28,7 @@ def run_bot() -> None:
     send_message(bot, message=starting_message)
 
     try:
-        bot.infinity_polling()
+        bot.infinity_polling(60)
     except Exception as e:
         logger.error(f"Error during bot polling: {e}")
         # Optional: decide if you want to restart polling or exit
