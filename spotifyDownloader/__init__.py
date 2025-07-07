@@ -4,14 +4,18 @@ from config.config import (
     SPOTIFY_CLIENT_SECRET,
     CACHE_DIR,
 )
-from loguru import logger
 from typing import List
+from loguru import logger
 from spotdl.utils.config import DEFAULT_CONFIG, DOWNLOADER_OPTIONS
 from spotdl.download.downloader import Downloader
 from spotdl.utils.spotify import SpotifyClient
 from spotdl.types.song import Song
-from spotdl.utils.search import parse_query, get_all_user_playlists
 from spotdl.types.playlist import Playlist
+from spotdl.utils.search import (
+    parse_query,
+    get_all_user_playlists,
+    get_user_saved_albums,
+)
 
 
 class SpotifyDownloader:
@@ -75,7 +79,7 @@ class SpotifyDownloader:
 
         downloader.download_multiple_songs(songs)
 
-    def download(self, query: List[str]):
+    def download(self, query: str):
         """
         Download songs based on a search query.
 
@@ -85,7 +89,6 @@ class SpotifyDownloader:
         ### Returns
         - None
         """
-
         songs = self.search(query)
         if not songs:
             logger.info("No songs found for the given query.")
@@ -228,4 +231,14 @@ class SpotifyDownloader:
             return
 
         output = self.get_output_pattern(identifier="all-user-playlists")
-        self.download_lists(lists=playlists)
+        self.download_lists(lists=playlists, output=output)
+
+    def download_all_user_albums(self):
+        albums = get_user_saved_albums()
+
+        if not albums:
+            logger.info("No albums found.")
+            return
+
+        output = self.get_output_pattern(identifier="all-user-saved-albums")
+        self.download_lists(lists=albums, output=output)
