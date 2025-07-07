@@ -15,7 +15,15 @@ from spotdl.utils.search import get_simple_songs
 
 
 class SpotifyDownloader:
+    """
+    A class responsible for downloading Spotify content using SpotDL.
+    Handles initialization, output path formatting, and download operations.
+    """
+
     def __init__(self):
+        self._init_spotify_client()
+
+    def _init_spotify_client(self):
         SpotifyClient.init(
             client_id=SPOTIFY_CLIENT_ID,
             client_secret=SPOTIFY_CLIENT_SECRET,
@@ -26,6 +34,9 @@ class SpotifyDownloader:
         )
 
     def get_output_pattern(self, identifier: str) -> str:
+        """
+        Returns an output pattern based on the Spotify item type.
+        """
         if "track" in identifier:
             return "{artist}/{artists} - {title}.{output-ext}"
         elif "album" in identifier or identifier == "all-user-saved-albums":
@@ -39,41 +50,44 @@ class SpotifyDownloader:
         else:
             return "{artists} - {title}.{output-ext}"
 
-    def download(self, bot, query: str):
+    def _create_downloader(self, output: str) -> Downloader:
+        settings = DOWNLOADER_OPTIONS.copy()
+        settings["output"] = f"{DOWNLOAD_DIR}/{output}"
+        return Downloader(settings=settings, loop=None)
+
+    def download_query(self, bot, query: str):
+        """
+        Downloads the content for the given Spotify query.
+        Sends messages to the user via the Telegram bot.
+        """
         msg = send_message(bot=bot, message=get_text("download_in_progress"))
         message_id = msg.message_id
 
-        downloader_settings = DOWNLOADER_OPTIONS.copy()
-        output = self.get_output_pattern(identifier=query)
-        downloader_settings["output"] = f"{DOWNLOAD_DIR}/{output}"
+        output_pattern = self.get_output_pattern(identifier=query)
+        downloader = self._create_downloader(output=output_pattern)
 
         try:
             songs = get_simple_songs(
                 query=[query],
-                use_ytm_data=downloader_settings["ytm_data"],
-                playlist_numbering=downloader_settings["playlist_numbering"],
-                album_type=downloader_settings["album_type"],
-                playlist_retain_track_cover=downloader_settings[
+                use_ytm_data=DOWNLOADER_OPTIONS["ytm_data"],
+                playlist_numbering=DOWNLOADER_OPTIONS["playlist_numbering"],
+                album_type=DOWNLOADER_OPTIONS["album_type"],
+                playlist_retain_track_cover=DOWNLOADER_OPTIONS[
                     "playlist_retain_track_cover"
                 ],
             )
 
             if not songs:
                 logger.info("No songs found for the given query.")
+                delete_message(bot=bot, message_id=message_id)
+                send_message(bot=bot, message=get_text("error_download_failed"))
                 return
 
-            downloader = Downloader(
-                settings=downloader_settings,
-                loop=None,
-            )
             downloader.download_multiple_songs(songs)
-            downloader.progress_handler.close()
-
-            delete_message(bot=bot, message_id=message_id)
             send_message(bot=bot, message=get_text("download_finished"))
         except Exception as e:
             logger.error(f"Download error: {str(e)}")
-            delete_message(bot=bot, message_id=message_id)
             send_message(bot=bot, message=get_text("error_download_failed"))
-
-        downloader.progress_handler.close()
+        finally:
+            downloader.progress_handler.close()
+            delete_message(bot=bot, message_id=message_id)
