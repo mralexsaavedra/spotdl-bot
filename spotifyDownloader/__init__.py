@@ -169,15 +169,9 @@ class SpotifyDownloader:
         output = self.get_output_pattern(identifier="saved")
         self.download_songs(songs=songs, output=output)
 
-    def download_all_user_playlists(self):
-        playlists = get_all_user_playlists()
-
-        if not playlists:
-            logger.info("No playlists found.")
-            return
-
+    def download_lists(self, lists: List[str], output: str):
         songs: List[Song] = []
-        for song_list in playlists:
+        for song_list in lists:
             logger.info(
                 f"Found {len(song_list.urls)} songs in {song_list.name} ({song_list.__class__.__name__})"
             )
@@ -222,7 +216,16 @@ class SpotifyDownloader:
                 f"Skipped {original_length - len(songs)} songs for Album Type {album_type}"
             )
 
-        logger.debug(f"Found {len(songs)} songs in {len(playlists)} lists")
+        logger.debug(f"Found {len(songs)} songs in {len(lists)} lists")
+
+        self.download_songs(songs=songs, output=output)
+
+    def download_all_user_playlists(self):
+        playlists = get_all_user_playlists()
+
+        if not playlists:
+            logger.info("No playlists found.")
+            return
 
         output = self.get_output_pattern(identifier="all-user-playlists")
-        self.download_songs(songs=songs, output=output)
+        self.download_lists(lists=playlists)
