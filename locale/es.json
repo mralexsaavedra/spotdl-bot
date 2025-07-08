@@ -35,5 +35,6 @@
   "menu_option_start": "Mostrar el menú principal",
   "menu_option_sync": "Sincronizar tu biblioteca de Spotify",
   "menu_option_version": "Mostrar la versión actual del bot",
-  "sync_finished": "✅ Sincronización completada."
+  "sync_finished": "✅ Sincronización completada.",
+  "sync_in_progress": "🔄 Sincronizando tu biblioteca de Spotify..."
 }

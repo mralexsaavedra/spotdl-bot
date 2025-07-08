@@ -196,6 +196,7 @@ class SpotifyDownloader:
         Args:
             bot (telebot.TeleBot): The Telegram bot instance. Must not be None.
         """
+        send_message(bot=bot, message=get_text("sync_in_progress"))
         sync_json_path = f"{DOWNLOAD_DIR}/sync.json"
         if not Path(sync_json_path).exists():
             logger.error(f"Sync file not found: {sync_json_path}")
