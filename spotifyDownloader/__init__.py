@@ -188,6 +188,66 @@ class SpotifyDownloader:
             if message_id:
                 delete_message(bot=bot, message_id=message_id)
 
+    def _remove_file(self, file: Path) -> None:
+        """
+        Safely remove a file and its .lrc if configured.
+        """
+        if file.exists():
+            logger.info(f"Deleting {file}")
+            try:
+                file.unlink()
+            except (PermissionError, OSError) as exc:
+                logger.debug(f"Could not remove file: {file}, error: {exc}")
+        else:
+            logger.debug(f"{file} does not exist.")
+
+    def _remove_lrc(self, file: Path, remove_lrc: bool) -> None:
+        """
+        Remove the .lrc file associated with a song file if configured.
+        """
+        if remove_lrc:
+            lrc_file = file.with_suffix(".lrc")
+            if lrc_file.exists():
+                logger.debug(f"Deleting lrc {lrc_file}")
+                try:
+                    lrc_file.unlink()
+                except (PermissionError, OSError) as exc:
+                    logger.debug(f"Could not remove lrc file: {lrc_file}, error: {exc}")
+            else:
+                logger.debug(f"{lrc_file} does not exist.")
+
+    def _rename_file(self, old_path: Path, new_path: Path) -> None:
+        """
+        Safely rename a file, removing the destination if it exists.
+        """
+        if old_path.exists():
+            logger.info(f"Renaming '{old_path}' to '{new_path}'")
+            if new_path.exists():
+                old_path.unlink()
+                return
+            try:
+                old_path.rename(new_path)
+            except (PermissionError, OSError) as exc:
+                logger.debug(f"Could not rename file: {old_path}, error: {exc}")
+        else:
+            logger.debug(f"{old_path} does not exist.")
+
+    def _rename_lrc(self, old_path: Path, new_path: Path, remove_lrc: bool) -> None:
+        """
+        Rename the .lrc file associated with a song file if configured.
+        """
+        if remove_lrc:
+            lrc_file = old_path.with_suffix(".lrc")
+            new_lrc_file = new_path.with_suffix(".lrc")
+            if lrc_file.exists():
+                logger.debug(f"Renaming lrc '{lrc_file}' to '{new_lrc_file}'")
+                try:
+                    lrc_file.rename(new_lrc_file)
+                except (PermissionError, OSError) as exc:
+                    logger.debug(f"Could not rename lrc file: {lrc_file}, error: {exc}")
+            else:
+                logger.debug(f"{lrc_file} does not exist.")
+
     def sync(self, bot: telebot.TeleBot) -> None:
         """
         Sync function.
@@ -198,8 +258,8 @@ class SpotifyDownloader:
         """
         msg = send_message(bot=bot, message=get_text("sync_in_progress"))
         sync_message_id = msg.message_id if msg else None
-        sync_json_path = f"{DOWNLOAD_DIR}/sync.json"
-        if not Path(sync_json_path).exists():
+        sync_json_path = Path(f"{DOWNLOAD_DIR}/sync.json")
+        if not sync_json_path.exists():
             logger.error(f"Sync file not found: {sync_json_path}")
             send_message(bot=bot, message=get_text("error_sync_file_not_found"))
             if sync_message_id:
@@ -216,12 +276,11 @@ class SpotifyDownloader:
                 delete_message(bot=bot, message_id=sync_message_id)
             return
 
-        # Inicializa downloader fuera del bucle para evitar errores de variable no definida en finally
         downloader = None
         for query in sync_queries.get("queries", []):
             downloader = self._create_downloader(output=query["output"])
-            save_path = query["save_path"]
-            if not Path(save_path).exists():
+            save_path = Path(query["save_path"])
+            if not save_path.exists():
                 logger.warning(f"Sync data file not found: {save_path}")
                 continue
             try:
@@ -241,7 +300,7 @@ class SpotifyDownloader:
                 continue
 
             songs = get_simple_songs(
-                query=sync_data["query"],
+                query=[sync_data["query"]],
                 use_ytm_data=DOWNLOADER_OPTIONS["ytm_data"],
                 playlist_numbering=DOWNLOADER_OPTIONS["playlist_numbering"],
                 album_type=DOWNLOADER_OPTIONS["album_type"],
@@ -284,58 +343,18 @@ class SpotifyDownloader:
                             to_rename.append((path, new_path))
 
                 for old_path, new_path in to_rename:
-                    if old_path.exists():
-                        logger.info(f"Renaming '{old_path}' to '{new_path}'")
-                        if new_path.exists():
-                            old_path.unlink()
-                            continue
-                        try:
-                            old_path.rename(new_path)
-                        except (PermissionError, OSError) as exc:
-                            logger.debug(
-                                f"Could not rename file: {old_path}, error: {exc}"
-                            )
-                    else:
-                        logger.debug(f"{old_path} does not exist.")
-
-                    if downloader.settings.get("sync_remove_lrc", False):
-                        lrc_file = old_path.with_suffix(".lrc")
-                        new_lrc_file = new_path.with_suffix(".lrc")
-                        if lrc_file.exists():
-                            logger.debug(
-                                f"Renaming lrc '{lrc_file}' to '{new_lrc_file}'"
-                            )
-                            try:
-                                lrc_file.rename(new_lrc_file)
-                            except (PermissionError, OSError) as exc:
-                                logger.debug(
-                                    f"Could not rename lrc file: {lrc_file}, error: {exc}"
-                                )
-                        else:
-                            logger.debug(f"{lrc_file} does not exist.")
+                    self._rename_file(old_path, new_path)
+                    self._rename_lrc(
+                        old_path,
+                        new_path,
+                        downloader.settings.get("sync_remove_lrc", False),
+                    )
 
                 for file in to_delete:
-                    if file.exists():
-                        logger.info(f"Deleting {file}")
-                        try:
-                            file.unlink()
-                        except (PermissionError, OSError) as exc:
-                            logger.debug(f"Could not remove file: {file}, error: {exc}")
-                    else:
-                        logger.debug(f"{file} does not exist.")
-
-                    if downloader.settings.get("sync_remove_lrc", False):
-                        lrc_file = file.with_suffix(".lrc")
-                        if lrc_file.exists():
-                            logger.debug(f"Deleting lrc {lrc_file}")
-                            try:
-                                lrc_file.unlink()
-                            except (PermissionError, OSError) as exc:
-                                logger.debug(
-                                    f"Could not remove lrc file: {lrc_file}, error: {exc}"
-                                )
-                        else:
-                            logger.debug(f"{lrc_file} does not exist.")
+                    self._remove_file(file)
+                    self._remove_lrc(
+                        file, downloader.settings.get("sync_remove_lrc", False)
+                    )
 
                 if len(to_delete) == 0:
                     logger.info("Nothing to delete...")
@@ -357,6 +376,7 @@ class SpotifyDownloader:
 
             # Write the new sync file only after successful download
             try:
+                save_path.parent.mkdir(parents=True, exist_ok=True)
                 with open(save_path, "w", encoding="utf-8") as save_file:
                     json.dump(
                         {
