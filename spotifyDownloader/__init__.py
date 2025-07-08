@@ -15,7 +15,7 @@ from loguru import logger
 from spotdl.utils.config import DEFAULT_CONFIG, DOWNLOADER_OPTIONS
 from spotdl.download.downloader import Downloader
 from spotdl.utils.spotify import SpotifyClient
-from spotdl.utils.search import get_simple_songs, parse_query
+from spotdl.utils.search import get_simple_songs
 from spotdl.types.song import Song
 from spotdl.utils.formatter import create_file_name
 
@@ -147,6 +147,18 @@ class SpotifyDownloader:
                         indent=4,
                         ensure_ascii=False,
                     )
+                with open(
+                    f"{DOWNLOAD_DIR}/sync.json", "w", encoding="utf-8"
+                ) as sync_file:
+                    json.dump(
+                        {
+                            "save_path": save_path,
+                            "output": downloader.settings["output"],
+                        },
+                        sync_file,
+                        indent=4,
+                        ensure_ascii=False,
+                    )
 
             downloader.download_multiple_songs(songs)
             send_message(bot=bot, message=get_text("download_finished"))
@@ -191,7 +203,7 @@ class SpotifyDownloader:
             raise ValueError("Sync file is not a valid sync file.")
 
         songs = get_simple_songs(
-            query=[query],
+            query=sync_data["query"],
             use_ytm_data=DOWNLOADER_OPTIONS["ytm_data"],
             playlist_numbering=DOWNLOADER_OPTIONS["playlist_numbering"],
             album_type=DOWNLOADER_OPTIONS["album_type"],
@@ -324,8 +336,3 @@ class SpotifyDownloader:
             )
 
         downloader.download_multiple_songs(songs)
-
-        raise ValueError(
-            "Wrong combination of arguments. "
-            "Either provide a query and a save path. Or a single sync file in the query"
-        )
