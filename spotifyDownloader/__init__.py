@@ -1,3 +1,5 @@
+"""Init file for the spotifyDownloader package."""
+
 from config.config import (
     DOWNLOAD_DIR,
     SPOTIFY_CLIENT_ID,
