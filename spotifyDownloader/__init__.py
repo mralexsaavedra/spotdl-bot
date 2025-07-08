@@ -158,7 +158,7 @@ class SpotifyDownloader:
                         indent=4,
                         ensure_ascii=False,
                     )
-                # Leer queries existentes y añadir la nueva
+                # Add the save path and output to sync.json
                 sync_json_path = f"{DOWNLOAD_DIR}/sync.json"
                 queries = []
                 if Path(sync_json_path).exists():
@@ -168,12 +168,18 @@ class SpotifyDownloader:
                             queries = data.get("queries", [])
                         except Exception:
                             queries = []
-                queries.append(
-                    {
-                        "save_path": save_path,
-                        "output": downloader.settings["output"],
-                    }
-                )
+                # Only add the query if it does not already exist in sync.json
+                if not any(
+                    q.get("save_path") == save_path
+                    and q.get("output") == downloader.settings["output"]
+                    for q in queries
+                ):
+                    queries.append(
+                        {
+                            "save_path": save_path,
+                            "output": downloader.settings["output"],
+                        }
+                    )
                 with open(sync_json_path, "w", encoding="utf-8") as sync_file:
                     json.dump(
                         {"queries": queries},
