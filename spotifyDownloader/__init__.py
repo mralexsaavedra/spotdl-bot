@@ -187,7 +187,7 @@ class SpotifyDownloader:
             if message_id:
                 delete_message(bot=bot, message_id=message_id)
 
-    def sync(self) -> None:
+    def sync(self, bot) -> None:
         """
         Sync function.
         It will download the songs and remove the ones that are no longer
