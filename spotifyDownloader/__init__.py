@@ -20,6 +20,8 @@ from spotdl.types.song import Song
 from spotdl.utils.formatter import create_file_name
 import telebot
 
+SYNC_JSON_PATH = f"{DOWNLOAD_DIR}/sync.json"
+
 
 class SpotifyDownloader:
     """
@@ -144,49 +146,32 @@ class SpotifyDownloader:
                 send_message(bot=bot, message=get_text("error_download_failed"))
                 return False
 
-            save_path = self._get_save_path(query=query, song=songs[0])
-            if save_path:
-                # Create sync file
-                with open(save_path, "w", encoding="utf-8") as save_file:
-                    json.dump(
-                        {
-                            "type": "sync",
-                            "query": query,
-                            "songs": [song.json for song in songs],
-                        },
-                        save_file,
-                        indent=4,
-                        ensure_ascii=False,
-                    )
-                # Add the save path and output to sync.json
-                sync_json_path = f"{DOWNLOAD_DIR}/sync.json"
-                queries = []
-                if Path(sync_json_path).exists():
-                    with open(sync_json_path, "r", encoding="utf-8") as sync_file:
-                        try:
-                            data = json.load(sync_file)
-                            queries = data.get("queries", [])
-                        except Exception:
-                            queries = []
-                # Only add the query if it does not already exist in sync.json
-                if not any(
-                    q.get("save_path") == save_path
-                    and q.get("output") == downloader.settings["output"]
-                    for q in queries
-                ):
-                    queries.append(
-                        {
-                            "save_path": save_path,
-                            "output": downloader.settings["output"],
-                        }
-                    )
-                with open(sync_json_path, "w", encoding="utf-8") as sync_file:
-                    json.dump(
-                        {"queries": queries},
-                        sync_file,
-                        indent=4,
-                        ensure_ascii=False,
-                    )
+            # Add the save path and output to sync.json
+            queries = []
+            if Path(SYNC_JSON_PATH).exists():
+                with open(SYNC_JSON_PATH, "r", encoding="utf-8") as sync_file:
+                    try:
+                        data = json.load(sync_file)
+                        queries = data.get("queries", [])
+                    except Exception:
+                        queries = []
+            # Only add the query if it does not already exist in sync.json
+            if not any(q.get("query") == query for q in queries):
+                queries.append(
+                    {
+                        "type": "sync",
+                        "query": query,
+                        "songs": [song.json for song in songs],
+                        "output": downloader.settings["output"],
+                    }
+                )
+            with open(SYNC_JSON_PATH, "w", encoding="utf-8") as sync_file:
+                json.dump(
+                    {"queries": queries},
+                    sync_file,
+                    indent=4,
+                    ensure_ascii=False,
+                )
 
             downloader.download_multiple_songs(songs)
             send_message(bot=bot, message=get_text("download_finished"))
@@ -274,7 +259,7 @@ class SpotifyDownloader:
         """
         msg = send_message(bot=bot, message=get_text("sync_in_progress"))
         sync_message_id = msg.message_id if msg else None
-        sync_json_path = Path(f"{DOWNLOAD_DIR}/sync.json")
+        sync_json_path = Path(SYNC_JSON_PATH)
         if not sync_json_path.exists():
             logger.error(f"Sync file not found: {sync_json_path}")
             send_message(bot=bot, message=get_text("error_sync_file_not_found"))
@@ -296,31 +281,12 @@ class SpotifyDownloader:
         for query in sync_queries.get("queries", []):
             downloader = self._create_downloader()
             downloader.settings["output"] = query["output"]
-            save_path = Path(query["save_path"])
-            if not save_path.exists():
-                logger.warning(f"Sync data file not found: {save_path}")
-                continue
-            try:
-                with open(save_path, "r", encoding="utf-8") as save_file:
-                    sync_data = json.load(save_file)
-            except Exception as e:
-                logger.error(f"Error reading sync data file {save_path}: {e}")
-                continue
 
-            # Verify the sync file
-            if (
-                not isinstance(sync_data, dict)
-                or sync_data.get("type") != "sync"
-                or sync_data.get("songs") is None
-            ):
-                logger.error(f"Sync file is not valid: {save_path}")
-                continue
-
-            songs = self._get_simple_songs(sync_data["query"])
+            songs = self._get_simple_songs(query["query"])
 
             # Get the names and URLs of previously downloaded songs from the sync file
             old_files = []
-            for entry in sync_data["songs"]:
+            for entry in query["songs"]:
                 file_name = create_file_name(
                     Song.from_dict(entry),
                     downloader.settings["output"],
@@ -385,12 +351,11 @@ class SpotifyDownloader:
 
             # Write the new sync file only after successful download
             try:
-                save_path.parent.mkdir(parents=True, exist_ok=True)
-                with open(save_path, "w", encoding="utf-8") as save_file:
+                with open(SYNC_JSON_PATH, "w", encoding="utf-8") as save_file:
                     json.dump(
                         {
                             "type": "sync",
-                            "query": sync_data["query"],
+                            "query": query["query"],
                             "songs": [song.json for song in songs],
                         },
                         save_file,
@@ -398,7 +363,7 @@ class SpotifyDownloader:
                         ensure_ascii=False,
                     )
             except Exception as e:
-                logger.error(f"Error writing sync file {save_path}: {e}")
+                logger.error(f"Error writing sync file {SYNC_JSON_PATH}: {e}")
 
         if sync_message_id:
             delete_message(bot=bot, message_id=sync_message_id)
