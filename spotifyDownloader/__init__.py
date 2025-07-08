@@ -351,13 +351,31 @@ class SpotifyDownloader:
 
             # Write the new sync file only after successful download
             try:
+                # Read all queries, remove the old entry for this query, and add the new one
+                all_queries = []
+                if Path(SYNC_JSON_PATH).exists():
+                    with open(SYNC_JSON_PATH, "r", encoding="utf-8") as f:
+                        try:
+                            data = json.load(f)
+                            all_queries = data.get("queries", [])
+                        except Exception:
+                            all_queries = []
+                # Remove any existing entry for this query
+                all_queries = [
+                    q for q in all_queries if q.get("query") != query["query"]
+                ]
+                # Add the updated query
+                all_queries.append(
+                    {
+                        "type": "sync",
+                        "query": query["query"],
+                        "songs": [song.json for song in songs],
+                        "output": query["output"],
+                    }
+                )
                 with open(SYNC_JSON_PATH, "w", encoding="utf-8") as save_file:
                     json.dump(
-                        {
-                            "type": "sync",
-                            "query": query["query"],
-                            "songs": [song.json for song in songs],
-                        },
+                        {"queries": all_queries},
                         save_file,
                         indent=4,
                         ensure_ascii=False,
