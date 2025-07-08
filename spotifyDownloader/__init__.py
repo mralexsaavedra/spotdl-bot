@@ -182,7 +182,7 @@ class SpotifyDownloader:
                         ensure_ascii=False,
                     )
 
-            # downloader.download_multiple_songs(songs)
+            downloader.download_multiple_songs(songs)
             send_message(bot=bot, message=get_text("download_finished"))
             return True
         except Exception as e:
