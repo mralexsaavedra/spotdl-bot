@@ -136,19 +136,24 @@ docker run -d --name spotdl-bot \
 3. Crea el archivo `docker-compose.yml`:
 
 ```yaml
-version: "3.8"
-
 services:
   spotdl-bot:
-    image: mralexandersaavedra/spotdl-bot
+    image: mralexsaavedra/spotdl-bot:latest
     container_name: spotdl-bot
-    env_file: .env
     volumes:
-      - ./music:/music
-      - ./cache:/cache
-      - ./logs:/logs
+      - ./music:/music # CAMBIA ESTA RUTA A TU DIRECTORIO DE MÚSICA
+      - ./cache:/cache # CAMBIA ESTA RUTA AL DIRECTORIO QUE QUIERAS PARA LA CACHE
+      - ./logs:/logs # CAMBIA ESTA RUTA AL DIRECTORIO QUE QUIERAS PARA LOS LOGS
+    env_file:
+      - .env
+    environment:
+      - TZ=Europe/Madrid
+      - LANGUAGE=ES # IDIOMAS DISPONIBLES: ES, EN
     restart: unless-stopped
+    user: appuser
 ```
+
+Puedes encontrar este archivo y personalizarlo en el repositorio: [`docker-compose.yml`](./docker-compose.yml)
 
 4. Levanta el contenedor:
 
@@ -157,6 +162,14 @@ docker compose up -d
 ```
 
 > **Consejo:** Puedes personalizar los volúmenes y la configuración en el archivo `.env` y `docker-compose.yml` según tus necesidades.
+
+---
+
+## ⚠️ Límites de uso de la API de Spotify (Rate Limits)
+
+Este bot utiliza la API oficial de Spotify, la cual puede imponer límites de uso (rate limits) si se realizan demasiadas solicitudes en poco tiempo. Si esto ocurre, el bot puede mostrar mensajes de error o fallar temporalmente al descargar contenido. Para más información sobre los límites de la API de Spotify, consulta la documentación oficial:
+
+- [Spotify API Rate Limits](https://developer.spotify.com/documentation/web-api/concepts/rate-limits)
 
 ---
 
