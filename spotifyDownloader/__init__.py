@@ -135,6 +135,7 @@ class SpotifyDownloader:
             downloader.settings["output"] = f"{DOWNLOAD_DIR}/{output_pattern}"
 
             songs = self._get_simple_songs(query)
+            logger.info(f"Found {len(songs)} songs for query: {query}")
 
             if not songs:
                 logger.info(f"No songs found for the given query: {query}")
