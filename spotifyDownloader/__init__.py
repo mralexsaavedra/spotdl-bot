@@ -96,6 +96,23 @@ class SpotifyDownloader:
         settings = DOWNLOADER_OPTIONS.copy()
         return Downloader(settings=settings, loop=None)
 
+    def _get_simple_songs(self, query) -> List[Song]:
+        """
+        Wrapper for get_simple_songs with default downloader options.
+        Accepts either a string or list as query.
+        """
+        if not isinstance(query, list):
+            query = [query]
+        return get_simple_songs(
+            query=query,
+            use_ytm_data=DOWNLOADER_OPTIONS["ytm_data"],
+            playlist_numbering=DOWNLOADER_OPTIONS["playlist_numbering"],
+            album_type=DOWNLOADER_OPTIONS["album_type"],
+            playlist_retain_track_cover=DOWNLOADER_OPTIONS[
+                "playlist_retain_track_cover"
+            ],
+        )
+
     def download(self, bot: telebot.TeleBot, query: str) -> bool:
         """
         Downloads the content for the given Spotify query.
@@ -117,15 +134,7 @@ class SpotifyDownloader:
             downloader = self._create_downloader()
             downloader.settings["output"] = f"{DOWNLOAD_DIR}/{output_pattern}"
 
-            songs = get_simple_songs(
-                query=[query],
-                use_ytm_data=DOWNLOADER_OPTIONS["ytm_data"],
-                playlist_numbering=DOWNLOADER_OPTIONS["playlist_numbering"],
-                album_type=DOWNLOADER_OPTIONS["album_type"],
-                playlist_retain_track_cover=DOWNLOADER_OPTIONS[
-                    "playlist_retain_track_cover"
-                ],
-            )
+            songs = self._get_simple_songs(query)
 
             if not songs:
                 logger.info(f"No songs found for the given query: {query}")
@@ -300,15 +309,7 @@ class SpotifyDownloader:
                 logger.error(f"Sync file is not valid: {save_path}")
                 continue
 
-            songs = get_simple_songs(
-                query=[sync_data["query"]],
-                use_ytm_data=DOWNLOADER_OPTIONS["ytm_data"],
-                playlist_numbering=DOWNLOADER_OPTIONS["playlist_numbering"],
-                album_type=DOWNLOADER_OPTIONS["album_type"],
-                playlist_retain_track_cover=DOWNLOADER_OPTIONS[
-                    "playlist_retain_track_cover"
-                ],
-            )
+            songs = self._get_simple_songs(sync_data["query"])
 
             # Get the names and URLs of previously downloaded songs from the sync file
             old_files = []
