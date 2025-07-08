@@ -88,44 +88,17 @@ class SpotifyDownloader:
             ],
         )
 
-    def _download_with_retry(self, downloader, songs, bot, query) -> bool:
+    def _download_songs(self, downloader, songs, bot, query) -> bool:
         """
-        Attempt to download songs, retrying once if a rate limit error is detected.
-        Returns True if successful, False otherwise.
+        Attempt to download songs. Returns True if successful, False otherwise.
         """
-        import re, time
-
         logger.debug("Starting download_multiple_songs")
         try:
             downloader.download_multiple_songs(songs)
         except Exception as e:
-            # Check for rate limit error and log it clearly
-            if (
-                "rate/request limit" in str(e).lower()
-                or "retry will occur after" in str(e).lower()
-            ):
-                logger.error(f"Rate limit reached: {e}")
-                match = re.search(r"retry will occur after: (\\d+)", str(e).lower())
-                if match:
-                    wait_ms = int(match.group(1))
-                    wait_sec = max(wait_ms // 1000, 1)
-                    logger.warning(
-                        f"Waiting {wait_sec} seconds before retrying due to rate limit..."
-                    )
-                    time.sleep(wait_sec)
-                    try:
-                        downloader.download_multiple_songs(songs)
-                    except Exception as e2:
-                        logger.error(f"Retry after rate limit also failed: {e2}")
-                        send_message(bot=bot, message=get_text("error_download_failed"))
-                        return False
-                else:
-                    send_message(bot=bot, message=get_text("error_download_failed"))
-                    return False
-            else:
-                logger.error(f"Download error for query '{query}': {str(e)}")
-                send_message(bot=bot, message=get_text("error_download_failed"))
-                return False
+            logger.error(f"Download error for query '{query}': {str(e)}")
+            send_message(bot=bot, message=get_text("error_download_failed"))
+            return False
         logger.debug("Finished download_multiple_songs")
         return True
 
@@ -160,7 +133,7 @@ class SpotifyDownloader:
                 send_message(bot=bot, message=get_text("error_download_failed"))
                 return False
 
-            success = self._download_with_retry(downloader, songs, bot, query)
+            success = self._download_songs(downloader, songs, bot, query)
             if success:
                 try:
                     self._update_sync_file(
@@ -335,7 +308,7 @@ class SpotifyDownloader:
                     logger.info(f"{len(to_delete)} old songs were deleted.")
 
             # Download new/updated songs
-            success = self._download_with_retry(downloader, songs, bot, query["query"])
+            success = self._download_songs(downloader, songs, bot, query["query"])
             if success:
                 # Write the new sync file only after successful download
                 try:
