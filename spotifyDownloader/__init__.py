@@ -346,6 +346,12 @@ class SpotifyDownloader:
             except Exception as e:
                 logger.error(f"Error downloading songs: {e}")
                 continue
+            finally:
+                if downloader and hasattr(downloader, "progress_handler"):
+                    try:
+                        downloader.progress_handler.close()
+                    except Exception as close_err:
+                        logger.error(f"Error closing progress handler: {close_err}")
 
             # Write the new sync file only after successful download
             try:
