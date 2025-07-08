@@ -22,6 +22,8 @@
   "error_token_required": "❗️ Necesitas autorizar al bot para acceder a tu cuenta de Spotify. Usa el comando /authorize.",
   "error_unknown_command": "❓ No reconozco ese comando. Usa /start para ver los comandos disponibles.",
   "error_generic": "❌ Ha ocurrido un error inesperado. Por favor, inténtalo de nuevo.",
+  "error_sync_file_not_found": "❌ Archivo de sincronización no encontrado.",
+  "error_sync_file_invalid": "⚠️ El archivo de sincronización es inválido o está corrupto.",
   "menu_main": "*🎙️ SpotDL Bot*\nDescarga canciones, álbumes, artistas o playlists directamente desde Spotify.\n\n📌 *Comandos disponibles:*\n\n• /authorize – Autoriza al bot para acceder a tu cuenta de Spotify. Necesario para descargar tus canciones favoritas o sincronizar tus playlists.\n• /download – Descarga una canción, álbum, artista o playlist mediante una URL de Spotify.\n• /downloadsavedsongs – Descarga todas tus canciones guardadas en tu biblioteca.\n• /downloadsavedalbums – Descarga todos los álbumes guardados en tu biblioteca.\n• /downloadsavedplaylists – Descarga todas las playlists guardadas en tu biblioteca.\n• /downloaduserplaylists – Descarga todas las playlists que has creado en tu cuenta.\n• /sync – Sincroniza tu biblioteca de Spotify y elimina canciones que ya no están en tus playlists o álbumes.\n• /version – Muestra la versión actual del bot.\n• /donate – Apoya el desarrollo con una donación.\n\nℹ️ *Tip:* También puedes enviar directamente una URL de Spotify para descargarla automáticamente.\n\n💡 *¿Dudas?* Usa /start en cualquier momento para volver a este menú.",
   "menu_option_authorize": "Autorizar acceso a Spotify",
   "menu_option_donate": "Apoyar el proyecto con una donación",
@@ -32,5 +34,6 @@
   "menu_option_download_user_playlists": "Descargar todas tus playlists creadas en Spotify",
   "menu_option_start": "Mostrar el menú principal",
   "menu_option_sync": "Sincronizar tu biblioteca de Spotify",
-  "menu_option_version": "Mostrar la versión actual del bot"
+  "menu_option_version": "Mostrar la versión actual del bot",
+  "sync_finished": "✅ Sincronización completada."
 }
