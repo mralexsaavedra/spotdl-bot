@@ -109,7 +109,6 @@ Estas credenciales permiten al bot autenticar solicitudes y acceder a los datos 
 ## 🐳 Instalación con Docker
 
 Puedes ejecutar el bot fácilmente usando Docker o Docker Compose.
-A continuación, te explico ambas opciones.
 
 ### ▶️ Opción 1: Usar docker run
 
@@ -121,13 +120,18 @@ docker run -d --name spotdl-bot \
   -e SPOTIFY_CLIENT_SECRET="tu_client_secret" \
   -e SPOTIFY_REDIRECT_URI="tu_redirect_uri" \
   -e LANGUAGE="es" \
+  -v $(pwd)/music:/music \
+  -v $(pwd)/cache:/cache \
+  -v $(pwd)/logs:/logs \
   mralexandersaavedra/spotdl-bot
 ```
+
+> **Nota:** Asegúrate de crear los directorios `music`, `cache` y `logs` en tu máquina antes de ejecutar el comando, o Docker los creará vacíos.
 
 ### ⚙️ Opción 2: Usar docker-compose
 
 1. Asegúrate de tener Docker y Docker Compose instalados.
-2. Crea un archivo `.env` con las credenciales necesarias.
+2. Crea un archivo `.env` con las credenciales necesarias (puedes usar `.env.example` como plantilla).
 3. Crea el archivo `docker-compose.yml`:
 
 ```yaml
@@ -138,8 +142,11 @@ services:
     image: mralexandersaavedra/spotdl-bot
     container_name: spotdl-bot
     env_file: .env
+    volumes:
+      - ./music:/music
+      - ./cache:/cache
+      - ./logs:/logs
     restart: unless-stopped
-
 ```
 
 4. Levanta el contenedor:
@@ -147,6 +154,8 @@ services:
 ```bash
 docker compose up -d
 ```
+
+> **Consejo:** Puedes personalizar los volúmenes y la configuración en el archivo `.env` y `docker-compose.yml` según tus necesidades.
 
 ---
 
