@@ -20,10 +20,10 @@ def register_commands(bot: telebot.TeleBot):
         """Shows the main menu."""
         send_message(bot, message=get_text("menu_main"))
 
-    @bot.message_handler(commands=["authorize"])
-    def authorize_command(message):
-        """Starts the Spotify authorization process."""
-        auth(bot, message)
+    # @bot.message_handler(commands=["authorize"])
+    # def authorize_command(message):
+    #     """Starts the Spotify authorization process."""
+    #     auth(bot, message)
 
     @bot.message_handler(commands=["download"])
     def download_command(message):
@@ -100,7 +100,7 @@ def register_commands(bot: telebot.TeleBot):
     bot.set_my_commands(
         [
             telebot.types.BotCommand("/start", get_text("menu_option_start")),
-            telebot.types.BotCommand("/authorize", get_text("menu_option_authorize")),
+            # telebot.types.BotCommand("/authorize", get_text("menu_option_authorize")),
             telebot.types.BotCommand("/download", get_text("menu_option_download_url")),
             telebot.types.BotCommand(
                 "/downloadsavedsongs", get_text("menu_option_download_saved_songs")
