@@ -20,7 +20,7 @@ from spotdl.types.song import Song
 from spotdl.utils.formatter import create_file_name
 import telebot
 
-SYNC_JSON_PATH = f"{DOWNLOAD_DIR}/sync.json"
+SYNC_JSON_PATH = f"{CACHE_DIR}/sync.spotdl"
 
 
 class SpotifyDownloader:
