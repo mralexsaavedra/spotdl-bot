@@ -1,11 +1,19 @@
 import sys
 import os
 import json
-from typing import Dict, Any
+from typing import Dict, Any, List
 from config.config import LANGUAGE, LOCALE_DIR
 from loguru import logger
 
-SUPPORTED_LANGUAGES = ("es", "en")
+# Carga dinámica de idiomas soportados
+try:
+    SUPPORTED_LANGUAGES: List[str] = [
+        os.path.splitext(f)[0] for f in os.listdir(LOCALE_DIR) if f.endswith(".json")
+    ]
+except Exception as e:
+    logger.error(f"Error loading supported languages from {LOCALE_DIR}: {e}")
+    SUPPORTED_LANGUAGES = ["es", "en"]
+
 DEFAULT_LANGUAGE = "es"
 _language = (LANGUAGE or DEFAULT_LANGUAGE).lower()
 
@@ -58,19 +66,21 @@ def get_locale(locale: str) -> Dict[str, Any]:
     return _locale_cache[locale]
 
 
-def get_text(key: str, *args, **kwargs) -> str:
+def get_text(key: str, *args, locale: str = None, **kwargs) -> str:
     """
     Retrieve the localized text for the given key, formatting with args or kwargs.
 
     Args:
         key (str): The key to look up in locale.
         *args: Positional format arguments, replacing $1, $2, etc.
+        locale (str, optional): Language code to use (default: global _language).
         **kwargs: Named format arguments, replacing ${name}.
 
     Returns:
         str: The localized and formatted string.
     """
-    messages = get_locale(_language)
+    lang = (locale or _language).lower()
+    messages = get_locale(lang)
     text = messages.get(key)
 
     if text is None:
@@ -78,10 +88,10 @@ def get_text(key: str, *args, **kwargs) -> str:
         text = fallback.get(key)
         if text:
             logger.warning(
-                f"Key '{key}' not found in locale '{_language}', using fallback '{DEFAULT_LANGUAGE}'."
+                f"Key '{key}' not found in locale '{lang}', using fallback '{DEFAULT_LANGUAGE}'."
             )
         else:
-            error_msg = f"Key '{key}' missing in both '{_language}' and fallback '{DEFAULT_LANGUAGE}' locales."
+            error_msg = f"Key '{key}' missing in both '{lang}' and fallback '{DEFAULT_LANGUAGE}' locales."
             logger.error(error_msg)
             return error_msg
 
