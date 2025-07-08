@@ -89,12 +89,11 @@ class SpotifyDownloader:
             )
             return None
 
-    def _create_downloader(self, output: str) -> Downloader:
+    def _create_downloader(self) -> Downloader:
         """
         Creates a SpotDL Downloader instance with the given output pattern.
         """
         settings = DOWNLOADER_OPTIONS.copy()
-        settings["output"] = f"{DOWNLOAD_DIR}/{output}"
         return Downloader(settings=settings, loop=None)
 
     def download(self, bot: telebot.TeleBot, query: str) -> bool:
@@ -115,7 +114,8 @@ class SpotifyDownloader:
         output_pattern = self.get_output_pattern(identifier=query)
         downloader = None
         try:
-            downloader = self._create_downloader(output=output_pattern)
+            downloader = self._create_downloader()
+            downloader.settings["output"] = f"{DOWNLOAD_DIR}/{output_pattern}"
 
             songs = get_simple_songs(
                 query=[query],
@@ -278,7 +278,8 @@ class SpotifyDownloader:
 
         downloader = None
         for query in sync_queries.get("queries", []):
-            downloader = self._create_downloader(output=query["output"])
+            downloader = self._create_downloader()
+            downloader.settings["output"] = query["output"]
             save_path = Path(query["save_path"])
             if not save_path.exists():
                 logger.warning(f"Sync data file not found: {save_path}")
