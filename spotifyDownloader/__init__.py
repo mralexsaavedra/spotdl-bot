@@ -196,11 +196,14 @@ class SpotifyDownloader:
         Args:
             bot (telebot.TeleBot): The Telegram bot instance. Must not be None.
         """
-        send_message(bot=bot, message=get_text("sync_in_progress"))
+        msg = send_message(bot=bot, message=get_text("sync_in_progress"))
+        sync_message_id = msg.message_id if msg else None
         sync_json_path = f"{DOWNLOAD_DIR}/sync.json"
         if not Path(sync_json_path).exists():
             logger.error(f"Sync file not found: {sync_json_path}")
             send_message(bot=bot, message=get_text("error_sync_file_not_found"))
+            if sync_message_id:
+                delete_message(bot=bot, message_id=sync_message_id)
             return
 
         try:
@@ -209,6 +212,8 @@ class SpotifyDownloader:
         except Exception as e:
             logger.error(f"Error reading sync file: {e}")
             send_message(bot=bot, message=get_text("error_sync_file_invalid"))
+            if sync_message_id:
+                delete_message(bot=bot, message_id=sync_message_id)
             return
 
         for query in sync_queries.get("queries", []):
@@ -358,4 +363,6 @@ class SpotifyDownloader:
             except Exception as e:
                 logger.error(f"Error writing sync file {save_path}: {e}")
 
+        if sync_message_id:
+            delete_message(bot=bot, message_id=sync_message_id)
         send_message(bot=bot, message=get_text("sync_finished"))
