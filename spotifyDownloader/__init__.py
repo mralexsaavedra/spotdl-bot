@@ -216,6 +216,8 @@ class SpotifyDownloader:
                 delete_message(bot=bot, message_id=sync_message_id)
             return
 
+        # Inicializa downloader fuera del bucle para evitar errores de variable no definida en finally
+        downloader = None
         for query in sync_queries.get("queries", []):
             downloader = self._create_downloader(output=query["output"])
             save_path = query["save_path"]
