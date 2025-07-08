@@ -50,6 +50,9 @@ class SpotifyDownloader:
             return "{artists} - {title}.{output-ext}"
 
     def _create_downloader(self, output: str) -> Downloader:
+        """
+        Creates a SpotDL Downloader instance with the given output pattern.
+        """
         settings = DOWNLOADER_OPTIONS.copy()
         settings["output"] = f"{DOWNLOAD_DIR}/{output}"
         return Downloader(settings=settings, loop=None)
@@ -58,14 +61,18 @@ class SpotifyDownloader:
         """
         Downloads the content for the given Spotify query.
         Sends messages to the user via the Telegram bot.
+
+        Args:
+            bot: The Telegram bot instance.
+            query: The Spotify URL or identifier to download.
         """
         msg = send_message(bot=bot, message=get_text("download_in_progress"))
         message_id = msg.message_id
 
         output_pattern = self.get_output_pattern(identifier=query)
-        downloader = self._create_downloader(output=output_pattern)
-
+        downloader = None
         try:
+            downloader = self._create_downloader(output=output_pattern)
             songs = get_simple_songs(
                 query=[query],
                 use_ytm_data=DOWNLOADER_OPTIONS["ytm_data"],
@@ -88,5 +95,9 @@ class SpotifyDownloader:
             logger.error(f"Download error: {str(e)}")
             send_message(bot=bot, message=get_text("error_download_failed"))
         finally:
-            downloader.progress_handler.close()
+            if downloader and hasattr(downloader, "progress_handler"):
+                try:
+                    downloader.progress_handler.close()
+                except Exception as close_err:
+                    logger.error(f"Error closing progress handler: {close_err}")
             delete_message(bot=bot, message_id=message_id)
