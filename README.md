@@ -96,10 +96,10 @@ Estas credenciales permiten al bot autenticar solicitudes y acceder a los datos 
 | `/start`                  | Mostrar menú inicial                             |
 | `/authorize`              | Autorizar acceso a Spotify                       |
 | `/download`               | Descargar canción/álbum/playlist                 |
-| `/downloadsavedsongs`     | Descargar canciones favoritas                    |
-| `/downloadsavedalbums`    | Descargar todos los álbumes guardados            |
-| `/downloadsavedplaylists` | Descargar todos los playlists guardadas          |
-| `/downloaduserplaylists`  | Descargar todas las playlists usuario            |
+| `/downloadsavedsongs`     | Descargar tus canciones guardadas                |
+| `/downloadsavedalbums`    | Descargar tus álbumes guardados                  |
+| `/downloadsavedplaylists` | Descargar tus playlists guardadas                |
+| `/downloaduserplaylists`  | Descargar tus playlists creadas                  |
 | `/version`                | Mostrar versión del bot                          |
 | `/donate`                 | Información para donar                           |
 
