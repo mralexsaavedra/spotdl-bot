@@ -14,35 +14,26 @@ class ConfigError(Exception):
 if not os.getenv("RUNNING_IN_DOCKER"):
     load_dotenv()
 
-
-# App metadata
-def get_env(var, default=None):
-    value = os.getenv(var, default)
-    if value is not None and isinstance(value, str):
-        value = value.strip()
-    return value or default
-
-
 VERSION = "0.1.0"
 
 # Directory paths (with defaults for Docker)
-DOWNLOAD_DIR = get_env("DOWNLOAD_DIR", "/music")
-CACHE_DIR = get_env("CACHE_DIR", "/cache")
-LOCALE_DIR = get_env("LOCALE_DIR", "/app/locale")
+DOWNLOAD_DIR = os.getenv("DOWNLOAD_DIR", "/music")
+CACHE_DIR = os.getenv("CACHE_DIR", "/cache")
+LOCALE_DIR = os.getenv("LOCALE_DIR", "/app/locale")
 
 # Logging configuration
-LOG_LEVEL = get_env("LOG_LEVEL", "INFO")
-LOG_DIR = get_env("LOG_DIR", "/logs")
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
+LOG_DIR = os.getenv("LOG_DIR", "/logs")
 
 # Environment variables
-LANGUAGE = get_env("LANGUAGE", "es")
-TELEGRAM_TOKEN = get_env("TELEGRAM_TOKEN")
-TELEGRAM_GROUP = get_env("TELEGRAM_GROUP")
-TELEGRAM_ADMIN = get_env("TELEGRAM_ADMIN")
+LANGUAGE = os.getenv("LANGUAGE", "es")
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
+TELEGRAM_GROUP = os.getenv("TELEGRAM_GROUP")
+TELEGRAM_ADMIN = os.getenv("TELEGRAM_ADMIN")
 
-SPOTIFY_CLIENT_ID = get_env("SPOTIFY_CLIENT_ID")
-SPOTIFY_CLIENT_SECRET = get_env("SPOTIFY_CLIENT_SECRET")
-SPOTIFY_REDIRECT_URI = get_env("SPOTIFY_REDIRECT_URI")
+SPOTIFY_CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
+SPOTIFY_CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
+SPOTIFY_REDIRECT_URI = os.getenv("SPOTIFY_REDIRECT_URI")
 
 
 def require_env(var_value, var_name, description):
