@@ -1,4 +1,4 @@
-import time
+import threading
 from spotifyDownloader import SpotifyDownloader
 from config.config import VERSION
 from core.spotify_auth import auth
@@ -55,29 +55,42 @@ def register_commands(bot: telebot.TeleBot):
     @bot.message_handler(commands=["version"])
     def version_command(message):
         """Shows the current version of the bot."""
-        x = send_message(bot, message=get_text("bot_version_info", VERSION))
-        time.sleep(15)
-        delete_message(bot, message_id=x.message_id)
+        try:
+            x = send_message(bot, message=get_text("bot_version_info", VERSION))
+            threading.Timer(
+                15, delete_message, args=(bot,), kwargs={"message_id": x.message_id}
+            ).start()
+        except Exception as e:
+            bot.reply_to(message, get_text("error_generic"))
 
     @bot.message_handler(commands=["donate"])
     def donate_command(message):
         """Shows a message to support with a donation."""
-        x = send_message(bot, message=get_text("donation_message"))
-        time.sleep(45)
-        delete_message(bot, message_id=x.message_id)
+        try:
+            x = send_message(bot, message=get_text("donation_message"))
+            threading.Timer(
+                45, delete_message, args=(bot,), kwargs={"message_id": x.message_id}
+            ).start()
+        except Exception as e:
+            bot.reply_to(message, get_text("error_generic"))
 
     # --- Direct URLs ---
     @bot.message_handler(func=lambda message: is_spotify_url(message.text))
     def process_direct_url(message):
         """Processes a Spotify URL directly."""
-        url = message.text.strip()
-        spotdl.download(bot=bot, query=url)
+        try:
+            url = message.text.strip()
+            spotdl.download(bot=bot, query=url)
+        except Exception as e:
+            bot.reply_to(message, get_text("error_generic"))
 
     # --- Fallback ---
     @bot.message_handler(func=lambda message: True)
     def echo_all(message):
-        """Shows an error if the command is not recognized."""
-        bot.reply_to(message, get_text("error_unknown_command"))
+        try:
+            bot.reply_to(message, get_text("error_unknown_command"))
+        except Exception as e:
+            pass
 
     # --- Commands visible in Telegram ---
     bot.set_my_commands(
