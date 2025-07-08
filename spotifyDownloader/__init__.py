@@ -147,24 +147,31 @@ class SpotifyDownloader:
                         indent=4,
                         ensure_ascii=False,
                     )
-                with open(
-                    f"{DOWNLOAD_DIR}/sync.json", "w", encoding="utf-8"
-                ) as sync_file:
+                # Leer queries existentes y añadir la nueva
+                sync_json_path = f"{DOWNLOAD_DIR}/sync.json"
+                queries = []
+                if Path(sync_json_path).exists():
+                    with open(sync_json_path, "r", encoding="utf-8") as sync_file:
+                        try:
+                            data = json.load(sync_file)
+                            queries = data.get("queries", [])
+                        except Exception:
+                            queries = []
+                queries.append(
+                    {
+                        "save_path": save_path,
+                        "output": downloader.settings["output"],
+                    }
+                )
+                with open(sync_json_path, "w", encoding="utf-8") as sync_file:
                     json.dump(
-                        {
-                            "queries": [
-                                {
-                                    "save_path": save_path,
-                                    "output": downloader.settings["output"],
-                                }
-                            ],
-                        },
+                        {"queries": queries},
                         sync_file,
                         indent=4,
                         ensure_ascii=False,
                     )
 
-            downloader.download_multiple_songs(songs)
+            # downloader.download_multiple_songs(songs)
             send_message(bot=bot, message=get_text("download_finished"))
             return True
         except Exception as e:
