@@ -88,6 +88,47 @@ class SpotifyDownloader:
             ],
         )
 
+    def _download_with_retry(self, downloader, songs, bot, query) -> bool:
+        """
+        Attempt to download songs, retrying once if a rate limit error is detected.
+        Returns True if successful, False otherwise.
+        """
+        import re, time
+
+        logger.debug("Starting download_multiple_songs")
+        try:
+            downloader.download_multiple_songs(songs)
+        except Exception as e:
+            # Check for rate limit error and log it clearly
+            if (
+                "rate/request limit" in str(e).lower()
+                or "retry will occur after" in str(e).lower()
+            ):
+                logger.error(f"Rate limit reached: {e}")
+                match = re.search(r"retry will occur after: (\\d+)", str(e).lower())
+                if match:
+                    wait_ms = int(match.group(1))
+                    wait_sec = max(wait_ms // 1000, 1)
+                    logger.warning(
+                        f"Waiting {wait_sec} seconds before retrying due to rate limit..."
+                    )
+                    time.sleep(wait_sec)
+                    try:
+                        downloader.download_multiple_songs(songs)
+                    except Exception as e2:
+                        logger.error(f"Retry after rate limit also failed: {e2}")
+                        send_message(bot=bot, message=get_text("error_download_failed"))
+                        return False
+                else:
+                    send_message(bot=bot, message=get_text("error_download_failed"))
+                    return False
+            else:
+                logger.error(f"Download error for query '{query}': {str(e)}")
+                send_message(bot=bot, message=get_text("error_download_failed"))
+                return False
+        logger.debug("Finished download_multiple_songs")
+        return True
+
     def download(self, bot: telebot.TeleBot, query: str) -> bool:
         """
         Downloads the content for the given Spotify query.
@@ -119,22 +160,21 @@ class SpotifyDownloader:
                 send_message(bot=bot, message=get_text("error_download_failed"))
                 return False
 
-            # Update the sync file using the private method
-            try:
-                self._update_sync_file(
-                    {
-                        "type": "sync",
-                        "query": query,
-                        "songs": [song.json for song in songs],
-                        "output": downloader.settings["output"],
-                    }
-                )
-            except Exception as e:
-                logger.error(f"Error writing sync file {SYNC_JSON_PATH}: {e}")
-
-            downloader.download_multiple_songs(songs)
-            send_message(bot=bot, message=get_text("download_finished"))
-            return True
+            success = self._download_with_retry(downloader, songs, bot, query)
+            if success:
+                try:
+                    self._update_sync_file(
+                        {
+                            "type": "sync",
+                            "query": query,
+                            "songs": [song.json for song in songs],
+                            "output": downloader.settings["output"],
+                        }
+                    )
+                except Exception as e:
+                    logger.error(f"Error writing sync file {SYNC_JSON_PATH}: {e}")
+                send_message(bot=bot, message=get_text("download_finished"))
+            return success
         except Exception as e:
             logger.error(f"Download error for query '{query}': {str(e)}")
             send_message(bot=bot, message=get_text("error_download_failed"))
@@ -217,13 +257,13 @@ class SpotifyDownloader:
             bot (telebot.TeleBot): The Telegram bot instance. Must not be None.
         """
         msg = send_message(bot=bot, message=get_text("sync_in_progress"))
-        sync_message_id = msg.message_id if msg else None
+        message_id = msg.message_id if msg else None
         sync_json_path = Path(SYNC_JSON_PATH)
         if not sync_json_path.exists():
             logger.error(f"Sync file not found: {sync_json_path}")
             send_message(bot=bot, message=get_text("error_sync_file_not_found"))
-            if sync_message_id:
-                delete_message(bot=bot, message_id=sync_message_id)
+            if message_id:
+                delete_message(bot=bot, message_id=message_id)
             return
 
         try:
@@ -232,13 +272,12 @@ class SpotifyDownloader:
         except Exception as e:
             logger.error(f"Error reading sync file: {e}")
             send_message(bot=bot, message=get_text("error_sync_file_invalid"))
-            if sync_message_id:
-                delete_message(bot=bot, message_id=sync_message_id)
+            if message_id:
+                delete_message(bot=bot, message_id=message_id)
             return
 
-        downloader = None
+        downloader = self._create_downloader()
         for query in sync_queries.get("queries", []):
-            downloader = self._create_downloader()
             downloader.settings["output"] = query["output"]
 
             songs = self._get_simple_songs(query["query"])
@@ -296,33 +335,29 @@ class SpotifyDownloader:
                     logger.info(f"{len(to_delete)} old songs were deleted.")
 
             # Download new/updated songs
-            try:
-                downloader.download_multiple_songs(songs)
-            except Exception as e:
-                logger.error(f"Error downloading songs: {e}")
-                continue
-            finally:
-                if downloader and hasattr(downloader, "progress_handler"):
-                    try:
-                        downloader.progress_handler.close()
-                    except Exception as close_err:
-                        logger.error(f"Error closing progress handler: {close_err}")
+            success = self._download_with_retry(downloader, songs, bot, query["query"])
+            if success:
+                # Write the new sync file only after successful download
+                try:
+                    self._update_sync_file(
+                        {
+                            "type": "sync",
+                            "query": query["query"],
+                            "songs": [song.json for song in songs],
+                            "output": query["output"],
+                        }
+                    )
+                except Exception as e:
+                    logger.error(f"Error writing sync file {SYNC_JSON_PATH}: {e}")
+            # Always close progress handler after each download attempt
+            if downloader and hasattr(downloader, "progress_handler"):
+                try:
+                    downloader.progress_handler.close()
+                except Exception as close_err:
+                    logger.error(f"Error closing progress handler: {close_err}")
 
-            # Write the new sync file only after successful download
-            try:
-                self._update_sync_file(
-                    {
-                        "type": "sync",
-                        "query": query["query"],
-                        "songs": [song.json for song in songs],
-                        "output": query["output"],
-                    }
-                )
-            except Exception as e:
-                logger.error(f"Error writing sync file {SYNC_JSON_PATH}: {e}")
-
-        if sync_message_id:
-            delete_message(bot=bot, message_id=sync_message_id)
+        if message_id:
+            delete_message(bot=bot, message_id=message_id)
         send_message(bot=bot, message=get_text("sync_finished"))
 
     def _update_sync_file(self, query_dict: dict) -> None:
