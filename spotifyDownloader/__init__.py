@@ -187,18 +187,15 @@ class SpotifyDownloader:
         Downloads and saves the artist's image in their folder.
         """
         if "track" in query or "album" in query:
-            artist_id = song.artist_id
-
             spotify_client = SpotifyClient()
-            artist = spotify_client.artist(artist_id)
 
-            images = artist.get("images")
+            artist = spotify_client.artist(song.artist_id)
             list_name = artist.get("name")
-            if not images:
-                logger.info(f"No artist image found for {list_name}")
-                return
-
-            image_url = images[0].get("url")
+            image_url = (
+                max(artist.get("images"), key=lambda i: i["width"] * i["height"])["url"]
+                if (len(artist.get("images", [])) > 0)
+                else None
+            )
         elif "playlist" in query:
             playlist = Playlist.from_url(query, fetch_songs=False)
             list_name = playlist.get("name")
@@ -216,7 +213,7 @@ class SpotifyDownloader:
             response.raise_for_status()
             with open(image_path, "wb") as f:
                 f.write(response.content)
-            logger.info(f"Artist image saved: {image_path}")
+            logger.info(f"Image saved: {image_path}")
         except Exception as e:
             logger.error(f"Error downloading artist image: {e}")
 
