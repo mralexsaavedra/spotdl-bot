@@ -2,6 +2,7 @@
 
 import json
 import os
+import requests
 from config.config import (
     DOWNLOAD_DIR,
     SPOTIFY_CLIENT_ID,
@@ -181,6 +182,36 @@ class SpotifyDownloader:
             m3u_file.write(m3u_content)
         logger.info(f"M3U file generated: {file_path}")
 
+    def _save_artist_image(self, song: Song, query: str) -> None:
+        """
+        Downloads and saves the artist's image in their folder.
+        """
+        artist_id = song.artist_id
+
+        spotify_client = SpotifyClient()
+        artist = spotify_client.artist(artist_id)
+
+        images = artist.get("images", [])
+        artist_name = artist.get("name", "Unknown Artist")
+        if not images:
+            logger.info(f"No artist image found for {artist_name}")
+            return
+
+        image_url = images[0].get("url")
+        if not image_url:
+            logger.info(f"No valid image URL found for {artist_name}")
+            return
+
+        image_path = Path(f"{DOWNLOAD_DIR}/{artist_name}/cover.jpg")
+        try:
+            response = requests.get(image_url, timeout=10)
+            response.raise_for_status()
+            with open(image_path, "wb") as f:
+                f.write(response.content)
+            logger.info(f"Artist image saved: {image_path}")
+        except Exception as e:
+            logger.error(f"Error downloading artist image: {e}")
+
     def download(self, bot: telebot.TeleBot, query: str) -> bool:
         """
         Downloads the content for the given Spotify query.
@@ -217,6 +248,13 @@ class SpotifyDownloader:
                 logger.error(f"Failed to download songs for query: {query}")
                 send_message(bot=bot, message=get_text("error_download_failed"))
                 return False
+
+            # Save artist image (only once per artist)
+            seen_artists = set()
+            for song in songs:
+                if song.artist not in seen_artists:
+                    self._save_artist_image(song=song, query=query)
+                    seen_artists.add(song.artist)
 
             try:
                 self._update_sync_file(
