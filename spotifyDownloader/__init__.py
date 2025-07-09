@@ -255,10 +255,10 @@ class SpotifyDownloader:
                 send_message(bot=bot, message=get_text("error_download_failed"))
                 return False
 
-            try:
-                self._save_image(song=songs[0], query=query)
-            except Exception as e:
-                logger.error(f"Error saving image: {e}")
+            # try:
+            #     self._save_image(song=songs[0], query=query)
+            # except Exception as e:
+            #     logger.error(f"Error saving image: {e}")
 
             try:
                 self._update_sync_file(
@@ -443,10 +443,10 @@ class SpotifyDownloader:
                     send_message(bot=bot, message=get_text("error_download_failed"))
                     continue  # Skip sync update for this query
 
-                try:
-                    self._save_image(song=songs[0], query=query["query"])
-                except Exception as e:
-                    logger.error(f"Error saving image: {e}")
+                # try:
+                #     self._save_image(song=songs[0], query=query["query"])
+                # except Exception as e:
+                #     logger.error(f"Error saving image: {e}")
 
                 # Write the new sync file only after successful download
                 try:
