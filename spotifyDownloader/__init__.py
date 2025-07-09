@@ -91,6 +91,7 @@ class SpotifyDownloader:
     def _download_songs(self, downloader, songs, bot, query) -> bool:
         """
         Attempt to download songs. Returns True if successful, False otherwise.
+        Ensures progress handler is closed to avoid file descriptor leaks.
         """
         logger.debug("Starting download_multiple_songs")
         try:
@@ -99,6 +100,13 @@ class SpotifyDownloader:
             logger.error(f"Download error for query '{query}': {str(e)}")
             send_message(bot=bot, message=get_text("error_download_failed"))
             return False
+        finally:
+            # Always close progress handler to avoid too many open files
+            if downloader and hasattr(downloader, "progress_handler"):
+                try:
+                    downloader.progress_handler.close()
+                except Exception as close_err:
+                    logger.error(f"Error closing progress handler: {close_err}")
         logger.debug("Finished download_multiple_songs")
         return True
 
@@ -134,30 +142,28 @@ class SpotifyDownloader:
                 return False
 
             success = self._download_songs(downloader, songs, bot, query)
-            if success:
-                try:
-                    self._update_sync_file(
-                        {
-                            "type": "sync",
-                            "query": query,
-                            "songs": [song.json for song in songs],
-                            "output": downloader.settings["output"],
-                        }
-                    )
-                except Exception as e:
-                    logger.error(f"Error writing sync file {SYNC_JSON_PATH}: {e}")
-                send_message(bot=bot, message=get_text("download_finished"))
-            return success
+            if not success:
+                logger.error(f"Failed to download songs for query: {query}")
+                send_message(bot=bot, message=get_text("error_download_failed"))
+                return False
+            try:
+                self._update_sync_file(
+                    {
+                        "type": "sync",
+                        "query": query,
+                        "songs": [song.json for song in songs],
+                        "output": downloader.settings["output"],
+                    }
+                )
+            except Exception as e:
+                logger.error(f"Error writing sync file {SYNC_JSON_PATH}: {e}")
+            send_message(bot=bot, message=get_text("download_finished"))
+            return True
         except Exception as e:
             logger.error(f"Download error for query '{query}': {str(e)}")
             send_message(bot=bot, message=get_text("error_download_failed"))
             return False
         finally:
-            if downloader and hasattr(downloader, "progress_handler"):
-                try:
-                    downloader.progress_handler.close()
-                except Exception as close_err:
-                    logger.error(f"Error closing progress handler: {close_err}")
             if message_id:
                 delete_message(bot=bot, message_id=message_id)
 
@@ -309,25 +315,23 @@ class SpotifyDownloader:
 
             # Download new/updated songs
             success = self._download_songs(downloader, songs, bot, query["query"])
-            if success:
-                # Write the new sync file only after successful download
-                try:
-                    self._update_sync_file(
-                        {
-                            "type": "sync",
-                            "query": query["query"],
-                            "songs": [song.json for song in songs],
-                            "output": query["output"],
-                        }
-                    )
-                except Exception as e:
-                    logger.error(f"Error writing sync file {SYNC_JSON_PATH}: {e}")
-            # Always close progress handler after each download attempt
-            if downloader and hasattr(downloader, "progress_handler"):
-                try:
-                    downloader.progress_handler.close()
-                except Exception as close_err:
-                    logger.error(f"Error closing progress handler: {close_err}")
+            if not success:
+                logger.error(f"Failed to download songs for query: {query['query']}")
+                send_message(bot=bot, message=get_text("error_download_failed"))
+                continue  # Skip sync update for this query
+            # Write the new sync file only after successful download
+            try:
+                self._update_sync_file(
+                    {
+                        "type": "sync",
+                        "query": query["query"],
+                        "songs": [song.json for song in songs],
+                        "output": query["output"],
+                    }
+                )
+            except Exception as e:
+                logger.error(f"Error writing sync file {SYNC_JSON_PATH}: {e}")
+            # Ya no es necesario cerrar el progress handler aquí, se gestiona en _download_songs
 
         if message_id:
             delete_message(bot=bot, message_id=message_id)
