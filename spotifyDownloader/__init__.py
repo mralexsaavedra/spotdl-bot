@@ -49,9 +49,12 @@ class SpotifyDownloader:
         """
         Returns an output pattern based on the Spotify item type.
         """
-        if "track" in identifier:
-            return "{artist}/{artists} - {title}.{output-ext}"
-        elif "album" in identifier or identifier == "all-user-saved-albums":
+        if not identifier in [
+            "track",
+            "artist",
+            "album",
+            "all-user-saved-albums",
+        ]:
             return "{album-artist}/{album}/{artists} - {title}.{output-ext}"
         elif (
             "playlist" in identifier
@@ -59,8 +62,6 @@ class SpotifyDownloader:
             or identifier == "all-saved-playlists"
         ):
             return "Playlists/{list-name}/{artists} - {title}.{output-ext}"
-        elif "artist" in identifier:
-            return "{artist}/{artists} - {title}.{output-ext}"
         elif identifier == "saved":
             return "Playlists/Saved tracks/{artists} - {title}.{output-ext}"
         else:
@@ -154,15 +155,16 @@ class SpotifyDownloader:
             query (str): The Spotify query string.
         """
         list_name = songs[0].list_name
-        print(songs[0])
 
         if not list_name:
             return
 
-        if not (
-            "playlist" in query
-            or query in ["all-user-playlists", "all-saved-playlists", "saved"]
-        ):
+        if not query in [
+            "playlist",
+            "all-user-playlists",
+            "all-saved-playlists",
+            "saved",
+        ]:
             return  # No M3U generation for other types
 
         m3u_content = create_m3u_content(
