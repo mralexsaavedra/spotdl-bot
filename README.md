@@ -140,17 +140,18 @@ services:
   spotdl-bot:
     image: mralexsaavedra/spotdl-bot:latest
     container_name: spotdl-bot
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Madrid
+      - LANGUAGE=ES # IDIOMAS DISPONIBLES: ES, EN
+    env_file:
+      - .env
     volumes:
       - ./music:/music # CAMBIA ESTA RUTA A TU DIRECTORIO DE MÚSICA
       - ./cache:/cache # CAMBIA ESTA RUTA AL DIRECTORIO QUE QUIERAS PARA LA CACHE
       - ./logs:/logs # CAMBIA ESTA RUTA AL DIRECTORIO QUE QUIERAS PARA LOS LOGS
-    env_file:
-      - .env
-    environment:
-      - TZ=Europe/Madrid
-      - LANGUAGE=ES # IDIOMAS DISPONIBLES: ES, EN
     restart: unless-stopped
-    user: appuser
 ```
 
 Puedes encontrar este archivo y personalizarlo en el repositorio: [`docker-compose.yml`](./docker-compose.yml)
