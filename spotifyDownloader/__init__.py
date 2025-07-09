@@ -62,7 +62,7 @@ class SpotifyDownloader:
         elif "artist" in identifier:
             return "{artist}/{artists} - {title}.{output-ext}"
         elif identifier == "saved":
-            return "Liked Songs/{artists} - {title}.{output-ext}"
+            return "Playlists/Saved tracks/{artists} - {title}.{output-ext}"
         else:
             return "{artists} - {title}.{output-ext}"
 
@@ -159,15 +159,10 @@ class SpotifyDownloader:
         if not list_name:
             return
 
-        if (
+        if not (
             "playlist" in query
-            or query == "all-user-playlists"
-            or query == "all-saved-playlists"
+            or query in ["all-user-playlists", "all-saved-playlists", "saved"]
         ):
-            playlist_dir = f"Playlists/{list_name}"
-        elif query == "saved":
-            playlist_dir = "Liked Songs"
-        else:
             return  # No M3U generation for other types
 
         m3u_content = create_m3u_content(
@@ -179,7 +174,7 @@ class SpotifyDownloader:
             detect_formats=DOWNLOADER_OPTIONS["detect_formats"],
         )
 
-        file_path = Path(f"{DOWNLOAD_DIR}/{playlist_dir}/{list_name}.m3u8")
+        file_path = Path(f"{DOWNLOAD_DIR}/Playlists/{list_name}/{list_name}.m3u8")
         with open(file_path, "w", encoding="utf-8") as m3u_file:
             m3u_file.write(m3u_content)
         logger.info(f"M3U file generated: {file_path}")
