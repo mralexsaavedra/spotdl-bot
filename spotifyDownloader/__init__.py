@@ -18,8 +18,8 @@ from spotdl.download.downloader import Downloader
 from spotdl.utils.spotify import SpotifyClient
 from spotdl.utils.search import get_simple_songs
 from spotdl.types.song import Song
-from spotdl.utils.formatter import create_file_name
-from spotdl.utils.m3u import gen_m3u_files
+from spotdl.utils.m3u import create_m3u_content
+from spotdl.utils.formatter import create_file_name, sanitize_string
 import telebot
 
 SYNC_JSON_PATH = f"{CACHE_DIR}/sync.spotdl"
@@ -119,6 +119,7 @@ class SpotifyDownloader:
             query_dict (dict): The query dictionary to add/update in the sync file.
         """
         all_queries = []
+
         if Path(SYNC_JSON_PATH).exists():
             with open(SYNC_JSON_PATH, "r", encoding="utf-8") as f:
                 try:
@@ -126,10 +127,13 @@ class SpotifyDownloader:
                     all_queries = data.get("queries", [])
                 except Exception:
                     all_queries = []
+
         # Remove any existing entry for this query
         all_queries = [q for q in all_queries if q.get("query") != query_dict["query"]]
+
         # Add the updated query
         all_queries.append(query_dict)
+
         with open(SYNC_JSON_PATH, "w", encoding="utf-8") as save_file:
             json.dump(
                 {"queries": all_queries},
@@ -137,35 +141,45 @@ class SpotifyDownloader:
                 indent=4,
                 ensure_ascii=False,
             )
+        logger.info(f"Sync file updated: {SYNC_JSON_PATH}")
 
     def _gen_m3u_files(self, songs: List[Song], query: str) -> None:
         """
         Generate M3U files for the downloaded songs.
         Args:
             songs (List[Song]): List of Song objects to generate M3U files for.
+            query (str): The Spotify query string.
         """
+        list_name = songs[0].list_name
+        print(songs[0])
+
+        if not list_name:
+            return
+
         if (
             "playlist" in query
             or query == "all-user-playlists"
             or query == "all-saved-playlists"
         ):
-            list_name = songs[0].list_name
             playlist_dir = f"Playlists/{list_name}"
         elif query == "saved":
             playlist_dir = "Liked Songs"
         else:
             return  # No M3U generation for other types
 
-        os.chdir(f"{DOWNLOAD_DIR}/{playlist_dir}")
-        gen_m3u_files(
-            songs=songs,
-            file_name="{list[0]}.m3u8",
+        m3u_content = create_m3u_content(
+            song_list=songs,
             template="{artists} - {title}.{output-ext}",
             file_extension=DOWNLOADER_OPTIONS["format"],
             restrict=DOWNLOADER_OPTIONS["restrict"],
             short=False,
             detect_formats=DOWNLOADER_OPTIONS["detect_formats"],
         )
+
+        file_path = Path(f"{DOWNLOAD_DIR}/{playlist_dir}/{list_name}.m3u8")
+        with open(file_path, "w", encoding="utf-8") as m3u_file:
+            m3u_file.write(m3u_content)
+        logger.info(f"M3U file generated: {file_path}")
 
     def download(self, bot: telebot.TeleBot, query: str) -> bool:
         """
