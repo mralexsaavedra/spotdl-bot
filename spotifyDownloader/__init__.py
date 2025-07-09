@@ -19,7 +19,7 @@ from spotdl.utils.spotify import SpotifyClient
 from spotdl.utils.search import get_simple_songs
 from spotdl.types.song import Song
 from spotdl.utils.m3u import create_m3u_content
-from spotdl.utils.formatter import create_file_name, sanitize_string
+from spotdl.utils.formatter import create_file_name
 import telebot
 
 SYNC_JSON_PATH = f"{CACHE_DIR}/sync.spotdl"
@@ -73,6 +73,16 @@ class SpotifyDownloader:
         settings = DOWNLOADER_OPTIONS.copy()
         return Downloader(settings=settings, loop=None)
 
+    def _close_downloader(self, downloader: Downloader) -> None:
+        """
+        Closes the downloader's progress handler to avoid file descriptor leaks.
+        """
+        if hasattr(downloader, "progress_handler"):
+            try:
+                downloader.progress_handler.close()
+            except Exception as e:
+                logger.error(f"Error closing progress handler: {e}")
+
     def _get_simple_songs(self, query) -> List[Song]:
         """
         Wrapper for get_simple_songs with default downloader options.
@@ -102,13 +112,6 @@ class SpotifyDownloader:
             logger.error(f"Download error for query '{query}': {str(e)}")
             send_message(bot=bot, message=get_text("error_download_failed"))
             return False
-        finally:
-            # Always close progress handler to avoid too many open files
-            if downloader and hasattr(downloader, "progress_handler"):
-                try:
-                    downloader.progress_handler.close()
-                except Exception as close_err:
-                    logger.error(f"Error closing progress handler: {close_err}")
         logger.debug("Finished download_multiple_songs")
         return True
 
@@ -242,6 +245,7 @@ class SpotifyDownloader:
             send_message(bot=bot, message=get_text("error_download_failed"))
             return False
         finally:
+            self._close_downloader(downloader)
             if message_id:
                 delete_message(bot=bot, message_id=message_id)
 
@@ -333,88 +337,92 @@ class SpotifyDownloader:
                 delete_message(bot=bot, message_id=message_id)
             return
 
-        downloader = self._create_downloader()
         for query in sync_queries.get("queries", []):
-            downloader.settings["output"] = query["output"]
+            downloader = self._create_downloader()
+            try:
+                downloader.settings["output"] = query["output"]
+                songs = self._get_simple_songs(query["query"])
 
-            songs = self._get_simple_songs(query["query"])
+                # Get the names and URLs of previously downloaded songs from the sync file
+                old_files = []
+                for entry in query["songs"]:
+                    file_name = create_file_name(
+                        Song.from_dict(entry),
+                        downloader.settings["output"],
+                        downloader.settings["format"],
+                        downloader.settings["restrict"],
+                    )
+                    old_files.append((Path(file_name), entry["url"]))
 
-            # Get the names and URLs of previously downloaded songs from the sync file
-            old_files = []
-            for entry in query["songs"]:
-                file_name = create_file_name(
-                    Song.from_dict(entry),
-                    downloader.settings["output"],
-                    downloader.settings["format"],
-                    downloader.settings["restrict"],
-                )
-                old_files.append((Path(file_name), entry["url"]))
+                new_urls = [song.url for song in songs]
 
-            new_urls = [song.url for song in songs]
-
-            # Delete all song files whose URL is no longer part of the latest playlist
-            if not downloader.settings.get("sync_without_deleting", False):
-                to_rename: List[Tuple[Path, Path]] = []
-                to_delete = []
-                for path, url in old_files:
-                    if url not in new_urls:
-                        to_delete.append(path)
-                    else:
-                        new_song = songs[new_urls.index(url)]
-                        new_path = Path(
-                            create_file_name(
-                                Song.from_dict(new_song.json),
-                                downloader.settings["output"],
-                                downloader.settings["format"],
-                                downloader.settings["restrict"],
+                # Delete all song files whose URL is no longer part of the latest playlist
+                if not downloader.settings.get("sync_without_deleting", False):
+                    to_rename: List[Tuple[Path, Path]] = []
+                    to_delete = []
+                    for path, url in old_files:
+                        if url not in new_urls:
+                            to_delete.append(path)
+                        else:
+                            new_song = songs[new_urls.index(url)]
+                            new_path = Path(
+                                create_file_name(
+                                    Song.from_dict(new_song.json),
+                                    downloader.settings["output"],
+                                    downloader.settings["format"],
+                                    downloader.settings["restrict"],
+                                )
                             )
+                            if path != new_path:
+                                to_rename.append((path, new_path))
+
+                    for old_path, new_path in to_rename:
+                        self._rename_file(old_path, new_path)
+                        self._rename_lrc(
+                            old_path,
+                            new_path,
+                            downloader.settings.get("sync_remove_lrc", False),
                         )
-                        if path != new_path:
-                            to_rename.append((path, new_path))
 
-                for old_path, new_path in to_rename:
-                    self._rename_file(old_path, new_path)
-                    self._rename_lrc(
-                        old_path,
-                        new_path,
-                        downloader.settings.get("sync_remove_lrc", False),
+                    for file in to_delete:
+                        self._remove_file(file)
+                        self._remove_lrc(
+                            file, downloader.settings.get("sync_remove_lrc", False)
+                        )
+
+                    if len(to_delete) == 0:
+                        logger.info("Nothing to delete...")
+                    else:
+                        logger.info(f"{len(to_delete)} old songs were deleted.")
+
+                # Download new/updated songs
+                success = self._download_songs(downloader, songs, bot, query["query"])
+                if not success:
+                    logger.error(
+                        f"Failed to download songs for query: {query['query']}"
                     )
+                    send_message(bot=bot, message=get_text("error_download_failed"))
+                    continue  # Skip sync update for this query
 
-                for file in to_delete:
-                    self._remove_file(file)
-                    self._remove_lrc(
-                        file, downloader.settings.get("sync_remove_lrc", False)
+                # Write the new sync file only after successful download
+                try:
+                    self._update_sync_file(
+                        {
+                            "type": "sync",
+                            "query": query["query"],
+                            "songs": [song.json for song in songs],
+                            "output": query["output"],
+                        }
                     )
+                except Exception as e:
+                    logger.error(f"Error writing sync file {SYNC_JSON_PATH}: {e}")
 
-                if len(to_delete) == 0:
-                    logger.info("Nothing to delete...")
-                else:
-                    logger.info(f"{len(to_delete)} old songs were deleted.")
-
-            # Download new/updated songs
-            success = self._download_songs(downloader, songs, bot, query["query"])
-            if not success:
-                logger.error(f"Failed to download songs for query: {query['query']}")
-                send_message(bot=bot, message=get_text("error_download_failed"))
-                continue  # Skip sync update for this query
-
-            # Write the new sync file only after successful download
-            try:
-                self._update_sync_file(
-                    {
-                        "type": "sync",
-                        "query": query["query"],
-                        "songs": [song.json for song in songs],
-                        "output": query["output"],
-                    }
-                )
-            except Exception as e:
-                logger.error(f"Error writing sync file {SYNC_JSON_PATH}: {e}")
-
-            try:
-                self._gen_m3u_files(songs=songs, query=query["query"])
-            except Exception as e:
-                logger.error(f"Error generating M3U files: {e}")
+                try:
+                    self._gen_m3u_files(songs=songs, query=query["query"])
+                except Exception as e:
+                    logger.error(f"Error generating M3U files: {e}")
+            finally:
+                self._close_downloader(downloader)
 
         if message_id:
             delete_message(bot=bot, message_id=message_id)
