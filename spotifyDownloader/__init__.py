@@ -374,6 +374,7 @@ class SpotifyDownloader:
                 logger.error(f"Failed to download songs for query: {query['query']}")
                 send_message(bot=bot, message=get_text("error_download_failed"))
                 continue  # Skip sync update for this query
+
             # Write the new sync file only after successful download
             try:
                 self._update_sync_file(
@@ -386,7 +387,11 @@ class SpotifyDownloader:
                 )
             except Exception as e:
                 logger.error(f"Error writing sync file {SYNC_JSON_PATH}: {e}")
-            # Ya no es necesario cerrar el progress handler aquí, se gestiona en _download_songs
+
+            try:
+                self._gen_m3u_files(songs=songs)
+            except Exception as e:
+                logger.error(f"Error generating M3U files: {e}")
 
         if message_id:
             delete_message(bot=bot, message_id=message_id)
