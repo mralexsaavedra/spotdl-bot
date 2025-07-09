@@ -138,19 +138,28 @@ class SpotifyDownloader:
                 ensure_ascii=False,
             )
 
-    def _gen_m3u_files(self, songs: List[Song]) -> None:
+    def _gen_m3u_files(self, songs: List[Song], query: str) -> None:
         """
         Generate M3U files for the downloaded songs.
         Args:
             songs (List[Song]): List of Song objects to generate M3U files for.
         """
-        list_name = songs[0].list_name
-        playlist_dir = f"{DOWNLOAD_DIR}/Playlists/{list_name}"
-        os.chdir(playlist_dir)
-        file_name = f"{list_name}.m3u8"
+        if (
+            "playlist" in query
+            or query == "all-user-playlists"
+            or query == "all-saved-playlists"
+        ):
+            list_name = songs[0].list_name
+            playlist_dir = f"Playlists/{list_name}"
+        elif query == "saved":
+            playlist_dir = "Liked Songs"
+        else:
+            return  # No M3U generation for other types
+
+        os.chdir(f"{DOWNLOAD_DIR}/{playlist_dir}")
         gen_m3u_files(
             songs=songs,
-            file_name=file_name,
+            file_name="{list[0]}.m3u8",
             template="{artists} - {title}.{output-ext}",
             file_extension=DOWNLOADER_OPTIONS["format"],
             restrict=DOWNLOADER_OPTIONS["restrict"],
@@ -195,20 +204,20 @@ class SpotifyDownloader:
             #     send_message(bot=bot, message=get_text("error_download_failed"))
             #     return False
 
-            try:
-                self._update_sync_file(
-                    {
-                        "type": "sync",
-                        "query": query,
-                        "songs": [song.json for song in songs],
-                        "output": downloader.settings["output"],
-                    }
-                )
-            except Exception as e:
-                logger.error(f"Error writing sync file {SYNC_JSON_PATH}: {e}")
+            # try:
+            #     self._update_sync_file(
+            #         {
+            #             "type": "sync",
+            #             "query": query,
+            #             "songs": [song.json for song in songs],
+            #             "output": downloader.settings["output"],
+            #         }
+            #     )
+            # except Exception as e:
+            #     logger.error(f"Error writing sync file {SYNC_JSON_PATH}: {e}")
 
             try:
-                self._gen_m3u_files(songs=songs)
+                self._gen_m3u_files(songs=songs, query=query)
             except Exception as e:
                 logger.error(f"Error generating M3U files: {e}")
 
@@ -389,7 +398,7 @@ class SpotifyDownloader:
                 logger.error(f"Error writing sync file {SYNC_JSON_PATH}: {e}")
 
             try:
-                self._gen_m3u_files(songs=songs)
+                self._gen_m3u_files(songs=songs, query=query["query"])
             except Exception as e:
                 logger.error(f"Error generating M3U files: {e}")
 
