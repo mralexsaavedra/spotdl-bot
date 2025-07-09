@@ -1,6 +1,7 @@
 """Init file for the spotifyDownloader package."""
 
 import json
+import os
 from config.config import (
     DOWNLOAD_DIR,
     SPOTIFY_CLIENT_ID,
@@ -18,6 +19,7 @@ from spotdl.utils.spotify import SpotifyClient
 from spotdl.utils.search import get_simple_songs
 from spotdl.types.song import Song
 from spotdl.utils.formatter import create_file_name
+from spotdl.utils.m3u import gen_m3u_files
 import telebot
 
 SYNC_JSON_PATH = f"{CACHE_DIR}/sync.spotdl"
@@ -110,6 +112,52 @@ class SpotifyDownloader:
         logger.debug("Finished download_multiple_songs")
         return True
 
+    def _update_sync_file(self, query_dict: dict) -> None:
+        """
+        Update the sync file by removing any existing entry for the query and adding the new one.
+        Args:
+            query_dict (dict): The query dictionary to add/update in the sync file.
+        """
+        all_queries = []
+        if Path(SYNC_JSON_PATH).exists():
+            with open(SYNC_JSON_PATH, "r", encoding="utf-8") as f:
+                try:
+                    data = json.load(f)
+                    all_queries = data.get("queries", [])
+                except Exception:
+                    all_queries = []
+        # Remove any existing entry for this query
+        all_queries = [q for q in all_queries if q.get("query") != query_dict["query"]]
+        # Add the updated query
+        all_queries.append(query_dict)
+        with open(SYNC_JSON_PATH, "w", encoding="utf-8") as save_file:
+            json.dump(
+                {"queries": all_queries},
+                save_file,
+                indent=4,
+                ensure_ascii=False,
+            )
+
+    def _gen_m3u_files(self, songs: List[Song]) -> None:
+        """
+        Generate M3U files for the downloaded songs.
+        Args:
+            songs (List[Song]): List of Song objects to generate M3U files for.
+        """
+        list_name = songs[0].list_name
+        playlist_dir = f"{DOWNLOAD_DIR}/Playlists/{list_name}"
+        os.chdir(playlist_dir)
+        file_name = f"{list_name}.m3u8"
+        gen_m3u_files(
+            songs=songs,
+            file_name=file_name,
+            template="{artists} - {title}.{output-ext}",
+            file_extension=DOWNLOADER_OPTIONS["format"],
+            restrict=DOWNLOADER_OPTIONS["restrict"],
+            short=False,
+            detect_formats=DOWNLOADER_OPTIONS["detect_formats"],
+        )
+
     def download(self, bot: telebot.TeleBot, query: str) -> bool:
         """
         Downloads the content for the given Spotify query.
@@ -141,11 +189,12 @@ class SpotifyDownloader:
                 send_message(bot=bot, message=get_text("error_download_failed"))
                 return False
 
-            success = self._download_songs(downloader, songs, bot, query)
-            if not success:
-                logger.error(f"Failed to download songs for query: {query}")
-                send_message(bot=bot, message=get_text("error_download_failed"))
-                return False
+            # success = self._download_songs(downloader, songs, bot, query)
+            # if not success:
+            #     logger.error(f"Failed to download songs for query: {query}")
+            #     send_message(bot=bot, message=get_text("error_download_failed"))
+            #     return False
+
             try:
                 self._update_sync_file(
                     {
@@ -157,6 +206,12 @@ class SpotifyDownloader:
                 )
             except Exception as e:
                 logger.error(f"Error writing sync file {SYNC_JSON_PATH}: {e}")
+
+            try:
+                self._gen_m3u_files(songs=songs)
+            except Exception as e:
+                logger.error(f"Error generating M3U files: {e}")
+
             send_message(bot=bot, message=get_text("download_finished"))
             return True
         except Exception as e:
@@ -336,29 +391,3 @@ class SpotifyDownloader:
         if message_id:
             delete_message(bot=bot, message_id=message_id)
         send_message(bot=bot, message=get_text("sync_finished"))
-
-    def _update_sync_file(self, query_dict: dict) -> None:
-        """
-        Update the sync file by removing any existing entry for the query and adding the new one.
-        Args:
-            query_dict (dict): The query dictionary to add/update in the sync file.
-        """
-        all_queries = []
-        if Path(SYNC_JSON_PATH).exists():
-            with open(SYNC_JSON_PATH, "r", encoding="utf-8") as f:
-                try:
-                    data = json.load(f)
-                    all_queries = data.get("queries", [])
-                except Exception:
-                    all_queries = []
-        # Remove any existing entry for this query
-        all_queries = [q for q in all_queries if q.get("query") != query_dict["query"]]
-        # Add the updated query
-        all_queries.append(query_dict)
-        with open(SYNC_JSON_PATH, "w", encoding="utf-8") as save_file:
-            json.dump(
-                {"queries": all_queries},
-                save_file,
-                indent=4,
-                ensure_ascii=False,
-            )
