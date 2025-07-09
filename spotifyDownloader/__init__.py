@@ -186,7 +186,7 @@ class SpotifyDownloader:
         """
         Downloads and saves the artist's image in their folder.
         """
-        if "track" in query or "album" in query:
+        if "track" in query or "album" in query or "artist" in query:
             spotify_client = SpotifyClient()
 
             artist = spotify_client.artist(song.artist_id)
@@ -198,8 +198,8 @@ class SpotifyDownloader:
             )
         elif "playlist" in query:
             playlist = Playlist.from_url(query, fetch_songs=False)
-            list_name = playlist.get("name")
-            image_url = playlist.get("image_url")
+            list_name = f"Playlists/{playlist.name}"
+            image_url = playlist.cover_url
         else:
             return
 
@@ -254,12 +254,10 @@ class SpotifyDownloader:
             #     send_message(bot=bot, message=get_text("error_download_failed"))
             #     return False
 
-            # Save artist image (only once per artist)
-            seen_artists = set()
-            for song in songs:
-                if song.artist not in seen_artists:
-                    self._save_image(song=song, query=query)
-                    seen_artists.add(song.artist)
+            try:
+                self._save_image(song=songs[0], query=query)
+            except Exception as e:
+                logger.error(f"Error saving image: {e}")
 
             # try:
             #     self._update_sync_file(
