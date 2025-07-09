@@ -189,7 +189,8 @@ class SpotifyDownloader:
         if "track" in query or "album" in query or "artist" in query:
             spotify_client = SpotifyClient()
 
-            artist = spotify_client.artist(song.artist_id)
+            _song = Song.from_url(song.url)
+            artist = spotify_client.artist(_song.artist_id)
             list_name = artist.get("name")
             image_url = (
                 max(artist.get("images"), key=lambda i: i["width"] * i["height"])["url"]
@@ -248,33 +249,33 @@ class SpotifyDownloader:
                 send_message(bot=bot, message=get_text("error_download_failed"))
                 return False
 
-            # success = self._download_songs(downloader, songs, bot, query)
-            # if not success:
-            #     logger.error(f"Failed to download songs for query: {query}")
-            #     send_message(bot=bot, message=get_text("error_download_failed"))
-            #     return False
+            success = self._download_songs(downloader, songs, bot, query)
+            if not success:
+                logger.error(f"Failed to download songs for query: {query}")
+                send_message(bot=bot, message=get_text("error_download_failed"))
+                return False
 
             try:
                 self._save_image(song=songs[0], query=query)
             except Exception as e:
                 logger.error(f"Error saving image: {e}")
 
-            # try:
-            #     self._update_sync_file(
-            #         {
-            #             "type": "sync",
-            #             "query": query,
-            #             "songs": [song.json for song in songs],
-            #             "output": downloader.settings["output"],
-            #         }
-            #     )
-            # except Exception as e:
-            #     logger.error(f"Error writing sync file {SYNC_JSON_PATH}: {e}")
+            try:
+                self._update_sync_file(
+                    {
+                        "type": "sync",
+                        "query": query,
+                        "songs": [song.json for song in songs],
+                        "output": downloader.settings["output"],
+                    }
+                )
+            except Exception as e:
+                logger.error(f"Error writing sync file {SYNC_JSON_PATH}: {e}")
 
-            # try:
-            #     self._gen_m3u_files(songs=songs, query=query)
-            # except Exception as e:
-            #     logger.error(f"Error generating M3U files: {e}")
+            try:
+                self._gen_m3u_files(songs=songs, query=query)
+            except Exception as e:
+                logger.error(f"Error generating M3U files: {e}")
 
             send_message(bot=bot, message=get_text("download_finished"))
             return True
