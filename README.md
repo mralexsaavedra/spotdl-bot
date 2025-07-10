@@ -2,22 +2,53 @@
 
 [![GitHub](https://badgen.net/badge/icon/github?icon=github&label)](https://github.com/mralexsaavedra/spotdl-bot)
 [![Docker](https://badgen.net/badge/icon/docker?icon=docker&label)](https://hub.docker.com/r/mralexandersaavedra/spotdl-bot)
-[![Telegram](https://badgen.net/badge/icon/telegram?icon=telegram&label)](https://t.me/spotdl_bot)
 ![GitHub stars](https://badgen.net/github/stars/mralexsaavedra/spotdl-bot)
 ![GitHub forks](https://badgen.net/github/forks/mralexsaavedra/spotdl-bot)
 ![GitHub last-commit](https://badgen.net/github/last-commit/mralexsaavedra/spotdl-bot)
 ![License](https://badgen.net/github/license/mralexsaavedra/spotdl-bot)
 [![Version](https://img.shields.io/github/v/release/mralexsaavedra/spotdl-bot)](https://github.com/mralexsaavedra/spotdl-bot/releases)
+[![Donar](https://img.shields.io/badge/Donar-Coffee%20%F0%9F%92%B0-orange)](https://www.buymeacoffee.com/mralexsaavedra)
+[![Web personal](https://img.shields.io/badge/Web-mralexsaavedra.com-blue)](https://mralexsaavedra.com)
 
 Bot de Telegram que permite descargar canciones, álbumes y playlists completas de Spotify de forma rápida y sencilla, utilizando la potencia de [spotDL](https://github.com/spotDL/spotify-downloader).
 
 ---
 
+## 📑 Tabla de Contenidos
+
+- [🎵 SpotDL Bot](#-spotdl-bot)
+  - [📑 Tabla de Contenidos](#-tabla-de-contenidos)
+  - [🚀 Funcionalidades](#-funcionalidades)
+  - [📋 Requisitos](#-requisitos)
+  - [🔑 Variables de entorno](#-variables-de-entorno)
+    - [🤖 Cómo crear un bot de Telegram y obtener su token](#-cómo-crear-un-bot-de-telegram-y-obtener-su-token)
+    - [📌 ¿Cómo obtener el Chat ID de Telegram?](#-cómo-obtener-el-chat-id-de-telegram)
+    - [🎵 Credenciales de Spotify (Client ID y Client Secret)](#-credenciales-de-spotify-client-id-y-client-secret)
+      - [Cómo obtener las credenciales de Spotify:](#cómo-obtener-las-credenciales-de-spotify)
+  - [📋 Comandos disponibles](#-comandos-disponibles)
+  - [🐳 Instalación con Docker](#-instalación-con-docker)
+    - [▶️ Opción 1: Usar docker run](#️-opción-1-usar-docker-run)
+    - [⚙️ Opción 2: Usar docker-compose](#️-opción-2-usar-docker-compose)
+  - [⚠️ Límites de uso de la API de Spotify (Rate Limits)](#️-límites-de-uso-de-la-api-de-spotify-rate-limits)
+  - [🛠️ Funcionamiento interno: SpotifyDownloader](#️-funcionamiento-interno-spotifydownloader)
+  - [🤝 Contribuciones](#-contribuciones)
+  - [📝 Licencia](#-licencia)
+  - [🙌 Créditos](#-créditos)
+
+---
+
 ## 🚀 Funcionalidades
 
-- 🎶 Descargar canciones, álbumes y playlists de Spotify.
-- 🐳 Compatible con Docker.
-- 🤖 Control vía comandos de Telegram.
+- 🎶 **Descarga avanzada**: Descarga canciones, álbumes, playlists y artistas completos de Spotify.
+- 🗂️ **Organización automática**: Estructura las descargas en carpetas por artista, álbum y playlist.
+- 🖼️ **Portadas automáticas**: Descarga y guarda las portadas de artistas y playlists.
+- 📄 **Listas M3U para playlists**: Genera archivos M3U compatibles con Jellyfin, Navidrome y otros servidores.
+- 🔄 **Sincronización inteligente**: Mantén tu biblioteca local siempre actualizada y limpia con el sistema de sincronización.
+- 🌍 **Multi-idioma**: Interfaz y menús disponibles en varios idiomas.
+- 🐳 **Compatible con Docker**: Fácil despliegue y actualización con Docker o Docker Compose.
+- 🤖 **Control total por Telegram**: Gestiona todas las descargas y sincronizaciones desde tu móvil o PC.
+- 📝 **Logs detallados**: Consulta los registros de actividad y errores en la carpeta `logs/`.
+- 🔒 **Privacidad**: Todo el procesamiento y almacenamiento es local, sin servicios de terceros.
 
 ---
 
@@ -99,8 +130,8 @@ Estas credenciales permiten al bot autenticar solicitudes y acceder a los datos 
 | `/downloadsavedalbums`          | Descargar tus álbumes guardados                                                                      |
 | `/downloadsavedplaylists`       | Descargar tus playlists guardadas                                                                    |
 | `/downloaduserplaylists`        | Descargar tus playlists creadas                                                                      |
-| `/downloaduserfollowedartists`  | Descargar los artistas que sigues en Spotify                                             |
-| `/sync`                         | Sincronizar tu biblioteca de Spotify                                                                 |
+| `/downloaduserfollowedartists`  | Descargar los artistas que sigues                                                                    |
+| `/sync`                         | Sincronizar tu biblioteca                                                                            |
 | `/version`                      | Mostrar versión del bot                                                                              |
 | `/donate`                       | Información para donar                                                                               |
 
@@ -121,6 +152,9 @@ docker run -d --name spotdl-bot \
   -e SPOTIFY_CLIENT_SECRET="tu_client_secret" \
   -e SPOTIFY_REDIRECT_URI="tu_redirect_uri" \
   -e LANGUAGE="es" \
+  -e PUID=1000 \
+  -e PGID=1000 \
+  -e TZ=Europe/Madrid \
   -v $(pwd)/music:/music \
   -v $(pwd)/cache:/cache \
   -v $(pwd)/logs:/logs \
@@ -171,6 +205,26 @@ docker compose up -d
 Este bot utiliza la API oficial de Spotify, la cual puede imponer límites de uso (rate limits) si se realizan demasiadas solicitudes en poco tiempo. Si esto ocurre, el bot puede mostrar mensajes de error o fallar temporalmente al descargar contenido. Para más información sobre los límites de la API de Spotify, consulta la documentación oficial:
 
 - [Spotify API Rate Limits](https://developer.spotify.com/documentation/web-api/concepts/rate-limits)
+
+---
+
+## 🛠️ Funcionamiento interno: SpotifyDownloader
+
+La clase `SpotifyDownloader` es el núcleo del bot y se encarga de gestionar todas las operaciones relacionadas con la descarga y sincronización de contenido de Spotify. Sus principales responsabilidades son:
+
+- **Descarga de contenido**: Permite descargar canciones, álbumes, playlists y artistas usando SpotDL, gestionando los patrones de salida y la estructura de carpetas.
+  > La estructura de carpetas es automática: las playlists se guardan en `Playlists/{nombre_playlist}/`, y los álbumes y canciones sueltas en `{nombre_artista}/{nombre_album}/`. Así, tu música queda organizada y lista para usar en cualquier reproductor o servidor de música.
+- **Sincronización**: Mantiene un archivo de sincronización para que puedas actualizar tu biblioteca local según los cambios en tus playlists, álbumes o canciones guardadas.
+  > El archivo de sincronización se guarda en `cache/sync.spotdl` y almacena el estado de tus descargas para facilitar futuras actualizaciones o limpiezas automáticas. Si en el futuro quieres eliminar una sincronización, solo tienes que borrar la query correspondiente de este fichero.
+- **Manejo de imágenes**: Descarga y guarda automáticamente las portadas de artistas y playlists en sus carpetas correspondientes.
+- **Generación de archivos M3U**: Crea listas de reproducción M3U8 agrupando las canciones por playlist.
+  > Los archivos M3U se generan únicamente para las playlists y permiten que servicios externos como Jellyfin o Navidrome reconozcan automáticamente las listas de reproducción descargadas.
+- **Gestión de errores y logs**: Implementa un sistema robusto de logging y manejo de errores para operaciones de archivos, red y API.
+  > Los logs de actividad y errores se guardan en la carpeta `logs/` del proyecto para su consulta y diagnóstico.
+- **Internacionalización (i18n)**: Todos los mensajes y menús del bot están preparados para varios idiomas.
+- **Integración con Telegram**: Todos los métodos están diseñados para interactuar con el bot de Telegram, enviando mensajes de estado y errores al usuario.
+
+La clase está pensada para ser robusta, fácil de mantener y extensible. Puedes consultar el código fuente en [`spotifyDownloader/__init__.py`](./spotifyDownloader/__init__.py) para más detalles sobre cada método y su funcionamiento.
 
 ---
 
