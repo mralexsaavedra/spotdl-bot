@@ -93,7 +93,13 @@ class SpotifyDownloader:
             query (str | List[str]): Spotify query or list of queries.
         Returns:
             List[Song]: List of found Song objects.
+        Raises:
+            ValueError: If query is empty or not a string/list of strings.
         """
+        if not query or (isinstance(query, list) and not query):
+            raise ValueError("Query must not be empty.")
+        if not isinstance(query, (str, list)):
+            raise ValueError("Query must be a string or list of strings.")
         if not isinstance(query, list):
             query = [query]
         return get_simple_songs(
@@ -112,7 +118,18 @@ class SpotifyDownloader:
         """
         Attempt to download songs. Returns True if successful, False otherwise.
         Ensures progress handler is closed to avoid file descriptor leaks.
+        Args:
+            downloader (Downloader): The SpotDL Downloader instance.
+            songs (List[Song]): List of Song objects to download.
+            query (str): The Spotify query string.
+        Returns:
+            bool: True if download succeeded, False otherwise.
+        Raises:
+            ValueError: If songs list is empty.
         """
+        if not songs:
+            logger.error("No songs to download.")
+            raise ValueError("Songs list must not be empty.")
         try:
             downloader.download_multiple_songs(songs)
         except Exception as e:
@@ -176,7 +193,13 @@ class SpotifyDownloader:
         Args:
             songs (List[Song]): List of Song objects to generate M3U files for.
             query (str): The Spotify query string.
+        Raises:
+            ValueError: If songs list is empty.
         """
+        if not songs:
+            logger.warning("No songs provided for M3U generation.")
+            return
+
         playlists = {}
         if query == "all-user-playlists" or query in "all-saved-playlists":
             for song in songs:
