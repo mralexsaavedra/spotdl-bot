@@ -17,11 +17,19 @@ from loguru import logger
 from spotdl.utils.config import DEFAULT_CONFIG, DOWNLOADER_OPTIONS
 from spotdl.download.downloader import Downloader
 from spotdl.utils.spotify import SpotifyClient
-from spotdl.utils.search import get_simple_songs
-from spotdl.types.song import Song
+from spotdl.utils.search import (
+    get_simple_songs,
+    get_all_user_playlists,
+    get_user_followed_artists,
+    get_user_saved_albums,
+    get_all_saved_playlists,
+)
 from spotdl.utils.m3u import create_m3u_content
 from spotdl.utils.formatter import create_file_name
+from spotdl.types.album import Album
+from spotdl.types.artist import Artist
 from spotdl.types.playlist import Playlist
+from spotdl.types.song import Song
 
 SYNC_JSON_PATH = f"{CACHE_DIR}/sync.spotdl"
 
@@ -46,26 +54,123 @@ class SpotifyDownloader:
         )
 
     @staticmethod
-    def get_output_pattern(query: str) -> str:
+    def _is_spotify_playlist(query: str) -> bool:
+        """
+        Checks if the given query is a Spotify playlist URL.
+        Args:
+            query (str): The Spotify URL or query to check.
+        Returns:
+            bool: True if it's a playlist, False otherwise.
+        """
+        return "open.spotify.com" in query and "playlist" in query
+
+    @staticmethod
+    def _is_spotify_album(query: str) -> bool:
+        """
+        Checks if the given query is a Spotify album URL.
+        Args:
+            query (str): The Spotify URL or query to check.
+        Returns:
+            bool: True if it's an album, False otherwise.
+        """
+        return "open.spotify.com" in query and "album" in query
+
+    @staticmethod
+    def _is_spotify_artist(query: str) -> bool:
+        """
+        Checks if the given query is a Spotify artist URL.
+        Args:
+            query (str): The Spotify URL or query to check.
+        Returns:
+            bool: True if it's an artist, False otherwise.
+        """
+        return "open.spotify.com" in query and "artist" in query
+
+    @staticmethod
+    def _is_spotify_track(query: str) -> bool:
+        """
+        Checks if the given query is a Spotify track URL.
+        Args:
+            query (str): The Spotify URL or query to check.
+        Returns:
+            bool: True if it's a track, False otherwise.
+        """
+        return "open.spotify.com" in query and "track" in query
+
+    @staticmethod
+    def _is_spotify_saved(query: str) -> bool:
+        """
+        Checks if the given query is a Spotify saved tracks URL.
+        Args:
+            query (str): The Spotify URL or query to check.
+        Returns:
+            bool: True if it's a saved tracks, False otherwise.
+        """
+        return "saved" == query
+
+    @staticmethod
+    def _is_spotify_saved_playlists(query: str) -> bool:
+        """
+        Checks if the given query is a Spotify saved playlists URL.
+        Args:
+            query (str): The Spotify URL or query to check.
+        Returns:
+            bool: True if it's a saved playlist, False otherwise.
+        """
+        return "all-saved-playlists" == query
+
+    @staticmethod
+    def _is_spotify_saved_albums(query: str) -> bool:
+        """
+        Checks if the given query is a Spotify saved albums URL.
+        Args:
+            query (str): The Spotify URL or query to check.
+        Returns:
+            bool: True if it's a saved album, False otherwise.
+        """
+        return "all-user-saved-albums" == query
+
+    @staticmethod
+    def _is_spotify_user_playlists(query: str) -> bool:
+        """
+        Checks if the given query is a Spotify user playlists URL.
+        Args:
+            query (str): The Spotify URL or query to check.
+        Returns:
+            bool: True if it's a user playlists, False otherwise.
+        """
+        return "all-user-playlists" == query
+
+    @staticmethod
+    def _is_spotify_user_followed_artists(query: str) -> bool:
+        """
+        Checks if the given query is a Spotify user followed artists URL.
+        Args:
+            query (str): The Spotify URL or query to check.
+        Returns:
+            bool: True if it's a user followed artists, False otherwise.
+        """
+        return "all-user-followed-artists" == query
+
+    def _get_output_pattern(self, query: str) -> str:
         """
         Returns an output pattern based on the Spotify item type.
         """
         if (
-            "all-user-saved-albums" == query
-            or "all-user-followed-artists" == query
-            or "track" in query
-            or "artist" in query
-            or "album" in query
+            self._is_spotify_saved_albums(query)
+            or self._is_spotify_user_followed_artists(query)
+            or self._is_spotify_track(query)
+            or self._is_spotify_artist(query)
+            or self._is_spotify_album(query)
         ):
             return "{album-artist}/{album}/{artists} - {title}.{output-ext}"
         elif (
-            query == "all-user-playlists"
-            or query == "all-saved-playlists"
-            or "playlist" in query
+            self._is_spotify_user_playlists(query)
+            or self._is_spotify_saved_playlists(query)
+            or self._is_spotify_playlist(query)
+            or self._is_spotify_saved(query)
         ):
             return "Playlists/{list-name}/{artists} - {title}.{output-ext}"
-        elif query == "saved":
-            return "Playlists/Saved tracks/{artists} - {title}.{output-ext}"
         else:
             return "{artists} - {title}.{output-ext}"
 
@@ -203,12 +308,14 @@ class SpotifyDownloader:
         if not isinstance(query, str) or not query:
             logger.warning("Query for M3U generation must be a non-empty string.")
             return
-        if query == "all-user-playlists" or query in "all-saved-playlists":
+        if self._is_spotify_user_playlists(query) or self._is_spotify_saved_playlists(
+            query
+        ):
             for song in songs:
                 if not hasattr(song, "list_name") or not song.list_name:
                     continue
                 playlists.setdefault(song.list_name, []).append(song)
-        elif "playlist" in query or "saved" in query:
+        elif self._is_spotify_playlist(query) or self._is_spotify_saved(query):
             if songs and hasattr(songs[0], "list_name") and songs[0].list_name:
                 list_name = songs[0].list_name
                 playlists[list_name] = songs
@@ -236,64 +343,96 @@ class SpotifyDownloader:
             except Exception as e:
                 logger.error(f"Error writing M3U file {file_path}: {e}")
 
-    def _save_image(self, songs: List[Song], query: str) -> None:
+    def _save_images(self, query: str) -> None:
         """
         Downloads and saves the artist's image in their folder.
         """
+        spotify_client = SpotifyClient()
         images_to_download = []
-        if (
-            query == "all-user-playlists"
-            or query == "all-saved-playlists"
-            or "playlist" in query
-        ):
-            playlists = {}
-            for song in songs:
-                if not song.list_name:
+        if self._is_spotify_playlist(query):
+            playlist = Playlist.from_url(query, fetch_songs=False)
+            images_to_download.append(
+                {
+                    "list_name": f"Playlists/{playlist.name}",
+                    "image_url": playlist.cover_url,
+                }
+            )
+        elif self._is_spotify_album(query):
+            album = Album.from_url(query, fetch_songs=False)
+            artist = spotify_client.artist(album.artist.id)
+            images_to_download.append(
+                {
+                    "list_name": artist.get("name"),
+                    "image_url": max(
+                        artist.get("images", []),
+                        key=lambda i: i["width"] * i["height"],
+                    )["url"],
+                }
+            )
+        elif self._is_spotify_artist(query):
+            artist = spotify_client.artist(query)
+            images_to_download.append(
+                {
+                    "list_name": artist.get("name"),
+                    "image_url": max(
+                        artist.get("images", []),
+                        key=lambda i: i["width"] * i["height"],
+                    )["url"],
+                }
+            )
+        elif self._is_spotify_user_playlists(query):
+            user_playlists = get_all_user_playlists()
+            for playlist in user_playlists:
+                if not playlist.cover_url:
                     continue
-                playlists.setdefault(song.list_name, song)
-            for list_name, song in playlists.items():
-                try:
-                    playlist = Playlist.from_url(song.list_url, fetch_songs=False)
-                    image_url = playlist.cover_url
-                    if image_url:
-                        images_to_download.append(
-                            {
-                                "list_name": f"Playlists/{playlist.name}",
-                                "image_url": image_url,
-                            }
-                        )
-                except Exception as e:
-                    logger.error(f"Error fetching playlist info for {list_name}: {e}")
-        elif (
-            query == "all-user-saved-albums"
-            or query == "all-user-followed-artists"
-            or "track" in query
-            or "album" in query
-            or "artist" in query
-        ):
-            artists = {}
-            for song in songs:
-                _song = Song.from_url(song.url)
-                artist_id = _song.artist_id
-                if not artist_id:
+                images_to_download.append(
+                    {
+                        "list_name": f"Playlists/{playlist.name}",
+                        "image_url": playlist.cover_url,
+                    }
+                )
+        elif self._is_spotify_saved_playlists(query):
+            saved_playlists = get_all_saved_playlists()
+            for playlist in saved_playlists:
+                if not playlist.cover_url:
                     continue
-                artists.setdefault(artist_id, song)
-            spotify_client = SpotifyClient()
-            for artist_id, song in artists.items():
-                try:
-                    artist = spotify_client.artist(artist_id)
-                    images_to_download.append(
-                        {
-                            "list_name": artist.get("name"),
-                            "image_url": max(
-                                artist.get("images", []),
-                                key=lambda i: i["width"] * i["height"],
-                            )["url"],
-                        }
-                    )
-                except Exception as e:
-                    logger.error(f"Error fetching artist image for {artist_id}: {e}")
+                images_to_download.append(
+                    {
+                        "list_name": f"Playlists/{playlist.name}",
+                        "image_url": playlist.cover_url,
+                    }
+                )
+        elif self._is_spotify_saved_albums(query):
+            saved_albums = get_user_saved_albums()
+            for album in saved_albums:
+                if not album.artist.id:
+                    continue
+                artist = spotify_client.artist(album.artist.id)
+                images_to_download.append(
+                    {
+                        "list_name": artist.get("name"),
+                        "image_url": max(
+                            artist.get("images", []),
+                            key=lambda i: i["width"] * i["height"],
+                        )["url"],
+                    }
+                )
+        elif self._is_spotify_user_followed_artists(query):
+            followed_artists = get_user_followed_artists()
+            for artist in followed_artists:
+                if not artist.get("images"):
+                    continue
+                images_to_download.append(
+                    {
+                        "list_name": artist.get("name"),
+                        "image_url": max(
+                            artist.get("images", []),
+                            key=lambda i: i["width"] * i["height"],
+                        )["url"],
+                    }
+                )
         else:
+            logger.warning(f"Unsupported query type for image saving: {query}")
             return
 
         for item in images_to_download:
@@ -361,7 +500,7 @@ class SpotifyDownloader:
             bool: True if download succeeded, False otherwise.
         """
         message_id = self._send_status_message(bot, get_text("download_in_progress"))
-        output_pattern = self.get_output_pattern(query=query)
+        output_pattern = self._get_output_pattern(query=query)
         downloader = None
         try:
             downloader = self._create_downloader()
@@ -383,7 +522,7 @@ class SpotifyDownloader:
                 send_message(bot=bot, message=get_text("error_download_failed"))
                 return False
 
-            self._save_image(songs=songs, query=query)
+            self._save_images(query=query)
             self._update_sync_file(
                 {
                     "type": "sync",
@@ -547,7 +686,7 @@ class SpotifyDownloader:
                     send_message(bot=bot, message=get_text("error_download_failed"))
                     continue
 
-                self._save_image(songs=songs, query=query["query"])
+                self._save_images(query=query["query"])
                 self._update_sync_file(
                     {
                         "type": "sync",
