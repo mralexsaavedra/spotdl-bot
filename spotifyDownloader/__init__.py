@@ -47,11 +47,11 @@ class SpotifyDownloader:
         )
 
     @staticmethod
-    def get_output_pattern(identifier: str) -> str:
+    def get_output_pattern(query: str) -> str:
         """
         Returns an output pattern based on the Spotify item type.
         """
-        if not identifier in [
+        if not query in [
             "track",
             "artist",
             "album",
@@ -59,12 +59,12 @@ class SpotifyDownloader:
         ]:
             return "{album-artist}/{album}/{artists} - {title}.{output-ext}"
         elif (
-            "playlist" in identifier
-            or identifier == "all-user-playlists"
-            or identifier == "all-saved-playlists"
+            "playlist" in query
+            or query == "all-user-playlists"
+            or query == "all-saved-playlists"
         ):
             return "Playlists/{list-name}/{artists} - {title}.{output-ext}"
-        elif identifier == "saved":
+        elif query == "saved":
             return "Playlists/Saved tracks/{artists} - {title}.{output-ext}"
         else:
             return "{artists} - {title}.{output-ext}"
@@ -86,7 +86,7 @@ class SpotifyDownloader:
             except Exception as e:
                 logger.error(f"Error closing progress handler: {e}")
 
-    def _get_simple_songs(self, query) -> List[Song]:
+    def _search(self, query) -> List[Song]:
         """
         Wrapper for get_simple_songs with default downloader options.
         Accepts either a string or list as query.
@@ -225,7 +225,7 @@ class SpotifyDownloader:
 
         Args:
             bot: The Telegram bot instance.
-            query: The Spotify URL or identifier to download.
+            query: The Spotify URL or query to download.
 
         Returns:
             bool: True if download succeeded, False otherwise.
@@ -233,13 +233,13 @@ class SpotifyDownloader:
         msg = send_message(bot=bot, message=get_text("download_in_progress"))
         message_id = msg.message_id if msg else None
 
-        output_pattern = self.get_output_pattern(identifier=query)
+        output_pattern = self.get_output_pattern(query=query)
         downloader = None
         try:
             downloader = self._create_downloader()
             downloader.settings["output"] = f"{DOWNLOAD_DIR}/{output_pattern}"
 
-            songs = self._get_simple_songs(query)
+            songs = self._search(query)
             logger.info(f"Found {len(songs)} songs for query: {query}")
 
             if not songs:
@@ -380,7 +380,7 @@ class SpotifyDownloader:
             downloader = self._create_downloader()
             try:
                 downloader.settings["output"] = query["output"]
-                songs = self._get_simple_songs(query["query"])
+                songs = self._search(query["query"])
 
                 # Get the names and URLs of previously downloaded songs from the sync file
                 old_files = []
