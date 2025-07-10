@@ -186,8 +186,8 @@ services:
       - .env
     volumes:
       - ./music:/music # CAMBIA ESTA RUTA A TU DIRECTORIO DE MÚSICA
-      - ./cache:/cache # CAMBIA ESTA RUTA AL DIRECTORIO QUE QUIERAS PARA LA CACHE
-      - ./logs:/logs # CAMBIA ESTA RUTA AL DIRECTORIO QUE QUIERAS PARA LOS LOGS
+      - ./cache:/app/cache # CAMBIA ESTA RUTA AL DIRECTORIO QUE QUIERAS PARA LA CACHE
+      - ./logs:/app/logs # CAMBIA ESTA RUTA AL DIRECTORIO QUE QUIERAS PARA LOS LOGS
     restart: unless-stopped
 ```
 

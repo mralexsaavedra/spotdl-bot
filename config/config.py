@@ -19,7 +19,7 @@ VERSION = "0.1.0"
 # Directory paths (with defaults for Docker)
 DOWNLOAD_DIR = os.getenv("DOWNLOAD_DIR", "/music")
 CACHE_DIR = os.getenv("CACHE_DIR", "/cache")
-LOCALE_DIR = os.getenv("LOCALE_DIR", "/app/locale")
+LOCALE_DIR = os.getenv("LOCALE_DIR", "/locale")
 
 # Logging configuration
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
