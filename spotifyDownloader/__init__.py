@@ -157,34 +157,35 @@ class SpotifyDownloader:
             songs (List[Song]): List of Song objects to generate M3U files for.
             query (str): The Spotify query string.
         """
-        list_name = songs[0].list_name
-
-        if not list_name:
+        playlists = {}
+        if query in ["all-user-playlists", "all-saved-playlists"]:
+            for song in songs:
+                if not song.list_name:
+                    continue
+                playlists.setdefault(song.list_name, []).append(song)
+        elif "playlist" in query or "saved" in query:
+            if songs:
+                list_name = songs[0].list_name
+                playlists[list_name] = songs
+        else:
             return
 
-        if not "playlist" in query or query in [
-            "all-user-playlists",
-            "all-saved-playlists",
-            "saved",
-        ]:
-            return  # No M3U generation for other types
-
-        m3u_content = create_m3u_content(
-            song_list=songs,
-            template="{artists} - {title}.{output-ext}",
-            file_extension=DOWNLOADER_OPTIONS["format"],
-            restrict=DOWNLOADER_OPTIONS["restrict"],
-            short=False,
-            detect_formats=DOWNLOADER_OPTIONS["detect_formats"],
-        )
-
-        file_path = Path(f"{DOWNLOAD_DIR}/Playlists/{list_name}/{list_name}.m3u8")
-        try:
-            with open(file_path, "w", encoding="utf-8") as m3u_file:
-                m3u_file.write(m3u_content)
-            logger.info(f"M3U file generated: {file_path}")
-        except Exception as e:
-            logger.error(f"Error writing M3U file {file_path}: {e}")
+        for list_name, playlist_songs in playlists.items():
+            m3u_content = create_m3u_content(
+                song_list=playlist_songs,
+                template="{artists} - {title}.{output-ext}",
+                file_extension=DOWNLOADER_OPTIONS["format"],
+                restrict=DOWNLOADER_OPTIONS["restrict"],
+                short=False,
+                detect_formats=DOWNLOADER_OPTIONS["detect_formats"],
+            )
+            file_path = Path(f"{DOWNLOAD_DIR}/Playlists/{list_name}/{list_name}.m3u8")
+            try:
+                with open(file_path, "w", encoding="utf-8") as m3u_file:
+                    m3u_file.write(m3u_content)
+                logger.info(f"M3U file generated: {file_path}")
+            except Exception as e:
+                logger.error(f"Error writing M3U file {file_path}: {e}")
 
     def _save_image(self, song: Song, query: str) -> None:
         """
