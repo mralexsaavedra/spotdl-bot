@@ -449,9 +449,9 @@ class SpotifyDownloader:
                 logger.warning(f"No image URL for {list_name}, skipping.")
                 continue
             image_path = Path(f"{DOWNLOAD_DIR}/{list_name}/cover.jpg")
-            # if image_path.exists():
-            #     logger.info(f"Image already exists, skipping download: {image_path}")
-            #     continue
+            if image_path.exists():
+                logger.info(f"Image already exists, skipping download: {image_path}")
+                continue
             try:
                 response = requests.get(image_url, timeout=10)
                 response.raise_for_status()
