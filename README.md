@@ -26,10 +26,11 @@ Bot de Telegram que permite descargar canciones, álbumes y playlists completas 
     - [🎵 Credenciales de Spotify (Client ID y Client Secret)](#-credenciales-de-spotify-client-id-y-client-secret)
       - [Cómo obtener las credenciales de Spotify:](#cómo-obtener-las-credenciales-de-spotify)
   - [📋 Comandos disponibles](#-comandos-disponibles)
-  - [🐳 Instalación con Docker](#-instalación-con-docker)
-    - [▶️ Opción 1: Usar docker run](#️-opción-1-usar-docker-run)
-    - [⚙️ Opción 2: Usar docker-compose](#️-opción-2-usar-docker-compose)
-  - [🖥️ Instalación local (sin Docker)](#️-instalación-local-sin-docker)
+  - [🛠️ Instalación](#️-instalación)
+    - [🐳 Instalación con Docker](#-instalación-con-docker)
+      - [▶️ Opción 1: Usar docker run](#️-opción-1-usar-docker-run)
+      - [⚙️ Opción 2: Usar docker-compose](#️-opción-2-usar-docker-compose)
+    - [🖥️ Instalación local (sin Docker)](#️-instalación-local-sin-docker)
   - [🛠️ Funcionamiento interno: SpotifyDownloader](#️-funcionamiento-interno-spotifydownloader)
   - [🤝 Contribuciones y soporte](#-contribuciones-y-soporte)
   - [❓ Preguntas frecuentes (FAQ)](#-preguntas-frecuentes-faq)
@@ -136,11 +137,15 @@ Estas credenciales permiten al bot autenticar solicitudes y acceder a los datos 
 
 ---
 
-## 🐳 Instalación con Docker
+## 🛠️ Instalación
+
+Puedes instalar y ejecutar el bot de dos formas: usando Docker (recomendado para la mayoría de usuarios) o de forma local en tu sistema.
+
+### 🐳 Instalación con Docker
 
 Puedes ejecutar el bot fácilmente usando Docker o Docker Compose.
 
-### ▶️ Opción 1: Usar docker run
+#### ▶️ Opción 1: Usar docker run
 
 ```bash
 docker run -d --name spotdl-bot \
@@ -161,7 +166,7 @@ docker run -d --name spotdl-bot \
 
 > **Nota:** Asegúrate de crear los directorios `music`, `cache` y `logs` en tu máquina antes de ejecutar el comando, o Docker los creará vacíos.
 
-### ⚙️ Opción 2: Usar docker-compose
+#### ⚙️ Opción 2: Usar docker-compose
 
 1. Asegúrate de tener Docker y Docker Compose instalados.
 2. Crea un archivo `.env` con las credenciales necesarias (puedes usar `.env.example` como plantilla).
@@ -196,7 +201,7 @@ docker compose up -d
 
 > **Consejo:** Puedes personalizar los volúmenes y la configuración en el archivo `.env` y `docker-compose.yml` según tus necesidades.
 
-## 🖥️ Instalación local (sin Docker)
+### 🖥️ Instalación local (sin Docker)
 
 1. Clona el repositorio:
    ```bash
