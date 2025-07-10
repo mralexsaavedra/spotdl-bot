@@ -192,11 +192,7 @@ class SpotifyDownloader:
         Downloads and saves the artist's image in their folder.
         """
         images_to_download = []
-        if (
-            query == "all-user-saved-albums"
-            or query == "all-user-followed-artists"
-            or query == "saved"
-        ):
+        if query == "all-user-followed-artists" or query == "saved":
             return
         elif (
             query == "all-user-playlists"
@@ -221,22 +217,34 @@ class SpotifyDownloader:
                         )
                 except Exception as e:
                     logger.error(f"Error fetching playlist info for {list_name}: {e}")
-        elif "track" in query or "album" in query or "artist" in query:
-            try:
-                spotify_client = SpotifyClient()
-                song = Song.from_url(songs[0].url)
-                artist = spotify_client.artist(song.artist_id)
-                images_to_download.append(
-                    {
-                        "list_name": artist.get("name"),
-                        "image_url": max(
-                            artist.get("images", []),
-                            key=lambda i: i["width"] * i["height"],
-                        )["url"],
-                    }
-                )
-            except Exception as e:
-                logger.error(f"Error fetching artist image: {e}")
+        elif (
+            query == "all-user-saved-albums"
+            or "track" in query
+            or "album" in query
+            or "artist" in query
+        ):
+            artists = {}
+            for song in songs:
+                if not song.artist_id or not song.artist_name:
+                    continue
+                artists.setdefault(song.artist_id, song)
+            spotify_client = SpotifyClient()
+            for artist_id, song in artists.items():
+                try:
+                    artist = spotify_client.artist(artist_id)
+                    images_to_download.append(
+                        {
+                            "list_name": artist.get("name"),
+                            "image_url": max(
+                                artist.get("images", []),
+                                key=lambda i: i["width"] * i["height"],
+                            )["url"],
+                        }
+                    )
+                except Exception as e:
+                    logger.error(
+                        f"Error fetching artist image for {song.artist_name}: {e}"
+                    )
         else:
             return
 
