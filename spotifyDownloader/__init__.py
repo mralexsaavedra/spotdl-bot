@@ -27,7 +27,6 @@ from spotdl.utils.search import (
 from spotdl.utils.m3u import create_m3u_content
 from spotdl.utils.formatter import create_file_name
 from spotdl.types.album import Album
-from spotdl.types.artist import Artist
 from spotdl.types.playlist import Playlist
 from spotdl.types.song import Song
 
