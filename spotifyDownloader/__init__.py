@@ -11,7 +11,7 @@ from config.config import (
 )
 from core.locale import get_text
 from core.utils import delete_message, send_message
-from typing import List, Tuple
+from typing import List, Tuple, Union
 from pathlib import Path
 from loguru import logger
 from spotdl.utils.config import DEFAULT_CONFIG, DOWNLOADER_OPTIONS
@@ -87,10 +87,13 @@ class SpotifyDownloader:
             except Exception as e:
                 logger.error(f"Error closing progress handler: {e}")
 
-    def _search(self, query) -> List[Song]:
+    def _search(self, query: Union[str, List[str]]) -> List[Song]:
         """
         Wrapper for get_simple_songs with default downloader options.
-        Accepts either a string or list as query.
+        Args:
+            query (str | List[str]): Spotify query or list of queries.
+        Returns:
+            List[Song]: List of found Song objects.
         """
         if not isinstance(query, list):
             query = [query]
