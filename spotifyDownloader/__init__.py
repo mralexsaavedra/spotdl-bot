@@ -292,24 +292,22 @@ class SpotifyDownloader:
                 send_message(bot=bot, message=get_text("error_download_failed"))
                 return False
 
-            print(songs[0])
+            success = self._download_songs(downloader, songs, query)
+            if not success:
+                logger.error(f"Failed to download songs for query: {query}")
+                send_message(bot=bot, message=get_text("error_download_failed"))
+                return False
 
-            # success = self._download_songs(downloader, songs, query)
-            # if not success:
-            #     logger.error(f"Failed to download songs for query: {query}")
-            #     send_message(bot=bot, message=get_text("error_download_failed"))
-            #     return False
-
-            # self._save_image(songs=songs, query=query)
-            # self._update_sync_file(
-            #     {
-            #         "type": "sync",
-            #         "query": query,
-            #         "songs": [song.json for song in songs],
-            #         "output": downloader.settings["output"],
-            #     }
-            # )
-            # self._gen_m3u_files(songs=songs, query=query)
+            self._save_image(songs=songs, query=query)
+            self._update_sync_file(
+                {
+                    "type": "sync",
+                    "query": query,
+                    "songs": [song.json for song in songs],
+                    "output": downloader.settings["output"],
+                }
+            )
+            self._gen_m3u_files(songs=songs, query=query)
 
             send_message(bot=bot, message=get_text("download_finished"))
             return True
