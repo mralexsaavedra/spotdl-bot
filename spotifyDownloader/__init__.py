@@ -1,8 +1,5 @@
 """Init file for the spotifyDownloader package."""
 
-import json
-import os
-import requests
 from config.config import (
     DOWNLOAD_DIR,
     SPOTIFY_CLIENT_ID,
@@ -13,6 +10,9 @@ from core.locale import get_text
 from core.utils import delete_message, send_message
 from typing import List, Tuple, Union
 from pathlib import Path
+import json
+import requests
+import telebot
 from loguru import logger
 from spotdl.utils.config import DEFAULT_CONFIG, DOWNLOADER_OPTIONS
 from spotdl.download.downloader import Downloader
@@ -21,7 +21,6 @@ from spotdl.utils.search import get_simple_songs
 from spotdl.types.song import Song
 from spotdl.utils.m3u import create_m3u_content
 from spotdl.utils.formatter import create_file_name
-import telebot
 from spotdl.types.playlist import Playlist
 
 SYNC_JSON_PATH = f"{CACHE_DIR}/sync.spotdl"
