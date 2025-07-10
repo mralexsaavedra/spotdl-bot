@@ -31,7 +31,7 @@ Bot de Telegram que permite descargar canciones, álbumes y playlists completas 
     - [⚙️ Opción 2: Usar docker-compose](#️-opción-2-usar-docker-compose)
   - [⚠️ Límites de uso de la API de Spotify (Rate Limits)](#️-límites-de-uso-de-la-api-de-spotify-rate-limits)
   - [🛠️ Funcionamiento interno: SpotifyDownloader](#️-funcionamiento-interno-spotifydownloader)
-  - [🤝 Contribuciones](#-contribuciones)
+  - [🤝 Contribuciones y soporte](#-contribuciones-y-soporte)
   - [📝 Licencia](#-licencia)
   - [🙌 Créditos](#-créditos)
 
@@ -225,9 +225,14 @@ La clase está pensada para ser robusta, fácil de mantener y extensible. Puedes
 
 ---
 
-## 🤝 Contribuciones
+## 🤝 Contribuciones y soporte
 
-¡Las contribuciones son bienvenidas! Abre un issue o pull request para mejorar el proyecto.
+¿Tienes dudas, sugerencias, encontraste un error o quieres mejorar el proyecto?
+
+- Abre un [issue en GitHub](https://github.com/mralexsaavedra/spotdl-bot/issues) para soporte, reportar bugs o proponer mejoras.
+- También puedes contribuir con un pull request si deseas añadir nuevas funcionalidades o corregir errores.
+
+¡Las contribuciones y el feedback son bienvenidos!
 
 ---
 
