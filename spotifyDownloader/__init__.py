@@ -345,92 +345,99 @@ class SpotifyDownloader:
 
     def _save_images(self, query: str) -> None:
         """
-        Downloads and saves the artist's image in their folder.
+        Downloads and saves the cover image for artists, albums, or playlists in their respective folders.
+        Handles missing images, avoids duplicate downloads, and logs detailed errors.
         """
+
+        def get_largest_image(images: list) -> str | None:
+            """Returns the URL of the largest image or None if not available."""
+            if not images:
+                return None
+            try:
+                return max(
+                    images, key=lambda i: i.get("width", 0) * i.get("height", 0)
+                ).get("url")
+            except Exception as e:
+                logger.warning(f"Error selecting largest image: {e}")
+                return None
+
         spotify_client = SpotifyClient()
         images_to_download = []
         if self._is_spotify_playlist(query):
             playlist = Playlist.from_url(query, fetch_songs=False)
-            images_to_download.append(
-                {
-                    "list_name": f"Playlists/{playlist.name}",
-                    "image_url": playlist.cover_url,
-                }
-            )
+            if playlist.cover_url:
+                images_to_download.append(
+                    {
+                        "list_name": f"Playlists/{playlist.name}",
+                        "image_url": playlist.cover_url,
+                    }
+                )
         elif self._is_spotify_album(query):
             album = Album.from_url(query, fetch_songs=False)
             artist = spotify_client.artist(album.artist.id)
-            images_to_download.append(
-                {
-                    "list_name": artist.get("name"),
-                    "image_url": max(
-                        artist.get("images", []),
-                        key=lambda i: i["width"] * i["height"],
-                    )["url"],
-                }
-            )
+            image_url = get_largest_image(artist.get("images", []))
+            if image_url:
+                images_to_download.append(
+                    {
+                        "list_name": artist.get("name"),
+                        "image_url": image_url,
+                    }
+                )
         elif self._is_spotify_artist(query):
             artist = spotify_client.artist(query)
-            images_to_download.append(
-                {
-                    "list_name": artist.get("name"),
-                    "image_url": max(
-                        artist.get("images", []),
-                        key=lambda i: i["width"] * i["height"],
-                    )["url"],
-                }
-            )
+            image_url = get_largest_image(artist.get("images", []))
+            if image_url:
+                images_to_download.append(
+                    {
+                        "list_name": artist.get("name"),
+                        "image_url": image_url,
+                    }
+                )
         elif self._is_spotify_user_playlists(query):
             user_playlists = get_all_user_playlists()
             for playlist in user_playlists:
-                if not playlist.cover_url:
-                    continue
-                images_to_download.append(
-                    {
-                        "list_name": f"Playlists/{playlist.name}",
-                        "image_url": playlist.cover_url,
-                    }
-                )
+                if playlist.cover_url:
+                    images_to_download.append(
+                        {
+                            "list_name": f"Playlists/{playlist.name}",
+                            "image_url": playlist.cover_url,
+                        }
+                    )
         elif self._is_spotify_saved_playlists(query):
             saved_playlists = get_all_saved_playlists()
             for playlist in saved_playlists:
-                if not playlist.cover_url:
-                    continue
-                images_to_download.append(
-                    {
-                        "list_name": f"Playlists/{playlist.name}",
-                        "image_url": playlist.cover_url,
-                    }
-                )
+                if playlist.cover_url:
+                    images_to_download.append(
+                        {
+                            "list_name": f"Playlists/{playlist.name}",
+                            "image_url": playlist.cover_url,
+                        }
+                    )
         elif self._is_spotify_saved_albums(query):
             saved_albums = get_user_saved_albums()
             for album in saved_albums:
                 if not album.artist.id:
                     continue
                 artist = spotify_client.artist(album.artist.id)
-                images_to_download.append(
-                    {
-                        "list_name": artist.get("name"),
-                        "image_url": max(
-                            artist.get("images", []),
-                            key=lambda i: i["width"] * i["height"],
-                        )["url"],
-                    }
-                )
+                image_url = get_largest_image(artist.get("images", []))
+                if image_url:
+                    images_to_download.append(
+                        {
+                            "list_name": artist.get("name"),
+                            "image_url": image_url,
+                        }
+                    )
         elif self._is_spotify_user_followed_artists(query):
             followed_artists = get_user_followed_artists()
             for artist in followed_artists:
-                if not artist.get("images"):
-                    continue
-                images_to_download.append(
-                    {
-                        "list_name": artist.get("name"),
-                        "image_url": max(
-                            artist.get("images", []),
-                            key=lambda i: i["width"] * i["height"],
-                        )["url"],
-                    }
-                )
+                image_url = get_largest_image(artist.get("images", []))
+                if image_url:
+                    images_to_download.append(
+                        {
+                            "list_name": artist.get("name"),
+                            "image_url": image_url,
+                        }
+                    )
         else:
             logger.warning(f"Unsupported query type for image saving: {query}")
             return
@@ -438,7 +445,13 @@ class SpotifyDownloader:
         for item in images_to_download:
             list_name = item["list_name"]
             image_url = item["image_url"]
+            if not image_url:
+                logger.warning(f"No image URL for {list_name}, skipping.")
+                continue
             image_path = Path(f"{DOWNLOAD_DIR}/{list_name}/cover.jpg")
+            # if image_path.exists():
+            #     logger.info(f"Image already exists, skipping download: {image_path}")
+            #     continue
             try:
                 response = requests.get(image_url, timeout=10)
                 response.raise_for_status()
