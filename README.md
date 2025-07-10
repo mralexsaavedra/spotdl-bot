@@ -29,11 +29,11 @@ Bot de Telegram que permite descargar canciones, álbumes y playlists completas 
   - [🐳 Instalación con Docker](#-instalación-con-docker)
     - [▶️ Opción 1: Usar docker run](#️-opción-1-usar-docker-run)
     - [⚙️ Opción 2: Usar docker-compose](#️-opción-2-usar-docker-compose)
-  - [⚠️ Límites de uso de la API de Spotify (Rate Limits)](#️-límites-de-uso-de-la-api-de-spotify-rate-limits)
   - [🛠️ Funcionamiento interno: SpotifyDownloader](#️-funcionamiento-interno-spotifydownloader)
   - [🤝 Contribuciones y soporte](#-contribuciones-y-soporte)
   - [📝 Licencia](#-licencia)
   - [🙌 Créditos](#-créditos)
+  - [❓ Preguntas frecuentes (FAQ)](#-preguntas-frecuentes-faq)
 
 ---
 
@@ -197,14 +197,6 @@ docker compose up -d
 
 ---
 
-## ⚠️ Límites de uso de la API de Spotify (Rate Limits)
-
-Este bot utiliza la API oficial de Spotify, la cual puede imponer límites de uso (rate limits) si se realizan demasiadas solicitudes en poco tiempo. Si esto ocurre, el bot puede mostrar mensajes de error o fallar temporalmente al descargar contenido. Para más información sobre los límites de la API de Spotify, consulta la documentación oficial:
-
-- [Spotify API Rate Limits](https://developer.spotify.com/documentation/web-api/concepts/rate-limits)
-
----
-
 ## 🛠️ Funcionamiento interno: SpotifyDownloader
 
 La clase `SpotifyDownloader` es el núcleo del bot y se encarga de gestionar todas las operaciones relacionadas con la descarga y sincronización de contenido de Spotify. Sus principales responsabilidades son:
@@ -245,6 +237,33 @@ MIT © 2025 [@mralexsaavedra](https://github.com/mralexsaavedra)
 ## 🙌 Créditos
 
 Proyecto basado en [spotDL](https://github.com/spotDL/spotify-downloader). Gracias a la comunidad por este gran software.
+
+---
+
+## ❓ Preguntas frecuentes (FAQ)
+
+**¿Por qué recibo errores de autenticación de Spotify?**
+- Verifica que tus credenciales (Client ID, Client Secret y Redirect URI) sean correctas y estén bien configuradas en las variables de entorno.
+- Asegúrate de que la URI de redirección en Spotify Developer Dashboard coincida exactamente con la que usas en el bot.
+
+**¿El bot no descarga nada o no responde?**
+- Revisa los logs en la carpeta `logs/` para ver si hay errores específicos.
+- Comprueba que tu token de Telegram y el chat ID sean correctos.
+
+**¿Por qué aparecen errores de permisos al guardar archivos?**
+- Asegúrate de que los directorios `music`, `cache` y `logs` existen y tienen permisos de escritura para el usuario que ejecuta el bot o el contenedor Docker.
+- Si usas Docker, revisa las variables PUID y PGID.
+
+**¿Qué hago si llego al límite de la API de Spotify?**
+- La API oficial de Spotify puede imponer límites de uso (rate limits) si se realizan demasiadas solicitudes en poco tiempo. Si esto ocurre, el bot puede mostrar mensajes de error o fallar temporalmente al descargar contenido. Espera unos minutos y vuelve a intentarlo; los límites son temporales y se restablecen automáticamente.
+- Evita lanzar muchas descargas masivas en poco tiempo.
+- Más información: [Spotify API Rate Limits](https://developer.spotify.com/documentation/web-api/concepts/rate-limits)
+
+**¿Cómo actualizo el bot?**
+- Si usas Docker, basta con hacer `docker pull mralexsaavedra/spotdl-bot:latest` y reiniciar el contenedor.
+- Si usas instalación local, actualiza el repositorio y los requisitos con `git pull` y `pip install -r requirements.txt`.
+
+¿Tienes otra duda? Abre un [issue en GitHub](https://github.com/mralexsaavedra/spotdl-bot/issues).
 
 ---
 
