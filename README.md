@@ -55,9 +55,9 @@ Bot de Telegram que permite descargar canciones, álbumes y playlists completas 
 ## 📋 Requisitos
 
 - Python 3.10+
-- [Un bot de Telegram y su token de acceso](#telegram-bot-token)
-- [Chat ID de Telegram para el administrador del bot](#chat-id-telegram)
-- [Credenciales de Spotify (Client ID y Secret)](#credenciales-spotify)
+- [Un bot de Telegram y su token de acceso](#-cómo-crear-un-bot-de-telegram-y-obtener-su-token)
+- [Chat ID de Telegram para el administrador del bot](#-cómo-obtener-el-chat-id-de-telegram)
+- [Credenciales de Spotify (Client ID y Secret)](#-credenciales-de-spotify-client-id-y-client-secret)
 - [URI de redirección para Spotify (Spotify Redirect URI)](#spotify-redirect-uri)
 
 ---
@@ -78,14 +78,12 @@ Bot de Telegram que permite descargar canciones, álbumes y playlists completas 
 
 ---
 
-<a id="telegram-bot-token"></a>
 ### 🤖 Cómo crear un bot de Telegram y obtener su token
 
 Sigue esta [guía oficial de Telegram](https://core.telegram.org/bots#6-botfather) para crear un bot y obtener el token.
 
 ---
 
-<a id="chat-id-telegram"></a>
 ### 📌 ¿Cómo obtener el Chat ID de Telegram?
 
 El **Chat ID** es un identificador numérico único para tu usuario o grupo en Telegram, necesario para que el bot sepa a quién enviar mensajes o aceptar comandos.
@@ -97,7 +95,6 @@ Para más información sobre bots y tokens, consulta la documentación oficial: 
 
 ---
 
-<a id="credenciales-spotify"></a>
 ### 🎵 Credenciales de Spotify (Client ID y Client Secret)
 
 Para que el bot pueda acceder a la API de Spotify y descargar canciones, álbumes o playlists, necesitas crear una aplicación en el **Dashboard de Desarrolladores de Spotify** y obtener dos credenciales:
