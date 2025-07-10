@@ -199,21 +199,27 @@ class SpotifyDownloader:
         if not songs:
             logger.warning("No songs provided for M3U generation.")
             return
-
         playlists = {}
+        if not isinstance(query, str) or not query:
+            logger.warning("Query for M3U generation must be a non-empty string.")
+            return
         if query == "all-user-playlists" or query in "all-saved-playlists":
             for song in songs:
-                if not song.list_name:
+                if not hasattr(song, "list_name") or not song.list_name:
                     continue
                 playlists.setdefault(song.list_name, []).append(song)
         elif "playlist" in query or "saved" in query:
-            if songs:
+            if songs and hasattr(songs[0], "list_name") and songs[0].list_name:
                 list_name = songs[0].list_name
                 playlists[list_name] = songs
         else:
             return
-
         for list_name, playlist_songs in playlists.items():
+            if not list_name or not playlist_songs:
+                logger.warning(
+                    f"Skipping M3U for empty playlist or list_name: {list_name}"
+                )
+                continue
             m3u_content = create_m3u_content(
                 song_list=playlist_songs,
                 template="{artists} - {title}.{output-ext}",
