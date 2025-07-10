@@ -29,7 +29,7 @@ Bot de Telegram que permite descargar canciones, álbumes y playlists completas 
   - [🐳 Instalación con Docker](#-instalación-con-docker)
     - [▶️ Opción 1: Usar docker run](#️-opción-1-usar-docker-run)
     - [⚙️ Opción 2: Usar docker-compose](#️-opción-2-usar-docker-compose)
-    - [🖥️ Instalación local (sin Docker)](#️-instalación-local-sin-docker)
+  - [🖥️ Instalación local (sin Docker)](#️-instalación-local-sin-docker)
   - [🛠️ Funcionamiento interno: SpotifyDownloader](#️-funcionamiento-interno-spotifydownloader)
   - [🤝 Contribuciones y soporte](#-contribuciones-y-soporte)
   - [❓ Preguntas frecuentes (FAQ)](#-preguntas-frecuentes-faq)
@@ -196,7 +196,7 @@ docker compose up -d
 
 > **Consejo:** Puedes personalizar los volúmenes y la configuración en el archivo `.env` y `docker-compose.yml` según tus necesidades.
 
-### 🖥️ Instalación local (sin Docker)
+## 🖥️ Instalación local (sin Docker)
 
 1. Clona el repositorio:
    ```bash
