@@ -33,7 +33,7 @@ class SpotifyDownloader:
     Handles initialization, output path formatting, and download operations.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._init_spotify_client()
 
     def _init_spotify_client(self) -> None:
@@ -107,7 +107,9 @@ class SpotifyDownloader:
             ],
         )
 
-    def _download_songs(self, downloader, songs, query) -> bool:
+    def _download_songs(
+        self, downloader: Downloader, songs: List[Song], query: str
+    ) -> bool:
         """
         Attempt to download songs. Returns True if successful, False otherwise.
         Ensures progress handler is closed to avoid file descriptor leaks.
