@@ -29,6 +29,7 @@ Bot de Telegram que permite descargar canciones, álbumes y playlists completas 
   - [🐳 Instalación con Docker](#-instalación-con-docker)
     - [▶️ Opción 1: Usar docker run](#️-opción-1-usar-docker-run)
     - [⚙️ Opción 2: Usar docker-compose](#️-opción-2-usar-docker-compose)
+    - [🖥️ Instalación local (sin Docker)](#️-instalación-local-sin-docker)
   - [🛠️ Funcionamiento interno: SpotifyDownloader](#️-funcionamiento-interno-spotifydownloader)
   - [🤝 Contribuciones y soporte](#-contribuciones-y-soporte)
   - [❓ Preguntas frecuentes (FAQ)](#-preguntas-frecuentes-faq)
@@ -194,6 +195,38 @@ docker compose up -d
 ```
 
 > **Consejo:** Puedes personalizar los volúmenes y la configuración en el archivo `.env` y `docker-compose.yml` según tus necesidades.
+
+### 🖥️ Instalación local (sin Docker)
+
+1. Clona el repositorio:
+   ```bash
+   git clone https://github.com/mralexsaavedra/spotdl-bot.git
+   cd spotdl-bot
+   ```
+2. (Opcional) Crea y activa un entorno virtual:
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
+3. Instala las dependencias:
+   ```bash
+   pip install -r requirements.txt
+   ```
+4. Crea los directorios necesarios:
+   ```bash
+   mkdir -p music cache logs
+   ```
+5. Configura las variables de entorno (puedes copiar `.env.example` a `.env` y editarlo):
+   ```bash
+   cp .env.example .env
+   # Edita el archivo .env con tus credenciales
+   ```
+6. Ejecuta el bot:
+   ```bash
+   python main.py
+   ```
+
+> **Nota:** Para actualizar el bot, ejecuta `git pull` y vuelve a instalar dependencias si es necesario.
 
 ---
 
