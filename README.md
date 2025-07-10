@@ -31,9 +31,9 @@ Bot de Telegram que permite descargar canciones, álbumes y playlists completas 
     - [⚙️ Opción 2: Usar docker-compose](#️-opción-2-usar-docker-compose)
   - [🛠️ Funcionamiento interno: SpotifyDownloader](#️-funcionamiento-interno-spotifydownloader)
   - [🤝 Contribuciones y soporte](#-contribuciones-y-soporte)
+  - [❓ Preguntas frecuentes (FAQ)](#-preguntas-frecuentes-faq)
   - [📝 Licencia](#-licencia)
   - [🙌 Créditos](#-créditos)
-  - [❓ Preguntas frecuentes (FAQ)](#-preguntas-frecuentes-faq)
 
 ---
 
@@ -228,18 +228,6 @@ La clase está pensada para ser robusta, fácil de mantener y extensible. Puedes
 
 ---
 
-## 📝 Licencia
-
-MIT © 2025 [@mralexsaavedra](https://github.com/mralexsaavedra)
-
----
-
-## 🙌 Créditos
-
-Proyecto basado en [spotDL](https://github.com/spotDL/spotify-downloader). Gracias a la comunidad por este gran software.
-
----
-
 ## ❓ Preguntas frecuentes (FAQ)
 
 **¿Por qué recibo errores de autenticación de Spotify?**
@@ -264,6 +252,18 @@ Proyecto basado en [spotDL](https://github.com/spotDL/spotify-downloader). Graci
 - Si usas instalación local, actualiza el repositorio y los requisitos con `git pull` y `pip install -r requirements.txt`.
 
 ¿Tienes otra duda? Abre un [issue en GitHub](https://github.com/mralexsaavedra/spotdl-bot/issues).
+
+---
+
+## 📝 Licencia
+
+MIT © 2025 [@mralexsaavedra](https://github.com/mralexsaavedra)
+
+---
+
+## 🙌 Créditos
+
+Proyecto basado en [spotDL](https://github.com/spotDL/spotify-downloader). Gracias a la comunidad por este gran software.
 
 ---
 
