@@ -51,18 +51,18 @@ class SpotifyDownloader:
         """
         Returns an output pattern based on the Spotify item type.
         """
-        if not query in [
-            "track",
-            "artist",
-            "album",
-            "all-user-saved-albums",
-            "all-user-followed-artists",
-        ]:
+        if (
+            "all-user-saved-albums" == query
+            or "all-user-followed-artists" == query
+            or "track" in query
+            or "artist" in query
+            or "album" in query
+        ):
             return "{album-artist}/{album}/{artists} - {title}.{output-ext}"
         elif (
-            "playlist" in query
-            or query == "all-user-playlists"
+            query == "all-user-playlists"
             or query == "all-saved-playlists"
+            or "playlist" in query
         ):
             return "Playlists/{list-name}/{artists} - {title}.{output-ext}"
         elif query == "saved":
@@ -158,7 +158,7 @@ class SpotifyDownloader:
             query (str): The Spotify query string.
         """
         playlists = {}
-        if query in ["all-user-playlists", "all-saved-playlists"]:
+        if query == "all-user-playlists" or query in "all-saved-playlists":
             for song in songs:
                 if not song.list_name:
                     continue
@@ -191,7 +191,15 @@ class SpotifyDownloader:
         """
         Downloads and saves the artist's image in their folder.
         """
-        if "track" in query or "album" in query or "artist" in query:
+        if (
+            query == "all-user-saved-albums"
+            or query == "all-user-followed-artists"
+            or query == "all-user-playlists"
+            or query == "all-saved-playlists"
+            or query == "saved"
+        ):
+            return
+        elif "track" in query or "album" in query or "artist" in query:
             spotify_client = SpotifyClient()
 
             _song = Song.from_url(song.url)
