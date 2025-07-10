@@ -192,9 +192,7 @@ class SpotifyDownloader:
         Downloads and saves the artist's image in their folder.
         """
         images_to_download = []
-        if query == "all-user-followed-artists" or query == "saved":
-            return
-        elif (
+        if (
             query == "all-user-playlists"
             or query == "all-saved-playlists"
             or "playlist" in query
@@ -211,7 +209,7 @@ class SpotifyDownloader:
                     if image_url:
                         images_to_download.append(
                             {
-                                "list_name": f"Playlists/{list_name}",
+                                "list_name": f"Playlists/{playlist.name}",
                                 "image_url": image_url,
                             }
                         )
@@ -219,15 +217,18 @@ class SpotifyDownloader:
                     logger.error(f"Error fetching playlist info for {list_name}: {e}")
         elif (
             query == "all-user-saved-albums"
+            or query == "all-user-followed-artists"
             or "track" in query
             or "album" in query
             or "artist" in query
         ):
             artists = {}
             for song in songs:
-                if not song.artist_id or not song.artist_name:
+                _song = Song.from_url(song.url)
+                artist_id = _song.artist_id
+                if not artist_id:
                     continue
-                artists.setdefault(song.artist_id, song)
+                artists.setdefault(artist_id, song)
             spotify_client = SpotifyClient()
             for artist_id, song in artists.items():
                 try:
@@ -242,9 +243,7 @@ class SpotifyDownloader:
                         }
                     )
                 except Exception as e:
-                    logger.error(
-                        f"Error fetching artist image for {song.artist_name}: {e}"
-                    )
+                    logger.error(f"Error fetching artist image for {artist_id}: {e}")
         else:
             return
 
@@ -293,22 +292,24 @@ class SpotifyDownloader:
                 send_message(bot=bot, message=get_text("error_download_failed"))
                 return False
 
-            success = self._download_songs(downloader, songs, query)
-            if not success:
-                logger.error(f"Failed to download songs for query: {query}")
-                send_message(bot=bot, message=get_text("error_download_failed"))
-                return False
+            print(songs[0])
 
-            self._save_image(songs=songs, query=query)
-            self._update_sync_file(
-                {
-                    "type": "sync",
-                    "query": query,
-                    "songs": [song.json for song in songs],
-                    "output": downloader.settings["output"],
-                }
-            )
-            self._gen_m3u_files(songs=songs, query=query)
+            # success = self._download_songs(downloader, songs, query)
+            # if not success:
+            #     logger.error(f"Failed to download songs for query: {query}")
+            #     send_message(bot=bot, message=get_text("error_download_failed"))
+            #     return False
+
+            # self._save_image(songs=songs, query=query)
+            # self._update_sync_file(
+            #     {
+            #         "type": "sync",
+            #         "query": query,
+            #         "songs": [song.json for song in songs],
+            #         "output": downloader.settings["output"],
+            #     }
+            # )
+            # self._gen_m3u_files(songs=songs, query=query)
 
             send_message(bot=bot, message=get_text("download_finished"))
             return True
