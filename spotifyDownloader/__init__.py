@@ -121,6 +121,39 @@ class SpotifyDownloader:
             return False
         return True
 
+    def _read_json_file(self, path: Path) -> dict:
+        """
+        Safely reads a JSON file and returns its content as a dict. Logs and returns empty dict on error.
+        Args:
+            path (Path): Path to the JSON file.
+        Returns:
+            dict: Parsed JSON content or empty dict if error.
+        """
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            logger.error(f"Error reading JSON file {path}: {e}")
+            return {}
+
+    def _write_json_file(self, path: Path, data: dict) -> bool:
+        """
+        Safely writes a dict to a JSON file. Logs errors.
+        Args:
+            path (Path): Path to the JSON file.
+            data (dict): Data to write.
+        Returns:
+            bool: True if write succeeded, False otherwise.
+        """
+        try:
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=4, ensure_ascii=False)
+            logger.info(f"JSON file written: {path}")
+            return True
+        except Exception as e:
+            logger.error(f"Error writing JSON file {path}: {e}")
+            return False
+
     def _update_sync_file(self, query_dict: dict) -> None:
         """
         Update the sync file by removing any existing entry for the query and adding the new one.
@@ -128,32 +161,15 @@ class SpotifyDownloader:
             query_dict (dict): The query dictionary to add/update in the sync file.
         """
         all_queries = []
-
-        if Path(SYNC_JSON_PATH).exists():
-            with open(SYNC_JSON_PATH, "r", encoding="utf-8") as f:
-                try:
-                    data = json.load(f)
-                    all_queries = data.get("queries", [])
-                except Exception:
-                    all_queries = []
-
+        sync_path = Path(SYNC_JSON_PATH)
+        if sync_path.exists():
+            data = self._read_json_file(sync_path)
+            all_queries = data.get("queries", [])
         # Remove any existing entry for this query
         all_queries = [q for q in all_queries if q.get("query") != query_dict["query"]]
-
         # Add the updated query
         all_queries.append(query_dict)
-
-        try:
-            with open(SYNC_JSON_PATH, "w", encoding="utf-8") as save_file:
-                json.dump(
-                    {"queries": all_queries},
-                    save_file,
-                    indent=4,
-                    ensure_ascii=False,
-                )
-            logger.info(f"Sync file updated: {SYNC_JSON_PATH}")
-        except Exception as e:
-            logger.error(f"Error writing sync file {SYNC_JSON_PATH}: {e}")
+        self._write_json_file(sync_path, {"queries": all_queries})
 
     def _gen_m3u_files(self, songs: List[Song], query: str) -> None:
         """
@@ -435,16 +451,12 @@ class SpotifyDownloader:
             send_message(bot=bot, message=get_text("error_sync_file_not_found"))
             self._delete_status_message(bot, message_id)
             return
-
-        try:
-            with open(sync_json_path, "r", encoding="utf-8") as sync_file:
-                sync_queries = json.load(sync_file)
-        except Exception as e:
-            logger.error(f"Error reading sync file: {e}")
+        sync_queries = self._read_json_file(sync_json_path)
+        if not sync_queries or "queries" not in sync_queries:
+            logger.error(f"Invalid or empty sync file: {sync_json_path}")
             send_message(bot=bot, message=get_text("error_sync_file_invalid"))
             self._delete_status_message(bot, message_id)
             return
-
         for query in sync_queries.get("queries", []):
             downloader = self._create_downloader()
             try:
