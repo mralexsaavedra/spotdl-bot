@@ -16,8 +16,6 @@ Bot de Telegram que permite descargar canciones, álbumes y playlists completas 
 ## 🚀 Funcionalidades
 
 - 🎶 Descargar canciones, álbumes y playlists de Spotify.
-- 🔐 Autenticación OAuth interactiva con Spotify.
-- 💾 Guarda el token de Spotify de forma persistente.
 - 🐳 Compatible con Docker.
 - 🤖 Control vía comandos de Telegram.
 
@@ -93,18 +91,18 @@ Estas credenciales permiten al bot autenticar solicitudes y acceder a los datos 
 
 ## 📋 Comandos disponibles
 
-| Comando                   | Descripción                                                                                          |
-|---------------------------|------------------------------------------------------------------------------------------------------|
-| `/start`                  | Mostrar menú inicial                                                                                 |
-| `/authorize`              | Autorizar acceso a Spotify                                                                           |
-| `/download`               | Descargar canción/álbum/playlist                                                                     |
-| `/downloadsavedsongs`     | Descargar tus canciones guardadas                                                                    |
-| `/downloadsavedalbums`    | Descargar tus álbumes guardados                                                                      |
-| `/downloadsavedplaylists` | Descargar tus playlists guardadas                                                                    |
-| `/downloaduserplaylists`  | Descargar tus playlists creadas                                                                      |
-| `/sync`                   | Sincronizar tu biblioteca de Spotify                                                                 |
-| `/version`                | Mostrar versión del bot                                                                              |
-| `/donate`                 | Información para donar                                                                               |
+| Comando                         | Descripción                                                                                          |
+|---------------------------------|------------------------------------------------------------------------------------------------------|
+| `/start`                        | Mostrar menú inicial                                                                                 |
+| `/download`                     | Descargar canción/álbum/playlist                                                                     |
+| `/downloadsavedsongs`           | Descargar tus canciones guardadas                                                                    |
+| `/downloadsavedalbums`          | Descargar tus álbumes guardados                                                                      |
+| `/downloadsavedplaylists`       | Descargar tus playlists guardadas                                                                    |
+| `/downloaduserplaylists`        | Descargar tus playlists creadas                                                                      |
+| `/downloaduserfollowedartists`  | Descargar los artistas que sigues en Spotify                                             |
+| `/sync`                         | Sincronizar tu biblioteca de Spotify                                                                 |
+| `/version`                      | Mostrar versión del bot                                                                              |
+| `/donate`                       | Información para donar                                                                               |
 
 
 ---
