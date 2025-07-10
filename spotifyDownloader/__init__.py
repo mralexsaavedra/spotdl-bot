@@ -265,6 +265,45 @@ class SpotifyDownloader:
             except Exception as e:
                 logger.error(f"Error saving image for {list_name}: {e}")
 
+    def _send_status_message(self, bot: telebot.TeleBot, text: str) -> int | None:
+        """
+        Sends a status message to the user and returns the message_id (or None if failed).
+        Args:
+            bot (telebot.TeleBot): The Telegram bot instance.
+            text (str): The message to send.
+        Returns:
+            int | None: The message_id if sent, otherwise None.
+        """
+        msg = send_message(bot=bot, message=text)
+        return msg.message_id if msg else None
+
+    def _delete_status_message(
+        self, bot: telebot.TeleBot, message_id: int | None
+    ) -> None:
+        """
+        Deletes a status message if the message_id is valid.
+        Args:
+            bot (telebot.TeleBot): The Telegram bot instance.
+            message_id (int | None): The message id to delete.
+        """
+        if message_id:
+            delete_message(bot=bot, message_id=message_id)
+
+    def _get_song_file_path(
+        self, song: Song, output: str, fmt: str, restrict: bool
+    ) -> Path:
+        """
+        Returns the Path of a song file according to the configuration.
+        Args:
+            song (Song): The song object.
+            output (str): Output pattern.
+            fmt (str): File format.
+            restrict (bool): Restrict flag.
+        Returns:
+            Path: The path to the song file.
+        """
+        return Path(create_file_name(song, output, fmt, restrict))
+
     def download(self, bot: telebot.TeleBot, query: str) -> bool:
         """
         Downloads the content for the given Spotify query.
@@ -277,9 +316,7 @@ class SpotifyDownloader:
         Returns:
             bool: True if download succeeded, False otherwise.
         """
-        msg = send_message(bot=bot, message=get_text("download_in_progress"))
-        message_id = msg.message_id if msg else None
-
+        message_id = self._send_status_message(bot, get_text("download_in_progress"))
         output_pattern = self.get_output_pattern(query=query)
         downloader = None
         try:
@@ -292,8 +329,7 @@ class SpotifyDownloader:
 
             if not songs:
                 logger.info(f"No songs found for the given query: {query}")
-                if message_id:
-                    delete_message(bot=bot, message_id=message_id)
+                self._delete_status_message(bot, message_id)
                 send_message(bot=bot, message=get_text("error_download_failed"))
                 return False
 
@@ -322,8 +358,7 @@ class SpotifyDownloader:
             return False
         finally:
             self._close_downloader(downloader)
-            if message_id:
-                delete_message(bot=bot, message_id=message_id)
+            self._delete_status_message(bot, message_id)
 
     def _remove_file(self, file: Path) -> None:
         """
@@ -393,14 +428,12 @@ class SpotifyDownloader:
         Args:
             bot (telebot.TeleBot): The Telegram bot instance. Must not be None.
         """
-        msg = send_message(bot=bot, message=get_text("sync_in_progress"))
-        message_id = msg.message_id if msg else None
+        message_id = self._send_status_message(bot, get_text("sync_in_progress"))
         sync_json_path = Path(SYNC_JSON_PATH)
         if not sync_json_path.exists():
             logger.error(f"Sync file not found: {sync_json_path}")
             send_message(bot=bot, message=get_text("error_sync_file_not_found"))
-            if message_id:
-                delete_message(bot=bot, message_id=message_id)
+            self._delete_status_message(bot, message_id)
             return
 
         try:
@@ -409,8 +442,7 @@ class SpotifyDownloader:
         except Exception as e:
             logger.error(f"Error reading sync file: {e}")
             send_message(bot=bot, message=get_text("error_sync_file_invalid"))
-            if message_id:
-                delete_message(bot=bot, message_id=message_id)
+            self._delete_status_message(bot, message_id)
             return
 
         for query in sync_queries.get("queries", []):
@@ -419,20 +451,18 @@ class SpotifyDownloader:
                 downloader.settings["output"] = query["output"]
                 songs = self._search(query["query"])
 
-                # Get the names and URLs of previously downloaded songs from the sync file
                 old_files = []
                 for entry in query["songs"]:
-                    file_name = create_file_name(
+                    file_name = self._get_song_file_path(
                         Song.from_dict(entry),
                         downloader.settings["output"],
                         downloader.settings["format"],
                         downloader.settings["restrict"],
                     )
-                    old_files.append((Path(file_name), entry["url"]))
+                    old_files.append((file_name, entry["url"]))
 
                 new_urls = [song.url for song in songs]
 
-                # Delete all song files whose URL is no longer part of the latest playlist
                 if not downloader.settings.get("sync_without_deleting", False):
                     to_rename: List[Tuple[Path, Path]] = []
                     to_delete = []
@@ -441,13 +471,11 @@ class SpotifyDownloader:
                             to_delete.append(path)
                         else:
                             new_song = songs[new_urls.index(url)]
-                            new_path = Path(
-                                create_file_name(
-                                    Song.from_dict(new_song.json),
-                                    downloader.settings["output"],
-                                    downloader.settings["format"],
-                                    downloader.settings["restrict"],
-                                )
+                            new_path = self._get_song_file_path(
+                                Song.from_dict(new_song.json),
+                                downloader.settings["output"],
+                                downloader.settings["format"],
+                                downloader.settings["restrict"],
                             )
                             if path != new_path:
                                 to_rename.append((path, new_path))
@@ -471,14 +499,13 @@ class SpotifyDownloader:
                     else:
                         logger.info(f"{len(to_delete)} old songs were deleted.")
 
-                # Download new/updated songs
                 success = self._download_songs(downloader, songs, query["query"])
                 if not success:
                     logger.error(
                         f"Failed to download songs for query: {query['query']}"
                     )
                     send_message(bot=bot, message=get_text("error_download_failed"))
-                    continue  # Skip sync update for this query
+                    continue
 
                 self._save_image(songs=songs, query=query["query"])
                 self._update_sync_file(
@@ -493,6 +520,5 @@ class SpotifyDownloader:
             finally:
                 self._close_downloader(downloader)
 
-        if message_id:
-            delete_message(bot=bot, message_id=message_id)
+        self._delete_status_message(bot, message_id)
         send_message(bot=bot, message=get_text("sync_finished"))
