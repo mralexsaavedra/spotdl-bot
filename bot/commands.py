@@ -25,12 +25,12 @@ def register_commands(bot: telebot.TeleBot):
     #     """Starts the Spotify authorization process."""
     #     auth(bot, message)
 
+    # --- Downloads ---
     @bot.message_handler(commands=["download"])
     def download_command(message):
         """Requests a Spotify URL to download."""
         send_message(bot, message=get_text("download_prompt_url"))
 
-    # --- Downloads ---
     @bot.message_handler(commands=["downloadsavedsongs"])
     def download_saved_song_command(message):
         """Downloads songs saved by the user."""

@@ -5,7 +5,6 @@ from typing import Dict, Any, List
 from config.config import LANGUAGE, LOCALE_DIR
 from loguru import logger
 
-# Carga dinámica de idiomas soportados
 try:
     SUPPORTED_LANGUAGES: List[str] = [
         os.path.splitext(f)[0] for f in os.listdir(LOCALE_DIR) if f.endswith(".json")
