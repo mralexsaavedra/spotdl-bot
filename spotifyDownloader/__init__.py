@@ -187,49 +187,71 @@ class SpotifyDownloader:
             except Exception as e:
                 logger.error(f"Error writing M3U file {file_path}: {e}")
 
-    def _save_image(self, song: Song, query: str) -> None:
+    def _save_image(self, songs: List[Song], query: str) -> None:
         """
         Downloads and saves the artist's image in their folder.
         """
+        images_to_download = []
         if (
             query == "all-user-saved-albums"
             or query == "all-user-followed-artists"
-            or query == "all-user-playlists"
-            or query == "all-saved-playlists"
             or query == "saved"
         ):
             return
+        elif (
+            query == "all-user-playlists"
+            or query == "all-saved-playlists"
+            or "playlist" in query
+        ):
+            playlists = {}
+            for song in songs:
+                if not song.list_name:
+                    continue
+                playlists.setdefault(song.list_name, song)
+            for list_name, song in playlists.items():
+                try:
+                    playlist = Playlist.from_url(song.list_url, fetch_songs=False)
+                    image_url = playlist.cover_url
+                    if image_url:
+                        images_to_download.append(
+                            {
+                                "list_name": f"Playlists/{list_name}",
+                                "image_url": image_url,
+                            }
+                        )
+                except Exception as e:
+                    logger.error(f"Error fetching playlist info for {list_name}: {e}")
         elif "track" in query or "album" in query or "artist" in query:
-            spotify_client = SpotifyClient()
-
-            _song = Song.from_url(song.url)
-            artist = spotify_client.artist(_song.artist_id)
-            list_name = artist.get("name")
-            image_url = (
-                max(artist.get("images"), key=lambda i: i["width"] * i["height"])["url"]
-                if (len(artist.get("images", [])) > 0)
-                else None
-            )
-        elif "playlist" in query:
-            playlist = Playlist.from_url(query, fetch_songs=False)
-            list_name = f"Playlists/{playlist.name}"
-            image_url = playlist.cover_url
+            try:
+                spotify_client = SpotifyClient()
+                song = Song.from_url(songs[0].url)
+                artist = spotify_client.artist(song.artist_id)
+                images_to_download.append(
+                    {
+                        "list_name": artist.get("name"),
+                        "image_url": max(
+                            artist.get("images", []),
+                            key=lambda i: i["width"] * i["height"],
+                        )["url"],
+                    }
+                )
+            except Exception as e:
+                logger.error(f"Error fetching artist image: {e}")
         else:
             return
 
-        if not image_url:
-            logger.info(f"No valid image URL found for {list_name}")
-            return
-
-        image_path = Path(f"{DOWNLOAD_DIR}/{list_name}/cover.jpg")
-        try:
-            response = requests.get(image_url, timeout=10)
-            response.raise_for_status()
-            with open(image_path, "wb") as f:
-                f.write(response.content)
-            logger.info(f"Image saved: {image_path}")
-        except Exception as e:
-            logger.error(f"Error saving image: {e}")
+        for item in images_to_download:
+            list_name = item["list_name"]
+            image_url = item["image_url"]
+            image_path = Path(f"{DOWNLOAD_DIR}/{list_name}/cover.jpg")
+            try:
+                response = requests.get(image_url, timeout=10)
+                response.raise_for_status()
+                with open(image_path, "wb") as f:
+                    f.write(response.content)
+                logger.info(f"Image saved: {image_path}")
+            except Exception as e:
+                logger.error(f"Error saving image for {list_name}: {e}")
 
     def download(self, bot: telebot.TeleBot, query: str) -> bool:
         """
@@ -269,7 +291,7 @@ class SpotifyDownloader:
                 send_message(bot=bot, message=get_text("error_download_failed"))
                 return False
 
-            self._save_image(song=songs[0], query=query)
+            self._save_image(songs=songs, query=query)
             self._update_sync_file(
                 {
                     "type": "sync",
@@ -446,7 +468,7 @@ class SpotifyDownloader:
                     send_message(bot=bot, message=get_text("error_download_failed"))
                     continue  # Skip sync update for this query
 
-                self._save_image(song=songs[0], query=query["query"])
+                self._save_image(songs=songs, query=query["query"])
                 self._update_sync_file(
                     {
                         "type": "sync",
