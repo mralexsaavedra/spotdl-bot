@@ -138,14 +138,17 @@ class SpotifyDownloader:
         # Add the updated query
         all_queries.append(query_dict)
 
-        with open(SYNC_JSON_PATH, "w", encoding="utf-8") as save_file:
-            json.dump(
-                {"queries": all_queries},
-                save_file,
-                indent=4,
-                ensure_ascii=False,
-            )
-        logger.info(f"Sync file updated: {SYNC_JSON_PATH}")
+        try:
+            with open(SYNC_JSON_PATH, "w", encoding="utf-8") as save_file:
+                json.dump(
+                    {"queries": all_queries},
+                    save_file,
+                    indent=4,
+                    ensure_ascii=False,
+                )
+            logger.info(f"Sync file updated: {SYNC_JSON_PATH}")
+        except Exception as e:
+            logger.error(f"Error writing sync file {SYNC_JSON_PATH}: {e}")
 
     def _gen_m3u_files(self, songs: List[Song], query: str) -> None:
         """
@@ -176,9 +179,12 @@ class SpotifyDownloader:
         )
 
         file_path = Path(f"{DOWNLOAD_DIR}/Playlists/{list_name}/{list_name}.m3u8")
-        with open(file_path, "w", encoding="utf-8") as m3u_file:
-            m3u_file.write(m3u_content)
-        logger.info(f"M3U file generated: {file_path}")
+        try:
+            with open(file_path, "w", encoding="utf-8") as m3u_file:
+                m3u_file.write(m3u_content)
+            logger.info(f"M3U file generated: {file_path}")
+        except Exception as e:
+            logger.error(f"Error writing M3U file {file_path}: {e}")
 
     def _save_image(self, song: Song, query: str) -> None:
         """
@@ -214,7 +220,7 @@ class SpotifyDownloader:
                 f.write(response.content)
             logger.info(f"Image saved: {image_path}")
         except Exception as e:
-            logger.error(f"Error downloading artist image: {e}")
+            logger.error(f"Error saving image: {e}")
 
     def download(self, bot: telebot.TeleBot, query: str) -> bool:
         """
@@ -254,27 +260,16 @@ class SpotifyDownloader:
                 send_message(bot=bot, message=get_text("error_download_failed"))
                 return False
 
-            # try:
-            #     self._save_image(song=songs[0], query=query)
-            # except Exception as e:
-            #     logger.error(f"Error saving image: {e}")
-
-            try:
-                self._update_sync_file(
-                    {
-                        "type": "sync",
-                        "query": query,
-                        "songs": [song.json for song in songs],
-                        "output": downloader.settings["output"],
-                    }
-                )
-            except Exception as e:
-                logger.error(f"Error writing sync file {SYNC_JSON_PATH}: {e}")
-
-            try:
-                self._gen_m3u_files(songs=songs, query=query)
-            except Exception as e:
-                logger.error(f"Error generating M3U files: {e}")
+            self._save_image(song=songs[0], query=query)
+            self._update_sync_file(
+                {
+                    "type": "sync",
+                    "query": query,
+                    "songs": [song.json for song in songs],
+                    "output": downloader.settings["output"],
+                }
+            )
+            self._gen_m3u_files(songs=songs, query=query)
 
             send_message(bot=bot, message=get_text("download_finished"))
             return True
@@ -442,28 +437,16 @@ class SpotifyDownloader:
                     send_message(bot=bot, message=get_text("error_download_failed"))
                     continue  # Skip sync update for this query
 
-                # try:
-                #     self._save_image(song=songs[0], query=query["query"])
-                # except Exception as e:
-                #     logger.error(f"Error saving image: {e}")
-
-                # Write the new sync file only after successful download
-                try:
-                    self._update_sync_file(
-                        {
-                            "type": "sync",
-                            "query": query["query"],
-                            "songs": [song.json for song in songs],
-                            "output": query["output"],
-                        }
-                    )
-                except Exception as e:
-                    logger.error(f"Error writing sync file {SYNC_JSON_PATH}: {e}")
-
-                try:
-                    self._gen_m3u_files(songs=songs, query=query["query"])
-                except Exception as e:
-                    logger.error(f"Error generating M3U files: {e}")
+                self._save_image(song=songs[0], query=query["query"])
+                self._update_sync_file(
+                    {
+                        "type": "sync",
+                        "query": query["query"],
+                        "songs": [song.json for song in songs],
+                        "output": query["output"],
+                    }
+                )
+                self._gen_m3u_files(songs=songs, query=query["query"])
             finally:
                 self._close_downloader(downloader)
 
