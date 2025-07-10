@@ -35,15 +35,17 @@ Bot de Telegram que permite descargar canciones, álbumes y playlists completas 
 
 ## 🔑 Variables de entorno
 
-| VARIABLE                | OBLIGATORIO  | DESCRIPCIÓN                                                        |
-| ----------------------- | ------------ | ------------------------------------------------------------------ |
-| TELEGRAM\_TOKEN         | ✅           | Token del bot de Telegram                                          |
-| TELEGRAM\_ADMIN         | ✅           | Chat ID del administrador (puede ser múltiple, separado por comas) |
-| SPOTIFY\_CLIENT\_ID     | ✅           | Client ID de la aplicación Spotify                                 |
-| SPOTIFY\_CLIENT\_SECRET | ✅           | Client Secret de la aplicación Spotify                             |
-| SPOTIFY\_REDIRECT\_URI  | ✅           | URI de redirección configurada en la app de Spotify                |
-| LANGUAGE                | ❌           | Idioma para el bot (por ejemplo: ES, EN). Por defecto ES           |
-| TZ                      | ❌           | Zona horaria (ejemplo: Europe/Madrid)                              |
+| VARIABLE                | OBLIGATORIO  | DESCRIPCIÓN                                                                |
+| ----------------------- | ------------ | ---------------------------------------------------------------------------|
+| TELEGRAM\_TOKEN         | ✅           | Token del bot de Telegram                                                  |
+| TELEGRAM\_ADMIN         | ✅           | Chat ID del administrador (puede ser múltiple, separado por comas)         |
+| SPOTIFY\_CLIENT\_ID     | ✅           | Client ID de la aplicación Spotify                                         |
+| SPOTIFY\_CLIENT\_SECRET | ✅           | Client Secret de la aplicación Spotify                                     |
+| SPOTIFY\_REDIRECT\_URI  | ✅           | URI de redirección configurada en la app de Spotify                        |
+| PUID                    | ❌           | UID del usuario para los permisos del contenedor Docker (opcional)         |
+| PGID                    | ❌           | GID del grupo para los permisos del contenedor Docker (opcional)           |
+| TZ                      | ❌           | Zona horaria (ejemplo: Europe/Madrid)                                      |
+| LANGUAGE                | ❌           | Idioma para el bot (por ejemplo: ES, EN). Por defecto ES                   |
 
 ---
 
