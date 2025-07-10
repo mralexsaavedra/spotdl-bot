@@ -329,9 +329,9 @@ class SpotifyDownloader:
             try:
                 file.unlink()
             except (PermissionError, OSError) as exc:
-                logger.debug(f"Could not remove file: {file}, error: {exc}")
+                logger.error(f"Could not remove file: {file}, error: {exc}")
         else:
-            logger.debug(f"{file} does not exist.")
+            logger.info(f"{file} does not exist.")
 
     def _remove_lrc(self, file: Path, remove_lrc: bool) -> None:
         """
@@ -340,13 +340,13 @@ class SpotifyDownloader:
         if remove_lrc:
             lrc_file = file.with_suffix(".lrc")
             if lrc_file.exists():
-                logger.debug(f"Deleting lrc {lrc_file}")
+                logger.info(f"Deleting lrc {lrc_file}")
                 try:
                     lrc_file.unlink()
                 except (PermissionError, OSError) as exc:
-                    logger.debug(f"Could not remove lrc file: {lrc_file}, error: {exc}")
+                    logger.error(f"Could not remove lrc file: {lrc_file}, error: {exc}")
             else:
-                logger.debug(f"{lrc_file} does not exist.")
+                logger.info(f"{lrc_file} does not exist.")
 
     def _rename_file(self, old_path: Path, new_path: Path) -> None:
         """
@@ -360,9 +360,9 @@ class SpotifyDownloader:
             try:
                 old_path.rename(new_path)
             except (PermissionError, OSError) as exc:
-                logger.debug(f"Could not rename file: {old_path}, error: {exc}")
+                logger.error(f"Could not rename file: {old_path}, error: {exc}")
         else:
-            logger.debug(f"{old_path} does not exist.")
+            logger.info(f"{old_path} does not exist.")
 
     def _rename_lrc(self, old_path: Path, new_path: Path, remove_lrc: bool) -> None:
         """
@@ -372,13 +372,13 @@ class SpotifyDownloader:
             lrc_file = old_path.with_suffix(".lrc")
             new_lrc_file = new_path.with_suffix(".lrc")
             if lrc_file.exists():
-                logger.debug(f"Renaming lrc '{lrc_file}' to '{new_lrc_file}'")
+                logger.info(f"Renaming lrc '{lrc_file}' to '{new_lrc_file}'")
                 try:
                     lrc_file.rename(new_lrc_file)
                 except (PermissionError, OSError) as exc:
-                    logger.debug(f"Could not rename lrc file: {lrc_file}, error: {exc}")
+                    logger.error(f"Could not rename lrc file: {lrc_file}, error: {exc}")
             else:
-                logger.debug(f"{lrc_file} does not exist.")
+                logger.info(f"{lrc_file} does not exist.")
 
     def sync(self, bot: telebot.TeleBot) -> None:
         """
