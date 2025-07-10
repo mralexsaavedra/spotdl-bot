@@ -56,6 +56,7 @@ class SpotifyDownloader:
             "artist",
             "album",
             "all-user-saved-albums",
+            "all-user-followed-artists",
         ]:
             return "{album-artist}/{album}/{artists} - {title}.{output-ext}"
         elif (
@@ -103,19 +104,16 @@ class SpotifyDownloader:
             ],
         )
 
-    def _download_songs(self, downloader, songs, bot, query) -> bool:
+    def _download_songs(self, downloader, songs, query) -> bool:
         """
         Attempt to download songs. Returns True if successful, False otherwise.
         Ensures progress handler is closed to avoid file descriptor leaks.
         """
-        logger.debug("Starting download_multiple_songs")
         try:
             downloader.download_multiple_songs(songs)
         except Exception as e:
             logger.error(f"Download error for query '{query}': {str(e)}")
-            send_message(bot=bot, message=get_text("error_download_failed"))
             return False
-        logger.debug("Finished download_multiple_songs")
         return True
 
     def _update_sync_file(self, query_dict: dict) -> None:
@@ -238,6 +236,7 @@ class SpotifyDownloader:
         try:
             downloader = self._create_downloader()
             downloader.settings["output"] = f"{DOWNLOAD_DIR}/{output_pattern}"
+            logger.info(f"Output pattern set to: {downloader.settings['output']}")
 
             songs = self._search(query)
             logger.info(f"Found {len(songs)} songs for query: {query}")
@@ -249,7 +248,7 @@ class SpotifyDownloader:
                 send_message(bot=bot, message=get_text("error_download_failed"))
                 return False
 
-            success = self._download_songs(downloader, songs, bot, query)
+            success = self._download_songs(downloader, songs, query)
             if not success:
                 logger.error(f"Failed to download songs for query: {query}")
                 send_message(bot=bot, message=get_text("error_download_failed"))
@@ -435,7 +434,7 @@ class SpotifyDownloader:
                         logger.info(f"{len(to_delete)} old songs were deleted.")
 
                 # Download new/updated songs
-                success = self._download_songs(downloader, songs, bot, query["query"])
+                success = self._download_songs(downloader, songs, query["query"])
                 if not success:
                     logger.error(
                         f"Failed to download songs for query: {query['query']}"
