@@ -154,9 +154,9 @@ docker run -d --name spotdl-bot \
   -e SPOTIFY_CLIENT_ID="tu_client_id" \
   -e SPOTIFY_CLIENT_SECRET="tu_client_secret" \
   -e SPOTIFY_REDIRECT_URI="tu_redirect_uri" \
+  -e PGID=1000 \
   -e LANGUAGE="es" \
   -e PUID=1000 \
-  -e PGID=1000 \
   -e TZ=Europe/Madrid \
   -v $(pwd)/music:/music \
   -v $(pwd)/cache:/cache \
@@ -178,12 +178,15 @@ services:
     image: mralexsaavedra/spotdl-bot:latest
     container_name: spotdl-bot
     environment:
+      - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
+      - TELEGRAM_ADMIN=${TELEGRAM_ADMIN}
+      - SPOTIFY_CLIENT_ID=${SPOTIFY_CLIENT_ID}
+      - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET}
+      - SPOTIFY_REDIRECT_URI=${SPOTIFY_REDIRECT_URI}
       - PUID=1000
       - PGID=1000
       - TZ=Europe/Madrid
       - LANGUAGE=ES # IDIOMAS DISPONIBLES: ES, EN
-    env_file:
-      - .env
     volumes:
       - ./music:/music # CAMBIA ESTA RUTA A TU DIRECTORIO DE MÚSICA
       - ./cache:/app/cache # CAMBIA ESTA RUTA AL DIRECTORIO QUE QUIERAS PARA LA CACHE
