@@ -373,7 +373,7 @@ class SpotifyDownloader:
                 )
         elif self._is_spotify_album(query):
             album = Album.from_url(query, fetch_songs=False)
-            artist = spotify_client.artist(album.artist.id)
+            artist = spotify_client.artist(album.artistget("id"))
             image_url = get_largest_image(artist.get("images", []))
             if image_url:
                 images_to_download.append(
@@ -415,9 +415,9 @@ class SpotifyDownloader:
         elif self._is_spotify_saved_albums(query):
             saved_albums = get_user_saved_albums()
             for album in saved_albums:
-                if not album.artist.id:
+                if not album.artist.get("id"):
                     continue
-                artist = spotify_client.artist(album.artist.id)
+                artist = spotify_client.artist(album.artist.get("id"))
                 image_url = get_largest_image(artist.get("images", []))
                 if image_url:
                     images_to_download.append(
