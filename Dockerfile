@@ -1,12 +1,10 @@
-FROM python:3.10-slim
+FROM python:3.10-alpine
 
 LABEL maintainer="mralexsaavedra" \
   version="1.0" \
   description="SpotDL Telegram Bot Docker image"
 
-RUN apt-get update \
-  && apt-get install -y --no-install-recommends ffmpeg \
-  && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache ffmpeg
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
   PYTHONUNBUFFERED=1
