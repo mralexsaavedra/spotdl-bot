@@ -283,6 +283,11 @@ La clase está pensada para ser robusta, fácil de mantener y extensible. Puedes
 - Asegúrate de que los directorios `music`, `cache` y `logs` existen y tienen permisos de escritura para el usuario que ejecuta el bot o el contenedor Docker.
 - Si usas Docker, revisa las variables PUID y PGID.
 
+**Consejo:** Si sigues muchas playlists, álbumes o artistas, o tienes muchas playlists guardadas, y ejecutas comandos que intentan descargar todo de una vez (como `downloadsavedalbums`, `downloadsavedplaylists`, `downloaduserplaylists` o `downloaduserfollowedartists`), es posible que encuentres límites de uso impuestos por la API de Spotify (rate limits). Para evitar problemas:
+- Divide las descargas en varias sesiones.
+- Revisa los archivos en la carpeta `logs` para verificar si se han producido errores relacionados con los límites de uso.
+- Espera un tiempo antes de realizar más solicitudes si encuentras problemas.
+
 **¿Qué hago si llego al límite de la API de Spotify?**
 - La API oficial de Spotify puede imponer límites de uso (rate limits) si se realizan demasiadas solicitudes en poco tiempo. Si esto ocurre, el bot puede mostrar mensajes de error o fallar temporalmente al descargar contenido. Espera unos minutos y vuelve a intentarlo; los límites son temporales y se restablecen automáticamente.
 - Evita lanzar muchas descargas masivas en poco tiempo.
