@@ -129,7 +129,7 @@ Estas credenciales permiten al bot autenticar solicitudes y acceder a los datos 
 | `/downloadsavedalbums`          | Descargar tus álbumes guardados                                                                      |
 | `/downloadsavedplaylists`       | Descargar tus playlists guardadas                                                                    |
 | `/downloaduserplaylists`        | Descargar tus playlists creadas                                                                      |
-| `/downloaduserfollowedartists`  | Descargar los artistas que sigues                                                                    |
+| `/downloaduserfollowedartists`  | Descargar los artistas que sigues *(INCOMING)*                                                      |
 | `/sync`                         | Sincronizar tu biblioteca                                                                            |
 | `/version`                      | Mostrar versión del bot                                                                              |
 | `/donate`                       | Información para donar                                                                               |
