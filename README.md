@@ -288,6 +288,11 @@ La clase está pensada para ser robusta, fácil de mantener y extensible. Puedes
 - Evita lanzar muchas descargas masivas en poco tiempo.
 - Más información: [Spotify API Rate Limits](https://developer.spotify.com/documentation/web-api/concepts/rate-limits)
 
+**Consejo:** Si sigues muchas playlists, álbumes o artistas, o tienes muchas playlists guardadas, y ejecutas comandos que intentan descargar todo de una vez (como `downloadsavedalbums`, `downloadsavedplaylists`, `downloaduserplaylists` o `downloaduserfollowedartists`), es posible que encuentres límites de uso impuestos por la API de Spotify (rate limits). Para evitar problemas:
+- Divide las descargas en varias sesiones.
+- Revisa los ficheros en la carpeta `logs` para verificar si se han producido errores relacionados con los límites de uso.
+- Espera un tiempo antes de realizar más solicitudes si encuentras problemas.
+
 **¿Cómo actualizo el bot?**
 - Si usas Docker, basta con hacer `docker pull mralexsaavedra/spotdl-bot:latest` y reiniciar el contenedor.
 - Si usas instalación local, actualiza el repositorio y los requisitos con `git pull` y `pip install -r requirements.txt`.
