@@ -33,6 +33,7 @@ Bot de Telegram que permite descargar canciones, álbumes y playlists completas 
     - [🖥️ Instalación local (sin Docker)](#️-instalación-local-sin-docker)
   - [🛠️ Funcionamiento interno: SpotifyDownloader](#️-funcionamiento-interno-spotifydownloader)
   - [🤝 Contribuciones y soporte](#-contribuciones-y-soporte)
+  - [💡 Consejos](#-consejos)
   - [❓ Preguntas frecuentes (FAQ)](#-preguntas-frecuentes-faq)
   - [📝 Licencia](#-licencia)
   - [🙌 Créditos](#-créditos)
@@ -266,6 +267,15 @@ La clase está pensada para ser robusta, fácil de mantener y extensible. Puedes
 - También puedes contribuir con un pull request si deseas añadir nuevas funcionalidades o corregir errores.
 
 ¡Las contribuciones y el feedback son bienvenidos!
+
+---
+
+## 💡 Consejos
+
+**Consejo:** Si sigues muchas playlists, álbumes o artistas, o tienes muchas playlists guardadas, y ejecutas comandos que intentan descargar todo de una vez (como `downloadsavedalbums`, `downloadsavedplaylists`, `downloaduserplaylists` o `downloaduserfollowedartists`), es posible que encuentres límites de uso impuestos por la API de Spotify (rate limits). Para evitar problemas:
+- Divide las descargas en varias sesiones.
+- Revisa los ficheros en la carpeta `logs` para verificar si se han producido errores relacionados con los límites de uso.
+- Espera un tiempo antes de realizar más solicitudes si encuentras problemas.
 
 ---
 
