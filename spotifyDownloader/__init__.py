@@ -309,8 +309,10 @@ class SpotifyDownloader:
 
     def _search_and_download(
         self, downloader: Downloader, query: str, output: str
-    ) -> List[Song] | None:
-        """ """
+    ) -> bool:
+        """
+        Searches for Spotify content based on the query and downloads it.
+        """
         songs: List[Song] = []
         lists: List[SongList] = []
         images_to_download = []
