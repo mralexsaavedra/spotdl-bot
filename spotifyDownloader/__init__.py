@@ -20,7 +20,6 @@ from spotdl.utils.spotify import SpotifyClient, SpotifyError
 from spotdl.utils.search import (
     get_simple_songs,
     get_user_followed_artists,
-    get_user_saved_albums,
 )
 from spotdl.utils.m3u import create_m3u_content
 from spotdl.utils.formatter import create_file_name
@@ -450,7 +449,6 @@ class SpotifyDownloader:
 
         user_playlists = user_playlists_response["items"]
 
-        # Fetch all saved tracks
         while user_playlists_response and user_playlists_response["next"]:
             response = spotify_client.next(user_playlists_response)
             if response is None:
@@ -493,7 +491,6 @@ class SpotifyDownloader:
         user_playlists = user_playlists_response["items"]
         user_id = user_playlists_response["href"].split("users/")[-1].split("/")[0]
 
-        # Fetch all saved tracks
         while user_playlists_response and user_playlists_response["next"]:
             response = spotify_client.next(user_playlists_response)
             if response is None:
@@ -514,6 +511,41 @@ class SpotifyDownloader:
             }
             for playlist in user_playlists
             if playlist["owner"]["id"] != user_id
+        ]
+
+    def _get_user_saved_albums(self) -> List[dict]:
+        """
+        Get all user saved albums
+
+        ### Returns
+        - List of all user saved albums
+        """
+
+        spotify_client = SpotifyClient()
+        if spotify_client.user_auth is False:  # type: ignore
+            raise SpotifyError("You must be logged in to use this function")
+
+        user_saved_albums_response = spotify_client.current_user_saved_albums()
+        if user_saved_albums_response is None:
+            raise SpotifyError("Couldn't get user saved albums")
+
+        user_saved_albums = user_saved_albums_response["items"]
+
+        while user_saved_albums_response and user_saved_albums_response["next"]:
+            response = spotify_client.next(user_saved_albums_response)
+            if response is None:
+                break
+
+            user_saved_albums_response = response
+            user_saved_albums.extend(user_saved_albums_response["items"])
+
+        return [
+            {
+                "name": item["album"]["name"],
+                "artist": item["album"]["artists"][0],
+                "url": item["album"]["external_urls"]["spotify"],
+            }
+            for item in user_saved_albums
         ]
 
     def _save_images(self, query: str) -> None:
@@ -618,14 +650,17 @@ class SpotifyDownloader:
                         }
                     )
         elif self._is_spotify_saved_albums(query):
-            saved_albums = get_user_saved_albums()
+            saved_albums = self._get_user_saved_albums()
             for album in saved_albums:
-                if not album.artist["id"]:
+                artist_id = album.get("artist")["id"]
+
+                if not artist_id:
                     continue
-                artist = self._get_artist(album.artist["id"])
+
+                artist = self._get_artist(artist_id)
 
                 if not artist:
-                    logger.warning(f"Artist not found for album: {album.name}")
+                    logger.warning(f"Artist not found for album: {album["name"]}")
                     continue
 
                 image_url = self._get_largest_image(artist.get("images", []))
