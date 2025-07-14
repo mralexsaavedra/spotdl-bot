@@ -21,7 +21,6 @@ from spotdl.utils.search import (
     get_simple_songs,
     get_user_followed_artists,
     get_user_saved_albums,
-    get_all_saved_playlists,
 )
 from spotdl.utils.m3u import create_m3u_content
 from spotdl.utils.formatter import create_file_name
@@ -474,6 +473,49 @@ class SpotifyDownloader:
             if playlist["owner"]["id"] == user_id
         ]
 
+    def _get_all_saved_playlists(self) -> List[dict]:
+        """
+        Get all user playlists.
+
+        ### Returns
+        - List of all user playlists
+        """
+
+        spotify_client = SpotifyClient()
+        if spotify_client.user_auth is False:  # type: ignore
+            raise SpotifyError("You must be logged in to use this function")
+
+        user_playlists_response = spotify_client.current_user_playlists()
+
+        if user_playlists_response is None:
+            raise SpotifyError("Couldn't get user playlists")
+
+        user_playlists = user_playlists_response["items"]
+        user_id = user_playlists_response["href"].split("users/")[-1].split("/")[0]
+
+        # Fetch all saved tracks
+        while user_playlists_response and user_playlists_response["next"]:
+            response = spotify_client.next(user_playlists_response)
+            if response is None:
+                break
+
+            user_playlists_response = response
+            user_playlists.extend(user_playlists_response["items"])
+
+        return [
+            {
+                "id": playlist["id"],
+                "name": playlist["name"],
+                "url": playlist["external_urls"]["spotify"],
+                "description": playlist["description"],
+                "author_url": playlist["owner"]["external_urls"]["spotify"],
+                "author_name": playlist["owner"]["display_name"],
+                "cover_url": self._get_largest_image(playlist.get("images", [])),
+            }
+            for playlist in user_playlists
+            if playlist["owner"]["id"] != user_id
+        ]
+
     def _save_images(self, query: str) -> None:
         """
         Downloads and saves the cover image for artists, albums, or playlists in their respective folders.
@@ -566,7 +608,7 @@ class SpotifyDownloader:
                         }
                     )
         elif self._is_spotify_saved_playlists(query):
-            saved_playlists = get_all_saved_playlists()
+            saved_playlists = self._get_all_saved_playlists()
             for playlist in saved_playlists:
                 if playlist.cover_url:
                     images_to_download.append(
