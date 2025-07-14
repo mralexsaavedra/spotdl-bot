@@ -13,8 +13,8 @@ from pathlib import Path
 import json
 import requests
 import re
-from spotifyDownloader.Artist import Artist
-from spotifyDownloader.Song import Song
+from spotifyDownloader.artist import Artist
+from spotifyDownloader.song import Song
 import telebot
 from loguru import logger
 from spotdl.utils.config import DEFAULT_CONFIG, DOWNLOADER_OPTIONS
