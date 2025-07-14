@@ -8,19 +8,30 @@ from config.config import (
 )
 from core.locale import get_text
 from core.utils import delete_message, send_message
-from typing import List, Tuple, Union
+from typing import List, Tuple
 from pathlib import Path
 import json
 import requests
+import re
+from spotifyDownloader.Artist import Artist
+from spotifyDownloader.Song import Song
 import telebot
 from loguru import logger
 from spotdl.utils.config import DEFAULT_CONFIG, DOWNLOADER_OPTIONS
 from spotdl.download.downloader import Downloader
-from spotdl.utils.spotify import SpotifyClient, SpotifyError
-from spotdl.utils.search import get_simple_songs
+from spotdl.utils.spotify import SpotifyClient
 from spotdl.utils.m3u import create_m3u_content
+from spotdl.utils.search import (
+    get_all_user_playlists,
+    get_user_saved_albums,
+    get_user_followed_artists,
+    get_all_saved_playlists,
+)
 from spotdl.utils.formatter import create_file_name
-from spotdl.types.song import Song
+from spotdl.types.song import SongList
+from spotdl.types.playlist import Playlist
+from spotdl.types.album import Album
+from spotdl.types.saved import Saved
 
 SYNC_JSON_PATH = f"{CACHE_DIR}/sync.spotdl"
 
@@ -182,57 +193,6 @@ class SpotifyDownloader:
             except Exception as e:
                 logger.error(f"Error closing progress handler: {e}")
 
-    def _search(self, query: Union[str, List[str]]) -> List[Song]:
-        """
-        Wrapper for get_simple_songs with default downloader options.
-        Args:
-            query (str | List[str]): Spotify query or list of queries.
-        Returns:
-            List[Song]: List of found Song objects.
-        Raises:
-            ValueError: If query is empty or not a string/list of strings.
-        """
-        if not query or (isinstance(query, list) and not query):
-            raise ValueError("Query must not be empty.")
-        if not isinstance(query, (str, list)):
-            raise ValueError("Query must be a string or list of strings.")
-        if not isinstance(query, list):
-            query = [query]
-        return get_simple_songs(
-            query=query,
-            use_ytm_data=DOWNLOADER_OPTIONS["ytm_data"],
-            playlist_numbering=DOWNLOADER_OPTIONS["playlist_numbering"],
-            album_type=DOWNLOADER_OPTIONS["album_type"],
-            playlist_retain_track_cover=DOWNLOADER_OPTIONS[
-                "playlist_retain_track_cover"
-            ],
-        )
-
-    def _download_songs(
-        self, downloader: Downloader, songs: List[Song], query: str
-    ) -> bool:
-        """
-        Attempt to download songs. Returns True if successful, False otherwise.
-        Ensures progress handler is closed to avoid file descriptor leaks.
-        Args:
-            downloader (Downloader): The SpotDL Downloader instance.
-            songs (List[Song]): List of Song objects to download.
-            query (str): The Spotify query string.
-        Returns:
-            bool: True if download succeeded, False otherwise.
-        Raises:
-            ValueError: If songs list is empty.
-        """
-        if not songs:
-            logger.error("No songs to download.")
-            raise ValueError("Songs list must not be empty.")
-        try:
-            downloader.download_multiple_songs(songs)
-        except Exception as e:
-            logger.error(f"Download error for query '{query}': {str(e)}")
-            return False
-        return True
-
     def _read_json_file(self, path: Path) -> dict:
         """
         Safely reads a JSON file and returns its content as a dict. Logs and returns empty dict on error.
@@ -347,374 +307,133 @@ class SpotifyDownloader:
             logger.warning(f"Error selecting largest image: {e}")
             return None
 
-    def _get_track(self, query: str) -> dict | None:
-        """
-        Returns a Song object for the given Spotify query.
-        Args:
-            query (str): The Spotify URL or query to get the song for.
-        Returns:
-            dict | None: The song dictionary if found, otherwise None.
-        """
-        try:
-            spotify_client = SpotifyClient()
-            track = spotify_client.track(query)
-            return track
-        except Exception as e:
-            logger.error(f"Error getting song for query '{query}': {e}")
-            return None
-
-    def _get_artist(self, query: str) -> dict | None:
-        """
-        Returns an artist dictionary for the given Spotify query.
-        Args:
-            query (str): The Spotify URL or query to get the artist for.
-        Returns:
-            dict | None: The artist dictionary if found, otherwise None.
-        """
-        try:
-            spotify_client = SpotifyClient()
-            artist = spotify_client.artist(query)
-            return artist
-        except Exception as e:
-            logger.error(f"Error getting artist for query '{query}': {e}")
-            return None
-
-    def _get_playlist(self, query: str) -> dict | None:
-        """
-        Returns a Playlist object for the given Spotify query.
-        Args:
-            query (str): The Spotify URL or query to get the playlist for.
-        Returns:
-            dict | None: The playlist dictionary if found, otherwise None.
-        """
-        try:
-            spotify_client = SpotifyClient()
-            playlist = spotify_client.playlist(query)
-            return playlist
-        except Exception as e:
-            logger.error(f"Error getting playlist for query '{query}': {e}")
-            return None
-
-    def _get_album(self, query: str) -> dict | None:
-        """
-        Returns an album dictionary for the given Spotify query.
-        Args:
-            query (str): The Spotify URL or query to get the album for.
-        Returns:
-            dict | None: The album dictionary if found, otherwise None.
-        """
-        try:
-            spotify_client = SpotifyClient()
-            album = spotify_client.album(query)
-            return album
-        except Exception as e:
-            logger.error(f"Error getting album for query '{query}': {e}")
-            return None
-
-    def _get_all_user_playlists(self, user_url: str = "") -> List[dict]:
-        """
-        Get all user playlists.
-
-        ### Args (optional)
-        - user_url: Spotify user profile url.
-            If a url is mentioned, get all public playlists of that specific user.
-
-        ### Returns
-        - List of all user playlists
-        """
-        spotify_client = SpotifyClient()
-        if spotify_client.user_auth is False:  # type: ignore
-            raise SpotifyError("You must be logged in to use this function")
-
-        if user_url and not user_url.startswith("https://open.spotify.com/user/"):
-            raise ValueError(f"Invalid user profile url: {user_url}")
-
-        user_id = user_url.split("https://open.spotify.com/user/")[-1].replace("/", "")
-
-        if user_id:
-            user_playlists_response = spotify_client.user_playlists(user_id)
-        else:
-            user_playlists_response = spotify_client.current_user_playlists()
-            user_resp = spotify_client.current_user()
-            if user_resp is None:
-                raise SpotifyError("Couldn't get user info")
-
-            user_id = user_resp["id"]
-
-        if user_playlists_response is None:
-            raise SpotifyError("Couldn't get user playlists")
-
-        user_playlists = user_playlists_response["items"]
-
-        while user_playlists_response and user_playlists_response["next"]:
-            response = spotify_client.next(user_playlists_response)
-            if response is None:
-                break
-
-            user_playlists_response = response
-            user_playlists.extend(user_playlists_response["items"])
-
-        return [
-            {
-                "id": playlist["id"],
-                "name": playlist["name"],
-                "url": playlist["external_urls"]["spotify"],
-                "description": playlist["description"],
-                "author_url": playlist["owner"]["external_urls"]["spotify"],
-                "author_name": playlist["owner"]["display_name"],
-                "cover_url": self._get_largest_image(playlist.get("images", [])),
-            }
-            for playlist in user_playlists
-            if playlist["owner"]["id"] == user_id
-        ]
-
-    def _get_all_saved_playlists(self) -> List[dict]:
-        """
-        Get all user playlists.
-
-        ### Returns
-        - List of all user playlists
-        """
-
-        spotify_client = SpotifyClient()
-        if spotify_client.user_auth is False:  # type: ignore
-            raise SpotifyError("You must be logged in to use this function")
-
-        user_playlists_response = spotify_client.current_user_playlists()
-
-        if user_playlists_response is None:
-            raise SpotifyError("Couldn't get user playlists")
-
-        user_playlists = user_playlists_response["items"]
-        user_id = user_playlists_response["href"].split("users/")[-1].split("/")[0]
-
-        while user_playlists_response and user_playlists_response["next"]:
-            response = spotify_client.next(user_playlists_response)
-            if response is None:
-                break
-
-            user_playlists_response = response
-            user_playlists.extend(user_playlists_response["items"])
-
-        return [
-            {
-                "id": playlist["id"],
-                "name": playlist["name"],
-                "url": playlist["external_urls"]["spotify"],
-                "description": playlist["description"],
-                "author_url": playlist["owner"]["external_urls"]["spotify"],
-                "author_name": playlist["owner"]["display_name"],
-                "cover_url": self._get_largest_image(playlist.get("images", [])),
-            }
-            for playlist in user_playlists
-            if playlist["owner"]["id"] != user_id
-        ]
-
-    def _get_user_saved_albums(self) -> List[dict]:
-        """
-        Get all user saved albums
-
-        ### Returns
-        - List of all user saved albums
-        """
-
-        spotify_client = SpotifyClient()
-        if spotify_client.user_auth is False:  # type: ignore
-            raise SpotifyError("You must be logged in to use this function")
-
-        user_saved_albums_response = spotify_client.current_user_saved_albums()
-        if user_saved_albums_response is None:
-            raise SpotifyError("Couldn't get user saved albums")
-
-        user_saved_albums = user_saved_albums_response["items"]
-
-        while user_saved_albums_response and user_saved_albums_response["next"]:
-            response = spotify_client.next(user_saved_albums_response)
-            if response is None:
-                break
-
-            user_saved_albums_response = response
-            user_saved_albums.extend(user_saved_albums_response["items"])
-
-        return [
-            {
-                "name": item["album"]["name"],
-                "artist": item["album"]["artists"][0],
-                "url": item["album"]["external_urls"]["spotify"],
-            }
-            for item in user_saved_albums
-        ]
-
-    def _get_user_followed_artists(self) -> List[dict]:
-        """
-        Get all user playlists
-
-        ### Returns
-        - List of all user playlists
-        """
-        spotify_client = SpotifyClient()
-        if spotify_client.user_auth is False:  # type: ignore
-            raise SpotifyError("You must be logged in to use this function")
-
-        user_followed_response = spotify_client.current_user_followed_artists()
-        if user_followed_response is None:
-            raise SpotifyError("Couldn't get user followed artists")
-
-        user_followed_response = user_followed_response["artists"]
-        user_followed = user_followed_response["items"]
-
-        while user_followed_response and user_followed_response["next"]:
-            response = spotify_client.next(user_followed_response)
-            if response is None:
-                break
-
-            user_followed_response = response["artists"]
-            user_followed.extend(user_followed_response["items"])
-
-        return [
-            {
-                "id": followed_artist["id"],
-                "name": followed_artist["name"],
-                "images": followed_artist.get("images", []),
-                "url": followed_artist["external_urls"]["spotify"],
-            }
-            for followed_artist in user_followed
-        ]
-
-    def _save_images(self, query: str) -> None:
-        """
-        Downloads and saves the cover image for artists, albums, or playlists in their respective folders.
-        Handles missing images, avoids duplicate downloads, and logs detailed errors.
-        """
+    def _search_and_download(
+        self, downloader: Downloader, query: str, output: str
+    ) -> List[Song] | None:
+        """ """
+        songs: List[Song] = []
+        lists: List[SongList] = []
         images_to_download = []
-        if self._is_spotify_track(query):
-            track = self._get_track(query)
 
-            if not track:
+        logger.info(f"Processing query: {query}")
+
+        # Remove /intl-xxx/ from Spotify URLs with regex
+        query = re.sub(r"\/intl-\w+\/", "/", query)
+
+        if self._is_spotify_track(query):
+            song = Song.from_url(url=query)
+
+            if not song:
                 logger.warning(f"Track not found for query: {query}")
                 return
 
-            artist_id = track["artists"][0]["id"]
-            artist = self._get_artist(artist_id)
-
-            if not artist:
-                logger.warning(f"Artist not found for track: {track['name']}")
-                return
-
-            image_url = self._get_largest_image(artist.get("images", []))
+            songs.append(song)
+            image_url = self._get_largest_image(song.artist.get("images", []))
             if image_url:
                 images_to_download.append(
                     {
-                        "list_name": artist["name"],
+                        "list_name": song.artist["name"],
                         "image_url": image_url,
                     }
                 )
         elif self._is_spotify_playlist(query):
-            playlist = self._get_playlist(query)
+            playlist = Playlist.from_url(query, fetch_songs=False)
+            lists.append(playlist)
 
-            if not playlist:
-                logger.warning(f"Playlist not found for query: {query}")
-                return
-
-            image_url = self._get_largest_image(playlist.get("images", []))
-            if image_url:
-                images_to_download.append(
-                    {
-                        "list_name": f"Playlists/{playlist["name"]}",
-                        "image_url": image_url,
-                    }
-                )
+            images_to_download.append(
+                {
+                    "list_name": f"Playlists/{playlist.name}",
+                    "image_url": playlist.cover_url,
+                }
+            )
         elif self._is_spotify_album(query):
-            album = self._get_album(query)
+            album = Album.from_url(query, fetch_songs=False)
+            lists.append(album)
 
-            if not album:
-                logger.warning(f"Album not found for query: {query}")
-                return
-
-            artist_id = album["artists"][0]["id"]
-            artist = self._get_artist(artist_id)
+            artist_id = album.artist["id"]
+            artist = Artist.from_url(artist_id, fetch_songs=False)
 
             if not artist:
-                logger.warning(f"Artist not found for album: {album['name']}")
+                logger.warning(f"Artist not found for album: {album.name}")
                 return
 
-            image_url = self._get_largest_image(artist.get("images", []))
+            image_url = self._get_largest_image(artist.images)
             if image_url:
                 images_to_download.append(
                     {
-                        "list_name": artist["name"],
+                        "list_name": artist.name,
                         "image_url": image_url,
                     }
                 )
         elif self._is_spotify_artist(query):
-            artist = self._get_artist(query)
+            artist = Artist.from_url(query, fetch_songs=False)
+            lists.append(artist)
 
-            if not artist:
-                logger.warning(f"Artist not found for query: {query}")
-                return
-
-            image_url = self._get_largest_image(artist.get("images", []))
+            image_url = self._get_largest_image(artist.images)
             if image_url:
                 images_to_download.append(
                     {
-                        "list_name": artist["name"],
+                        "list_name": artist.name,
                         "image_url": image_url,
                     }
                 )
         elif self._is_spotify_user_playlists(query):
-            user_playlists = self._get_all_user_playlists()
+            user_playlists = get_all_user_playlists()
+            lists.extend(user_playlists)
+
             for playlist in user_playlists:
-                cover_url = playlist.get("cover_url")
-                if cover_url:
-                    images_to_download.append(
-                        {
-                            "list_name": f"Playlists/{playlist['name']}",
-                            "image_url": cover_url,
-                        }
-                    )
+                images_to_download.append(
+                    {
+                        "list_name": f"Playlists/{playlist.name}",
+                        "image_url": playlist.cover_url,
+                    }
+                )
         elif self._is_spotify_saved_playlists(query):
-            saved_playlists = self._get_all_saved_playlists()
+            saved_playlists = get_all_saved_playlists()
+            lists.extend(user_playlists)
+
             for playlist in saved_playlists:
-                if playlist.cover_url:
-                    images_to_download.append(
-                        {
-                            "list_name": f"Playlists/{playlist.name}",
-                            "image_url": playlist.cover_url,
-                        }
-                    )
+                images_to_download.append(
+                    {
+                        "list_name": f"Playlists/{playlist.name}",
+                        "image_url": playlist.cover_url,
+                    }
+                )
         elif self._is_spotify_saved_albums(query):
-            saved_albums = self._get_user_saved_albums()
+            saved_albums = get_user_saved_albums()
             for album in saved_albums:
-                artist_id = album.get("artist")["id"]
+                artist_id = album.artist["id"]
 
                 if not artist_id:
                     continue
 
-                artist = self._get_artist(artist_id)
+                artist = Artist.from_url(artist_id, fetch_songs=False)
 
                 if not artist:
-                    logger.warning(f"Artist not found for album: {album["name"]}")
+                    logger.warning(f"Artist not found for album: {album.name}")
                     continue
 
-                image_url = self._get_largest_image(artist.get("images", []))
+                image_url = self._get_largest_image(artist.images)
                 if image_url:
                     images_to_download.append(
                         {
-                            "list_name": artist["name"],
+                            "list_name": artist.name,
                             "image_url": image_url,
                         }
                     )
         elif self._is_spotify_user_followed_artists(query):
-            followed_artists = self._get_user_followed_artists()
+            followed_artists = get_user_followed_artists()
             for artist in followed_artists:
-                image_url = self._get_largest_image(artist.get("images", []))
+                image_url = self._get_largest_image(artist.images)
                 if image_url:
                     images_to_download.append(
                         {
-                            "list_name": artist["name"],
+                            "list_name": artist.name,
                             "image_url": image_url,
                         }
                     )
+        elif self._is_spotify_saved(query):
+            lists.append(Saved.from_url(query, fetch_songs=False))
         else:
             logger.warning(f"Unsupported query type for image saving: {query}")
             return
@@ -737,6 +456,74 @@ class SpotifyDownloader:
                 logger.info(f"Image saved: {image_path}")
             except Exception as e:
                 logger.error(f"Error saving image for {list_name}: {e}")
+
+        for song_list in lists:
+            logger.info(
+                f"Found {len(song_list.urls)} songs in {song_list.name} ({song_list.__class__.__name__})"
+            )
+
+            for index, song in enumerate(song_list.songs):
+                song_data = song.json
+                song_data["list_name"] = song_list.name
+                song_data["list_url"] = song_list.url
+                song_data["list_position"] = song.list_position
+                song_data["list_length"] = song_list.length
+
+                if DOWNLOADER_OPTIONS["playlist_numbering"]:
+                    song_data["track_number"] = song_data["list_position"]
+                    song_data["tracks_count"] = song_data["list_length"]
+                    song_data["album_name"] = song_data["list_name"]
+                    song_data["disc_number"] = 1
+                    song_data["disc_count"] = 1
+                    if isinstance(song_list, Playlist):
+                        song_data["album_artist"] = song_list.author_name
+                        song_data["cover_url"] = song_list.cover_url
+
+                if DOWNLOADER_OPTIONS["playlist_retain_track_cover"]:
+                    song_data["track_number"] = song_data["list_position"]
+                    song_data["tracks_count"] = song_data["list_length"]
+                    song_data["album_name"] = song_data["list_name"]
+                    song_data["disc_number"] = 1
+                    song_data["disc_count"] = 1
+                    song_data["cover_url"] = song_data["cover_url"]
+                    if isinstance(song_list, Playlist):
+                        song_data["album_artist"] = song_list.author_name
+
+                songs.append(Song.from_dict(song_data))
+
+        # removing songs for --ignore-albums
+        original_length = len(songs)
+
+        album_type = DOWNLOADER_OPTIONS["album_type"]
+        if album_type:
+            songs = [song for song in songs if song.album_type == album_type]
+
+            logger.info(
+                f"Skipped {(original_length - len(songs))} songs for Album Type {album_type}"
+            )
+
+        logger.debug(f"Found {len(songs)} songs in {len(lists)} lists")
+
+        if not songs:
+            logger.error("No songs to download.")
+            return False
+
+        try:
+            downloader.download_multiple_songs(songs)
+            self._update_sync_file(
+                {
+                    "type": "sync",
+                    "query": query,
+                    "songs": [song.json for song in songs],
+                    "output": output,
+                }
+            )
+            self._gen_m3u_files(songs=songs, query=query)
+        except Exception as e:
+            logger.error(f"Download error for query '{query}': {str(e)}")
+            return False
+
+        return True
 
     def _send_status_message(self, bot: telebot.TeleBot, text: str) -> int | None:
         """
@@ -797,31 +584,13 @@ class SpotifyDownloader:
             downloader.settings["output"] = f"{DOWNLOAD_DIR}/{output_pattern}"
             logger.info(f"Output pattern set to: {downloader.settings['output']}")
 
-            songs = self._search(query)
-            logger.info(f"Found {len(songs)} songs for query: {query}")
-
-            if not songs:
-                logger.info(f"No songs found for the given query: {query}")
-                self._delete_status_message(bot, message_id)
-                send_message(bot=bot, message=get_text("error_download_failed"))
-                return False
-
-            success = self._download_songs(downloader, songs, query)
+            success = self._search_and_download(
+                downloader=downloader, query=query, output=downloader.settings["output"]
+            )
             if not success:
                 logger.error(f"Failed to download songs for query: {query}")
                 send_message(bot=bot, message=get_text("error_download_failed"))
                 return False
-
-            self._save_images(query=query)
-            self._update_sync_file(
-                {
-                    "type": "sync",
-                    "query": query,
-                    "songs": [song.json for song in songs],
-                    "output": downloader.settings["output"],
-                }
-            )
-            self._gen_m3u_files(songs=songs, query=query)
 
             send_message(bot=bot, message=get_text("download_finished"))
             return True
@@ -968,24 +737,15 @@ class SpotifyDownloader:
                     else:
                         logger.info(f"{len(to_delete)} old songs were deleted.")
 
-                success = self._download_songs(downloader, songs, query["query"])
+                success = self._search_and_download(
+                    downloader=downloader, query=query["query"], output=query["output"]
+                )
                 if not success:
                     logger.error(
                         f"Failed to download songs for query: {query['query']}"
                     )
                     send_message(bot=bot, message=get_text("error_download_failed"))
                     continue
-
-                self._save_images(query=query["query"])
-                self._update_sync_file(
-                    {
-                        "type": "sync",
-                        "query": query["query"],
-                        "songs": [song.json for song in songs],
-                        "output": query["output"],
-                    }
-                )
-                self._gen_m3u_files(songs=songs, query=query["query"])
             finally:
                 self._close_downloader(downloader)
 
