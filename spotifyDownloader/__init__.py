@@ -17,10 +17,7 @@ from loguru import logger
 from spotdl.utils.config import DEFAULT_CONFIG, DOWNLOADER_OPTIONS
 from spotdl.download.downloader import Downloader
 from spotdl.utils.spotify import SpotifyClient, SpotifyError
-from spotdl.utils.search import (
-    get_simple_songs,
-    get_user_followed_artists,
-)
+from spotdl.utils.search import get_simple_songs
 from spotdl.utils.m3u import create_m3u_content
 from spotdl.utils.formatter import create_file_name
 from spotdl.types.song import Song
@@ -548,6 +545,42 @@ class SpotifyDownloader:
             for item in user_saved_albums
         ]
 
+    def _get_user_followed_artists(self) -> List[dict]:
+        """
+        Get all user playlists
+
+        ### Returns
+        - List of all user playlists
+        """
+        spotify_client = SpotifyClient()
+        if spotify_client.user_auth is False:  # type: ignore
+            raise SpotifyError("You must be logged in to use this function")
+
+        user_followed_response = spotify_client.current_user_followed_artists()
+        if user_followed_response is None:
+            raise SpotifyError("Couldn't get user followed artists")
+
+        user_followed_response = user_followed_response["artists"]
+        user_followed = user_followed_response["items"]
+
+        while user_followed_response and user_followed_response["next"]:
+            response = spotify_client.next(user_followed_response)
+            if response is None:
+                break
+
+            user_followed_response = response["artists"]
+            user_followed.extend(user_followed_response["items"])
+
+        return [
+            {
+                "id": followed_artist["id"],
+                "name": followed_artist["name"],
+                "images": followed_artist.get("images", []),
+                "url": followed_artist["external_urls"]["spotify"],
+            }
+            for followed_artist in user_followed
+        ]
+
     def _save_images(self, query: str) -> None:
         """
         Downloads and saves the cover image for artists, albums, or playlists in their respective folders.
@@ -672,7 +705,7 @@ class SpotifyDownloader:
                         }
                     )
         elif self._is_spotify_user_followed_artists(query):
-            followed_artists = get_user_followed_artists()
+            followed_artists = self._get_user_followed_artists()
             for artist in followed_artists:
                 image_url = self._get_largest_image(artist.get("images", []))
                 if image_url:
