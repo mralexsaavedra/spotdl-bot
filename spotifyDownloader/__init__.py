@@ -16,10 +16,9 @@ import telebot
 from loguru import logger
 from spotdl.utils.config import DEFAULT_CONFIG, DOWNLOADER_OPTIONS
 from spotdl.download.downloader import Downloader
-from spotdl.utils.spotify import SpotifyClient
+from spotdl.utils.spotify import SpotifyClient, SpotifyError
 from spotdl.utils.search import (
     get_simple_songs,
-    get_all_user_playlists,
     get_user_followed_artists,
     get_user_saved_albums,
     get_all_saved_playlists,
@@ -417,6 +416,64 @@ class SpotifyDownloader:
             logger.error(f"Error getting album for query '{query}': {e}")
             return None
 
+    def _get_all_user_playlists(self, user_url: str = "") -> List[dict]:
+        """
+        Get all user playlists.
+
+        ### Args (optional)
+        - user_url: Spotify user profile url.
+            If a url is mentioned, get all public playlists of that specific user.
+
+        ### Returns
+        - List of all user playlists
+        """
+        spotify_client = SpotifyClient()
+        if spotify_client.user_auth is False:  # type: ignore
+            raise SpotifyError("You must be logged in to use this function")
+
+        if user_url and not user_url.startswith("https://open.spotify.com/user/"):
+            raise ValueError(f"Invalid user profile url: {user_url}")
+
+        user_id = user_url.split("https://open.spotify.com/user/")[-1].replace("/", "")
+
+        if user_id:
+            user_playlists_response = spotify_client.user_playlists(user_id)
+        else:
+            user_playlists_response = spotify_client.current_user_playlists()
+            user_resp = spotify_client.current_user()
+            if user_resp is None:
+                raise SpotifyError("Couldn't get user info")
+
+            user_id = user_resp["id"]
+
+        if user_playlists_response is None:
+            raise SpotifyError("Couldn't get user playlists")
+
+        user_playlists = user_playlists_response["items"]
+
+        # Fetch all saved tracks
+        while user_playlists_response and user_playlists_response["next"]:
+            response = spotify_client.next(user_playlists_response)
+            if response is None:
+                break
+
+            user_playlists_response = response
+            user_playlists.extend(user_playlists_response["items"])
+
+        return [
+            {
+                "id": playlist["id"],
+                "name": playlist["name"],
+                "url": playlist["external_urls"]["spotify"],
+                "description": playlist["description"],
+                "author_url": playlist["owner"]["external_urls"]["spotify"],
+                "author_name": playlist["owner"]["display_name"],
+                "cover_url": self._get_largest_image(playlist.get("images", [])),
+            }
+            for playlist in user_playlists
+            if playlist["owner"]["id"] == user_id
+        ]
+
     def _save_images(self, query: str) -> None:
         """
         Downloads and saves the cover image for artists, albums, or playlists in their respective folders.
@@ -498,13 +555,14 @@ class SpotifyDownloader:
                     }
                 )
         elif self._is_spotify_user_playlists(query):
-            user_playlists = get_all_user_playlists()
+            user_playlists = self._get_all_user_playlists()
             for playlist in user_playlists:
-                if playlist.cover_url:
+                cover_url = playlist.get("cover_url")
+                if cover_url:
                     images_to_download.append(
                         {
-                            "list_name": f"Playlists/{playlist.name}",
-                            "image_url": playlist.cover_url,
+                            "list_name": f"Playlists/{playlist['name']}",
+                            "image_url": cover_url,
                         }
                     )
         elif self._is_spotify_saved_playlists(query):
