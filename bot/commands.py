@@ -1,7 +1,7 @@
 import threading
 from spotifyDownloader import SpotifyDownloader
 from config.config import VERSION
-from core.spotify_auth import auth
+from spotifyDownloader.auth import SpotifyOAuth
 from core.locale import get_text
 from core.utils import delete_message, is_spotify_url, send_message
 import telebot
@@ -20,10 +20,11 @@ def register_commands(bot: telebot.TeleBot):
         """Shows the main menu."""
         send_message(bot, message=get_text("menu_main"))
 
-    # @bot.message_handler(commands=["authorize"])
-    # def authorize_command(message):
-    #     """Starts the Spotify authorization process."""
-    #     auth(bot, message)
+    @bot.message_handler(commands=["authorize"])
+    def authorize_command(message):
+        """Starts the Spotify authorization process."""
+        auth_manager = SpotifyOAuth(bot=bot)
+        auth_manager.get_access_token(as_dict=False)
 
     # --- Downloads ---
     @bot.message_handler(commands=["download"])
@@ -105,7 +106,7 @@ def register_commands(bot: telebot.TeleBot):
     bot.set_my_commands(
         [
             telebot.types.BotCommand("/start", get_text("menu_option_start")),
-            # telebot.types.BotCommand("/authorize", get_text("menu_option_authorize")),
+            telebot.types.BotCommand("/authorize", get_text("menu_option_authorize")),
             telebot.types.BotCommand("/download", get_text("menu_option_download_url")),
             telebot.types.BotCommand(
                 "/downloadsavedsongs", get_text("menu_option_download_saved_songs")
