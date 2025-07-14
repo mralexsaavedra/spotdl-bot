@@ -1,6 +1,6 @@
 services:
   spotdl-bot:
-    image: mralexsaavedra/spotdl-bot:latest
+    image: mralexandersaavedra/spotdl-bot:latest
     container_name: spotdl-bot
     environment:
       - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
