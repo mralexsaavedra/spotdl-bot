@@ -1,6 +1,4 @@
 {
-  "auth_already_authorized": "✅ Ya has autorizado al bot correctamente. Puedes descargar y sincronizar tu música de Spotify.",
-  "auth_success": "✅ Autorización completada con éxito.",
   "bot_description": "Usa /start para ver el menú.\n🎧 ¡Listo para descargar música desde Spotify!",
   "bot_started_title": "🚀 *SpotDL Bot iniciado*",
   "bot_status_label": "🟢 *Estado:* Activo",
@@ -10,7 +8,6 @@
   "download_finished": "✅ Descarga finalizada.",
   "download_in_progress": "⏳ Descargando...",
   "download_prompt_url": "🔗 Por favor, introduce la URL de Spotify de la canción, álbum, artista o playlist que deseas descargar.",
-  "error_auth_failed": "❌ No se pudo autenticar con Spotify. Verifica que hayas autorizado correctamente al bot usando el comando /authorize.",
   "error_download_failed": "❌ Error durante la descarga. Revisa los logs del bot para más detalles.",
   "error_generic": "❌ Ha ocurrido un error inesperado. Por favor, inténtalo de nuevo.",
   "error_sync_file_invalid": "⚠️ El archivo de sincronización es inválido o está corrupto.",
