@@ -307,7 +307,7 @@ La clase está pensada para ser robusta, fácil de mantener y extensible. Puedes
 - Más información: [Spotify API Rate Limits](https://developer.spotify.com/documentation/web-api/concepts/rate-limits)
 
 **¿Cómo actualizo el bot?**
-- Si usas Docker, basta con hacer `docker pull mralexsaavedra/spotdl-bot:latest` y reiniciar el contenedor.
+- Si usas Docker, basta con hacer `docker pull mralexandersaavedra/spotdl-bot:latest` y reiniciar el contenedor.
 - Si usas instalación local, actualiza el repositorio y los requisitos con `git pull` y `pip install -r requirements.txt`.
 
 ¿Tienes otra duda? Abre un [issue en GitHub](https://github.com/mralexsaavedra/spotdl-bot/issues).
