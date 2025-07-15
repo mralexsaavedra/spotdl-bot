@@ -36,6 +36,7 @@ class SpotifyOAuth(SpotifyAuthBase):
         proxies=None,
         requests_session=True,
         requests_timeout=None,
+        open_browser=True,
     ):
         """
         Creates a SpotifyOAuth object
@@ -46,6 +47,8 @@ class SpotifyOAuth(SpotifyAuthBase):
              * requests_session: A Requests session
              * requests_timeout: Optional, tell Requests to stop waiting for a response after
                                  a given number of seconds
+             * open_browser: Optional, whether the web browser should be opened to
+                             authorize a user
         """
 
         super().__init__(requests_session)
@@ -65,6 +68,7 @@ class SpotifyOAuth(SpotifyAuthBase):
         self.state = state
         self.proxies = proxies
         self.requests_timeout = requests_timeout
+        self.open_browser = open_browser
 
     def validate_token(self, token_info):
         """
@@ -134,27 +138,35 @@ class SpotifyOAuth(SpotifyAuthBase):
         )
         return {"Authorization": f"Basic {auth_header.decode('ascii')}"}
 
-    def _open_auth_url(self, bot):
+    def _open_auth_url(self, bot=None):
         auth_url = self.get_authorize_url()
         markup = InlineKeyboardMarkup(row_width=1)
         markup.add(InlineKeyboardButton(get_text("auth_button_label"), url=auth_url))
-        send_message(
-            bot=bot,
-            message=get_text("auth_request"),
-            reply_markup=markup,
-        )
+        if bot:
+            send_message(
+                bot=bot,
+                message=get_text("auth_request"),
+                reply_markup=markup,
+            )
         logger.info(f"Opened {auth_url} in your browser")
 
-    def _get_auth_response_interactive(self, bot):
-        self._open_auth_url(bot=bot)
-        prompt = "Enter the URL you were redirected to: "
+    def _get_auth_response_interactive(self, bot=None, open_browser=False):
+        if open_browser:
+            self._open_auth_url(bot=bot)
+            prompt = "Enter the URL you were redirected to: "
+        else:
+            url = self.get_authorize_url()
+            prompt = (
+                f"Go to the following URL: {url}\n"
+                "Enter the URL you were redirected to: "
+            )
         response = self._get_user_input(prompt)
         state, code = SpotifyOAuth.parse_auth_response_url(response)
         if self.state is not None and self.state != state:
             raise SpotifyStateError(self.state, state)
         return code
 
-    def _get_auth_response_local_server(self, bot, redirect_host, redirect_port):
+    def _get_auth_response_local_server(self, redirect_host, redirect_port, bot=None):
         server = start_local_http_server(host=redirect_host, port=redirect_port)
         self._open_auth_url(bot=bot)
         server.handle_request()
@@ -170,7 +182,7 @@ class SpotifyOAuth(SpotifyAuthBase):
                 "Server listening on localhost has not been accessed"
             )
 
-    def get_auth_response(self, bot):
+    def get_auth_response(self, bot=None, open_browser=None):
         logger.info(
             "User authentication requires interaction with your "
             "web browser. Once you enter your credentials and "
@@ -198,8 +210,12 @@ class SpotifyOAuth(SpotifyAuthBase):
                 "To ensure your app remains functional, use HTTPS instead."
             )
 
+        if open_browser is None:
+            open_browser = self.open_browser
+
         if (
-            redirect_host in ("127.0.0.1", "localhost")
+            open_browser
+            and redirect_host in ("127.0.0.1", "localhost")
             and redirect_info.scheme == "http"
         ):
             # Only start a local http server if a port is specified
@@ -216,9 +232,9 @@ class SpotifyOAuth(SpotifyAuthBase):
                     "the URL your browser is redirected to."
                 )
 
-        return self._get_auth_response_interactive(bot=bot)
+        return self._get_auth_response_interactive(bot=bot, open_browser=open_browser)
 
-    def get_access_token(self, bot, code=None, check_cache=True):
+    def get_access_token(self, bot=None, code=None, check_cache=True):
         """Gets the access token for the app given the code
 
         Parameters:
@@ -231,10 +247,11 @@ class SpotifyOAuth(SpotifyAuthBase):
             if token_info is not None:
                 if self.is_token_expired(token_info):
                     token_info = self.refresh_access_token(token_info["refresh_token"])
-                send_message(
-                    bot=bot,
-                    message=get_text("auth_already_authorized"),
-                )
+                if bot:
+                    send_message(
+                        bot=bot,
+                        message=get_text("auth_already_authorized"),
+                    )
                 logger.info("Using cached token")
                 return token_info
 
@@ -269,17 +286,18 @@ class SpotifyOAuth(SpotifyAuthBase):
             token_info = self._add_custom_values_to_token_info(token_info)
             self.cache_handler.save_token_to_cache(token_info)
             logger.info("Authentication successful")
-            send_message(
-                bot=bot,
-                message=get_text("auth_success"),
-            )
+            if bot:
+                send_message(
+                    bot=bot,
+                    message=get_text("auth_success"),
+                )
             return token_info
         except requests.exceptions.HTTPError as http_error:
-            send_message(
-                bot=bot,
-                message=get_text("error_auth_failed"),
-            )
-            logger.error(f"OAuth: HTTPError during token request: {http_error}")
+            if bot:
+                send_message(
+                    bot=bot,
+                    message=get_text("error_auth_failed"),
+                )
             self._handle_oauth_error(http_error)
 
     def refresh_access_token(self, refresh_token):
