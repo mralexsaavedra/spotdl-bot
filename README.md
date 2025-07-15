@@ -41,6 +41,7 @@ Bot de Telegram que permite descargar canciones, álbumes y playlists completas 
 
 ## 🚀 Funcionalidades
 
+- 🔑 **Autorización segura por comando**: Autoriza el acceso del bot a tu cuenta de Spotify usando `/authorize`.
 - 🎶 **Descarga avanzada**: Descarga canciones, álbumes, playlists y artistas completos de Spotify.
 - 🗂️ **Organización automática**: Estructura las descargas en carpetas por artista, álbum y playlist.
 - 🖼️ **Portadas automáticas**: Descarga y guarda las portadas de artistas y playlists.
@@ -124,12 +125,13 @@ Estas credenciales permiten al bot autenticar solicitudes y acceder a los datos 
 | Comando                         | Descripción                                                                                          |
 |---------------------------------|------------------------------------------------------------------------------------------------------|
 | `/start`                        | Mostrar menú inicial                                                                                 |
+| `/authorize`                    | Autorizar el acceso del bot a tu cuenta de Spotify                                                   |
 | `/download`                     | Descargar canción/álbum/playlist                                                                     |
 | `/downloadsavedsongs`           | Descargar tus canciones guardadas                                                                    |
 | `/downloadsavedalbums`          | Descargar tus álbumes guardados                                                                      |
 | `/downloadsavedplaylists`       | Descargar tus playlists guardadas                                                                    |
 | `/downloaduserplaylists`        | Descargar tus playlists creadas                                                                      |
-| `/downloaduserfollowedartists`  | Descargar los artistas que sigues *(INCOMING)*                                                      |
+| `/downloaduserfollowedartists`  | Descargar los artistas que sigues *(INCOMING)*                                                       |
 | `/sync`                         | Sincronizar tu biblioteca                                                                            |
 | `/version`                      | Mostrar versión del bot                                                                              |
 | `/donate`                       | Información para donar                                                                               |
@@ -275,6 +277,9 @@ La clase está pensada para ser robusta, fácil de mantener y extensible. Puedes
 - Verifica que tus credenciales (Client ID, Client Secret y Redirect URI) sean correctas y estén bien configuradas en las variables de entorno.
 - Asegúrate de que la URI de redirección en Spotify Developer Dashboard coincida exactamente con la que usas en el bot.
 
+**Recuerda que debes autorizar al bot para acceder a tus datos de Spotify.** Usa el comando `/authorize` en Telegram y sigue las instrucciones para vincular tu cuenta. Sin esta autorización, el bot no podrá descargar ni sincronizar tu música, playlists o artistas.
+- Si la autorización falla, revisa que hayas iniciado sesión correctamente y que hayas aceptado los permisos solicitados por Spotify.
+
 **¿El bot no descarga nada o no responde?**
 - Revisa los logs en la carpeta `logs/` para ver si hay errores específicos.
 - Comprueba que tu token de Telegram y el chat ID sean correctos.
@@ -294,7 +299,7 @@ La clase está pensada para ser robusta, fácil de mantener y extensible. Puedes
 - Más información: [Spotify API Rate Limits](https://developer.spotify.com/documentation/web-api/concepts/rate-limits)
 
 **¿Cómo actualizo el bot?**
-- Si usas Docker, basta con hacer `docker pull mralexandersaavedra/spotdl-bot:latest` y reiniciar el contenedor.
+- Si usas Docker, basta con hacer `docker pull mralexsaavedra/spotdl-bot:latest` y reiniciar el contenedor.
 - Si usas instalación local, actualiza el repositorio y los requisitos con `git pull` y `pip install -r requirements.txt`.
 
 ¿Tienes otra duda? Abre un [issue en GitHub](https://github.com/mralexsaavedra/spotdl-bot/issues).
