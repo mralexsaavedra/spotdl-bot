@@ -14,7 +14,6 @@ from core.locale import get_text
 from core.utils import send_message
 from urllib.parse import parse_qsl, urlparse
 from loguru import logger
-from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 from spotipy.cache_handler import CacheFileHandler, MemoryCacheHandler
 from spotipy.exceptions import SpotifyOauthError, SpotifyStateError
 from spotipy.oauth2 import SpotifyAuthBase
