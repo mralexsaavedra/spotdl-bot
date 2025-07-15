@@ -1,4 +1,12 @@
 {
+  "auth_cache_dir": "Usando directorio de caché: $1 con no_cache=$2",
+  "auth_failure": "❌ Error al obtener el token OAuth de Spotify. Revisa tus credenciales y la URI de redirección.",
+  "auth_init_client_id": "🔧 Inicializando Spotify OAuth con client ID: $1",
+  "auth_instructions": "ℹ️ Si es la primera vez que ejecutas la autorización, sigue las instrucciones en pantalla y copia la URL de redirección completa tras autorizar en Spotify.",
+  "auth_missing_env": "⚠️ Falta alguna variable de entorno necesaria: CLIENT_ID, CLIENT_SECRET o REDIRECT_URI.",
+  "auth_oauth_error": "❌ Error de OAuth: $1",
+  "auth_success": "🔑 Token OAuth de Spotify adquirido correctamente.",
+  "auth_unexpected_error": "❌ Error inesperado: $1",
   "bot_description": "Usa /start para ver el menú.\n🎧 ¡Listo para descargar música desde Spotify!",
   "bot_started_title": "🚀 *SpotDL Bot iniciado*",
   "bot_status_label": "🟢 *Estado:* Activo",

@@ -1,4 +1,12 @@
 {
+  "auth_cache_dir": "Using cache directory: $1 with no_cache=$2",
+  "auth_failure": "❌ Failed to acquire Spotify OAuth token. Check your credentials and redirect URI.",
+  "auth_init_client_id": "🔧 Initializing Spotify OAuth with client ID: $1",
+  "auth_instructions": "ℹ️ If this is your first time authorizing, follow the instructions and paste the full redirect URL after authorizing in Spotify.",
+  "auth_missing_env": "⚠️ Missing required environment variable: CLIENT_ID, CLIENT_SECRET or REDIRECT_URI.",
+  "auth_oauth_error": "❌ OAuth error: $1",
+  "auth_success": "🔑 Spotify OAuth token acquired successfully.",
+  "auth_unexpected_error": "❌ Unexpected error: $1",
   "bot_description": "Use /start to see the menu.\n🎧 Ready to download music from Spotify!",
   "bot_started_title": "🚀 *SpotDL Bot started*",
   "bot_status_label": "🟢 *Status:* Active",
