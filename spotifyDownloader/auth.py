@@ -215,6 +215,7 @@ class SpotifyOAuth(SpotifyAuthBase):
         """Gets the access token for the app given the code
 
         Parameters:
+            - bot: the bot instance to send messages
             - code: the response code
             - check_cache: a boolean indicating if cached token should be used
         """
