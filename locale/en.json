@@ -1,4 +1,5 @@
 {
+  "auth_already_authorized": "✅ You have already authorized the bot. You can now download and sync your Spotify music.",
   "auth_button_label": "Authorize with Spotify",
   "auth_request": "🔑 To download your Spotify content, you first need to authorize the bot to access your account.",
   "auth_success": "✅ Authorization completed successfully.",

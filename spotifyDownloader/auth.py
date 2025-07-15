@@ -224,6 +224,10 @@ class SpotifyOAuth(SpotifyAuthBase):
             if token_info is not None:
                 if self.is_token_expired(token_info):
                     token_info = self.refresh_access_token(token_info["refresh_token"])
+                send_message(
+                    bot=bot,
+                    message=get_text("auth_already_authorized"),
+                )
                 return token_info
 
         payload = {
