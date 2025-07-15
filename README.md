@@ -41,7 +41,7 @@ Bot de Telegram que permite descargar canciones, álbumes y playlists completas 
 
 ## 🚀 Funcionalidades
 
-- 🔑 **Autorización segura por comando**: Autoriza el acceso del bot a tu cuenta de Spotify usando `/authorize`.
+- 🔑 **Autorización segura**: Autoriza el acceso del bot a tu cuenta de Spotify.
 - 🎶 **Descarga avanzada**: Descarga canciones, álbumes, playlists y artistas completos de Spotify.
 - 🗂️ **Organización automática**: Estructura las descargas en carpetas por artista, álbum y playlist.
 - 🖼️ **Portadas automáticas**: Descarga y guarda las portadas de artistas y playlists.
@@ -62,6 +62,8 @@ Bot de Telegram que permite descargar canciones, álbumes y playlists completas 
 - [Chat ID de Telegram para el administrador del bot](#-cómo-obtener-el-chat-id-de-telegram)
 - [Credenciales de Spotify (Client ID y Secret)](#-credenciales-de-spotify-client-id-y-client-secret)
 - [URI de redirección para Spotify (Spotify Redirect URI)](#spotify-redirect-uri)
+
+> **Importante:** Para que el bot funcione correctamente y pueda descargar tu música, debes vincular tu cuenta de Spotify siguiendo las instrucciones de la sección [¿Cómo vinculo mi cuenta de Spotify con el bot?](#cómo-vinculo-mi-cuenta-de-spotify-con-el-bot).
 
 ---
 
@@ -125,7 +127,6 @@ Estas credenciales permiten al bot autenticar solicitudes y acceder a los datos 
 | Comando                         | Descripción                                                                                          |
 |---------------------------------|------------------------------------------------------------------------------------------------------|
 | `/start`                        | Mostrar menú inicial                                                                                 |
-| `/authorize`                    | Autorizar el acceso del bot a tu cuenta de Spotify                                                   |
 | `/download`                     | Descargar canción/álbum/playlist                                                                     |
 | `/downloadsavedsongs`           | Descargar tus canciones guardadas                                                                    |
 | `/downloadsavedalbums`          | Descargar tus álbumes guardados                                                                      |
@@ -277,8 +278,15 @@ La clase está pensada para ser robusta, fácil de mantener y extensible. Puedes
 - Verifica que tus credenciales (Client ID, Client Secret y Redirect URI) sean correctas y estén bien configuradas en las variables de entorno.
 - Asegúrate de que la URI de redirección en Spotify Developer Dashboard coincida exactamente con la que usas en el bot.
 
-**Recuerda que debes autorizar al bot para acceder a tus datos de Spotify.** Usa el comando `/authorize` en Telegram y sigue las instrucciones para vincular tu cuenta. Sin esta autorización, el bot no podrá descargar ni sincronizar tu música, playlists o artistas.
-- Si la autorización falla, revisa que hayas iniciado sesión correctamente y que hayas aceptado los permisos solicitados por Spotify.
+<a id="cómo-vinculo-mi-cuenta-de-spotify-con-el-bot"></a>
+**¿Cómo vinculo mi cuenta de Spotify con el bot?**
+- Es necesario autorizar al bot para que pueda acceder a tu cuenta de Spotify y descargar tu música.
+- Para iniciar el proceso de autorización, ejecuta el siguiente comando en tu terminal:
+  ```bash
+  docker exec -it spotdl-bot python -m core.auth
+  ```
+- Sigue las instrucciones que aparecerán para completar el proceso de vinculación.
+- Una vez autorizado, podrás usar todos los comandos de descarga y sincronización.
 
 **¿El bot no descarga nada o no responde?**
 - Revisa los logs en la carpeta `logs/` para ver si hay errores específicos.

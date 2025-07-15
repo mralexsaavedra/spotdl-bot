@@ -1,4 +1,8 @@
-from spotifyDownloader.auth import SpotifyOAuth
+from config.config import TELEGRAM_TOKEN
+from spotifyDownloader.oauth2 import SpotifyOAuth
+import telebot
 
-auth_manager = SpotifyOAuth(open_browser=False)
-auth_manager.get_access_token()
+bot: telebot.TeleBot = telebot.TeleBot(TELEGRAM_TOKEN)
+
+auth_manager = SpotifyOAuth()
+auth_manager.get_access_token(bot=bot)
