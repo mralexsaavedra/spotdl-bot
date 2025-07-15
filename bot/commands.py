@@ -7,6 +7,7 @@ from core.utils import delete_message, is_spotify_url, send_message
 import telebot
 
 spotdl = SpotifyDownloader()
+auth_manager = SpotifyOAuth()
 
 
 def register_commands(bot: telebot.TeleBot):
@@ -23,8 +24,7 @@ def register_commands(bot: telebot.TeleBot):
     @bot.message_handler(commands=["authorize"])
     def authorize_command(message):
         """Starts the Spotify authorization process."""
-        auth_manager = SpotifyOAuth(bot=bot)
-        auth_manager.get_access_token(as_dict=False)
+        auth_manager.get_access_token(bot=bot)
 
     # --- Downloads ---
     @bot.message_handler(commands=["download"])

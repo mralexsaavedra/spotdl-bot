@@ -1,18 +1,18 @@
 import base64
-import os
 import time
 import urllib.parse as urllibparse
 import warnings
-from http.server import BaseHTTPRequestHandler, HTTPServer
-from urllib.parse import parse_qsl, urlparse
 import requests
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from config.config import (
     CACHE_DIR,
     SPOTIFY_CLIENT_ID,
     SPOTIFY_CLIENT_SECRET,
     SPOTIFY_REDIRECT_URI,
 )
+from core.locale import get_text
 from core.utils import send_message
+from urllib.parse import parse_qsl, urlparse
 from loguru import logger
 from spotipy.cache_handler import CacheFileHandler, MemoryCacheHandler
 from spotipy.exceptions import SpotifyOauthError, SpotifyStateError
@@ -20,11 +20,6 @@ from spotipy.oauth2 import SpotifyAuthBase
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 from spotipy.util import get_host_port
 from spotdl.utils.config import DEFAULT_CONFIG
-
-
-def _make_authorization_headers(client_id, client_secret):
-    auth_header = base64.b64encode(str(client_id + ":" + client_secret).encode("ascii"))
-    return {"Authorization": f"Basic {auth_header.decode('ascii')}"}
 
 
 class SpotifyOAuth(SpotifyAuthBase):
@@ -37,7 +32,6 @@ class SpotifyOAuth(SpotifyAuthBase):
 
     def __init__(
         self,
-        bot,
         state=None,
         proxies=None,
         requests_session=True,
@@ -56,7 +50,6 @@ class SpotifyOAuth(SpotifyAuthBase):
 
         super().__init__(requests_session)
 
-        self.bot = bot
         self.client_id = SPOTIFY_CLIENT_ID
         self.client_secret = SPOTIFY_CLIENT_SECRET
         self.redirect_uri = SPOTIFY_REDIRECT_URI
@@ -129,21 +122,24 @@ class SpotifyOAuth(SpotifyAuthBase):
         return tuple(form.get(param) for param in ["state", "code"])
 
     def _make_authorization_headers(self):
-        return _make_authorization_headers(self.client_id, self.client_secret)
+        auth_header = base64.b64encode(
+            str(self.client_id + ":" + self.client_secret).encode("ascii")
+        )
+        return {"Authorization": f"Basic {auth_header.decode('ascii')}"}
 
-    def _open_auth_url(self):
+    def _open_auth_url(self, bot):
         auth_url = self.get_authorize_url()
         markup = InlineKeyboardMarkup(row_width=1)
-        markup.add(InlineKeyboardButton("Authorize", url=auth_url))
+        markup.add(InlineKeyboardButton(get_text("auth_button_label"), url=auth_url))
         send_message(
-            bot=self.bot,
-            message="Debes autorizar a spotdl-bot en Spotify",
+            bot=bot,
+            message=get_text("auth_request"),
             reply_markup=markup,
         )
         logger.info(f"Opened {auth_url} in your browser")
 
-    def _get_auth_response_interactive(self):
-        self._open_auth_url()
+    def _get_auth_response_interactive(self, bot):
+        self._open_auth_url(bot=bot)
         prompt = "Enter the URL you were redirected to: "
         response = self._get_user_input(prompt)
         state, code = SpotifyOAuth.parse_auth_response_url(response)
@@ -151,9 +147,9 @@ class SpotifyOAuth(SpotifyAuthBase):
             raise SpotifyStateError(self.state, state)
         return code
 
-    def _get_auth_response_local_server(self, redirect_port):
+    def _get_auth_response_local_server(self, bot, redirect_port):
         server = start_local_http_server(redirect_port)
-        self._open_auth_url()
+        self._open_auth_url(bot=bot)
         server.handle_request()
 
         if server.error is not None:
@@ -167,7 +163,7 @@ class SpotifyOAuth(SpotifyAuthBase):
                 "Server listening on localhost has not been accessed"
             )
 
-    def get_auth_response(self):
+    def get_auth_response(self, bot):
         logger.info(
             "User authentication requires interaction with your "
             "web browser. Once you enter your credentials and "
@@ -201,7 +197,9 @@ class SpotifyOAuth(SpotifyAuthBase):
         ):
             # Only start a local http server if a port is specified
             if redirect_port:
-                return self._get_auth_response_local_server(redirect_port)
+                return self._get_auth_response_local_server(
+                    bot=bot, redirect_port=redirect_port
+                )
             else:
                 logger.warning(
                     f"Using `{redirect_host}` as redirect URI without a port. "
@@ -211,36 +209,25 @@ class SpotifyOAuth(SpotifyAuthBase):
                     "the URL your browser is redirected to."
                 )
 
-        return self._get_auth_response_interactive()
+        return self._get_auth_response_interactive(bot=bot)
 
-    def get_access_token(self, code=None, as_dict=True, check_cache=True):
+    def get_access_token(self, bot, code=None, check_cache=True):
         """Gets the access token for the app given the code
 
         Parameters:
             - code: the response code
-            - as_dict: (deprecated) a boolean indicating if returning the access token
-                        as a token_info dictionary, otherwise it will be returned
-                        as a string.
+            - check_cache: a boolean indicating if cached token should be used
         """
-        if as_dict:
-            warnings.warn(
-                "You're using 'as_dict = True'."
-                "get_access_token will return the token string directly in future "
-                "versions. Please adjust your code accordingly, or use "
-                "get_cached_token instead.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
         if check_cache:
             token_info = self.validate_token(self.cache_handler.get_cached_token())
             if token_info is not None:
                 if self.is_token_expired(token_info):
                     token_info = self.refresh_access_token(token_info["refresh_token"])
-                return token_info if as_dict else token_info["access_token"]
+                return token_info
 
         payload = {
             "redirect_uri": self.redirect_uri,
-            "code": code or self.get_auth_response(),
+            "code": code or self.get_auth_response(bot=bot),
             "grant_type": "authorization_code",
         }
         if self.scope:
@@ -268,7 +255,7 @@ class SpotifyOAuth(SpotifyAuthBase):
             token_info = response.json()
             token_info = self._add_custom_values_to_token_info(token_info)
             self.cache_handler.save_token_to_cache(token_info)
-            return token_info if as_dict else token_info["access_token"]
+            return token_info
         except requests.exceptions.HTTPError as http_error:
             self._handle_oauth_error(http_error)
 
