@@ -67,6 +67,12 @@ class SpotifyOAuth(SpotifyAuthBase):
         self.requests_timeout = requests_timeout
 
     def validate_token(self, token_info):
+        """
+        Validates the token info and checks if it is expired.
+        If the token is expired, it attempts to refresh it.
+        """
+        logger.info("Validating token info")
+
         if token_info is None:
             return None
 
@@ -77,6 +83,7 @@ class SpotifyOAuth(SpotifyAuthBase):
             return None
 
         if self.is_token_expired(token_info):
+            logger.info("Token is expired, refreshing...")
             token_info = self.refresh_access_token(token_info["refresh_token"])
 
         return token_info
@@ -147,8 +154,8 @@ class SpotifyOAuth(SpotifyAuthBase):
             raise SpotifyStateError(self.state, state)
         return code
 
-    def _get_auth_response_local_server(self, bot, redirect_port):
-        server = start_local_http_server(redirect_port)
+    def _get_auth_response_local_server(self, bot, redirect_host, redirect_port):
+        server = start_local_http_server(host=redirect_host, port=redirect_port)
         self._open_auth_url(bot=bot)
         server.handle_request()
 
@@ -198,7 +205,7 @@ class SpotifyOAuth(SpotifyAuthBase):
             # Only start a local http server if a port is specified
             if redirect_port:
                 return self._get_auth_response_local_server(
-                    bot=bot, redirect_port=redirect_port
+                    bot=bot, redirect_host=redirect_host, redirect_port=redirect_port
                 )
             else:
                 logger.warning(
@@ -228,6 +235,7 @@ class SpotifyOAuth(SpotifyAuthBase):
                     bot=bot,
                     message=get_text("auth_already_authorized"),
                 )
+                logger.info("Using cached token")
                 return token_info
 
         payload = {
@@ -260,6 +268,7 @@ class SpotifyOAuth(SpotifyAuthBase):
             token_info = response.json()
             token_info = self._add_custom_values_to_token_info(token_info)
             self.cache_handler.save_token_to_cache(token_info)
+            logger.info("Authentication successful")
             send_message(
                 bot=bot,
                 message=get_text("auth_success"),
@@ -270,9 +279,16 @@ class SpotifyOAuth(SpotifyAuthBase):
                 bot=bot,
                 message=get_text("error_auth_failed"),
             )
+            logger.error(f"OAuth: HTTPError during token request: {http_error}")
             self._handle_oauth_error(http_error)
 
     def refresh_access_token(self, refresh_token):
+        """Refreshes the access token using the refresh token
+        Parameters:
+            - refresh_token: the refresh token to use
+        """
+        logger.info("Refreshing access token")
+
         payload = {
             "refresh_token": refresh_token,
             "grant_type": "refresh_token",
@@ -387,8 +403,8 @@ Close Window
         return
 
 
-def start_local_http_server(port, handler=RequestHandler):
-    server = HTTPServer(("127.0.0.1", port), handler)
+def start_local_http_server(host, port, handler=RequestHandler):
+    server = HTTPServer((host, port), handler)
     server.allow_reuse_address = True
     server.auth_code = None
     server.auth_token_form = None
