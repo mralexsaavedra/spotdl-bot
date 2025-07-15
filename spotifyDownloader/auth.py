@@ -14,10 +14,10 @@ from core.locale import get_text
 from core.utils import send_message
 from urllib.parse import parse_qsl, urlparse
 from loguru import logger
+from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 from spotipy.cache_handler import CacheFileHandler, MemoryCacheHandler
 from spotipy.exceptions import SpotifyOauthError, SpotifyStateError
 from spotipy.oauth2 import SpotifyAuthBase
-from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 from spotipy.util import get_host_port
 from spotdl.utils.config import DEFAULT_CONFIG
 
@@ -53,7 +53,6 @@ class SpotifyOAuth(SpotifyAuthBase):
         self.client_id = SPOTIFY_CLIENT_ID
         self.client_secret = SPOTIFY_CLIENT_SECRET
         self.redirect_uri = SPOTIFY_REDIRECT_URI
-        self.state = state
         self.scope = self._normalize_scope(
             "playlist-read-private user-follow-read user-library-read"
         )
@@ -63,6 +62,7 @@ class SpotifyOAuth(SpotifyAuthBase):
             else MemoryCacheHandler()
         )
         self.cache_handler = cache_handler
+        self.state = state
         self.proxies = proxies
         self.requests_timeout = requests_timeout
 
@@ -256,8 +256,16 @@ class SpotifyOAuth(SpotifyAuthBase):
             token_info = response.json()
             token_info = self._add_custom_values_to_token_info(token_info)
             self.cache_handler.save_token_to_cache(token_info)
+            send_message(
+                bot=bot,
+                message=get_text("auth_success"),
+            )
             return token_info
         except requests.exceptions.HTTPError as http_error:
+            send_message(
+                bot=bot,
+                message=get_text("error_auth_failed"),
+            )
             self._handle_oauth_error(http_error)
 
     def refresh_access_token(self, refresh_token):

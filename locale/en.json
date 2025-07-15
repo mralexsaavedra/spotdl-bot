@@ -1,6 +1,7 @@
 {
   "auth_button_label": "Authorize with Spotify",
   "auth_request": "🔑 To download your Spotify content, you first need to authorize the bot to access your account.",
+  "auth_success": "✅ Authorization completed successfully.",
   "bot_description": "Use /start to see the menu.\n🎧 Ready to download music from Spotify!",
   "bot_started_title": "🚀 *SpotDL Bot started*",
   "bot_status_label": "🟢 *Status:* Active",
@@ -11,6 +12,7 @@
   "download_in_progress": "⏳ Downloading...",
   "download_prompt_url": "🔗 Please enter the Spotify URL of the song, album, artist, or playlist you want to download.",
   "error_admins_group_only": "⚠️ You can only specify multiple admins if the bot is used in a group (using the TELEGRAM_GROUP variable).",
+  "error_auth_failed": "❌ Failed to authenticate with Spotify. Please make sure you have authorized the bot correctly using the /authorize command.",
   "error_download_failed": "❌ An error occurred during the download. Check the bot logs for more details.",
   "error_generic": "❌ An unexpected error occurred. Please try again.",
   "error_sync_file_invalid": "⚠️ Sync file is invalid or corrupted.",
