@@ -574,44 +574,6 @@ class SpotifyDownloader:
         """
         return Path(create_file_name(song, output, fmt, restrict))
 
-    def download(self, bot: telebot.TeleBot, query: str) -> bool:
-        """
-        Downloads the content for the given Spotify query.
-        Sends messages to the user via the Telegram bot.
-
-        Args:
-            bot: The Telegram bot instance.
-            query: The Spotify URL or query to download.
-
-        Returns:
-            bool: True if download succeeded, False otherwise.
-        """
-        message_id = self._send_status_message(bot, get_text("download_in_progress"))
-        output_pattern = self._get_output_pattern(query=query)
-        downloader = None
-        try:
-            downloader = self._create_downloader()
-            downloader.settings["output"] = f"{DOWNLOAD_DIR}/{output_pattern}"
-            logger.info(f"Output pattern set to: {downloader.settings['output']}")
-
-            success = self._search_and_download(
-                downloader=downloader, query=query, output=downloader.settings["output"]
-            )
-            if not success:
-                logger.error(f"Failed to download songs for query: {query}")
-                send_message(bot=bot, message=get_text("error_download_failed"))
-                return False
-
-            send_message(bot=bot, message=get_text("download_finished"))
-            return True
-        except Exception as e:
-            logger.error(f"Download error for query '{query}': {str(e)}")
-            send_message(bot=bot, message=get_text("error_download_failed"))
-            return False
-        finally:
-            self._close_downloader(downloader)
-            self._delete_status_message(bot, message_id)
-
     def _remove_file(self, file: Path) -> None:
         """
         Safely remove a file and its .lrc if configured.
@@ -671,6 +633,44 @@ class SpotifyDownloader:
                     logger.error(f"Could not rename lrc file: {lrc_file}, error: {exc}")
             else:
                 logger.info(f"{lrc_file} does not exist.")
+
+    def download(self, bot: telebot.TeleBot, query: str) -> bool:
+        """
+        Downloads the content for the given Spotify query.
+        Sends messages to the user via the Telegram bot.
+
+        Args:
+            bot: The Telegram bot instance.
+            query: The Spotify URL or query to download.
+
+        Returns:
+            bool: True if download succeeded, False otherwise.
+        """
+        message_id = self._send_status_message(bot, get_text("download_in_progress"))
+        output_pattern = self._get_output_pattern(query=query)
+        downloader = None
+        try:
+            downloader = self._create_downloader()
+            downloader.settings["output"] = f"{DOWNLOAD_DIR}/{output_pattern}"
+            logger.info(f"Output pattern set to: {downloader.settings['output']}")
+
+            success = self._search_and_download(
+                downloader=downloader, query=query, output=downloader.settings["output"]
+            )
+            if not success:
+                logger.error(f"Failed to download songs for query: {query}")
+                send_message(bot=bot, message=get_text("error_download_failed"))
+                return False
+
+            send_message(bot=bot, message=get_text("download_finished"))
+            return True
+        except Exception as e:
+            logger.error(f"Download error for query '{query}': {str(e)}")
+            send_message(bot=bot, message=get_text("error_download_failed"))
+            return False
+        finally:
+            self._close_downloader(downloader)
+            self._delete_status_message(bot, message_id)
 
     def sync(self, bot: telebot.TeleBot) -> None:
         """
