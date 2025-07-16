@@ -363,6 +363,9 @@ class SpotifyDownloader:
     def _handle_track(
         self, query: str, songs: List[Song], images_to_download: list
     ) -> bool:
+        """
+        Handles Spotify track queries. Adds the track to songs and its image to images_to_download.
+        """
         song = Song.from_url(url=query)
         if not song:
             logger.warning(f"Track not found for query: {query}")
@@ -381,6 +384,9 @@ class SpotifyDownloader:
     def _handle_playlist(
         self, query: str, lists: List[SongList], images_to_download: list
     ) -> bool:
+        """
+        Handles Spotify playlist queries. Adds the playlist to lists and its image to images_to_download.
+        """
         playlist = Playlist.from_url(query, fetch_songs=False)
         lists.append(playlist)
         images_to_download.append(
@@ -394,6 +400,9 @@ class SpotifyDownloader:
     def _handle_album(
         self, query: str, lists: List[SongList], images_to_download: list
     ) -> bool:
+        """
+        Handles Spotify album queries. Adds the album to lists and its artist image to images_to_download.
+        """
         album = Album.from_url(query, fetch_songs=False)
         lists.append(album)
         artist_id = album.artist["id"]
@@ -414,6 +423,9 @@ class SpotifyDownloader:
     def _handle_artist(
         self, query: str, lists: List[SongList], images_to_download: list
     ) -> bool:
+        """
+        Handles Spotify artist queries. Adds the artist to lists and its image to images_to_download.
+        """
         artist = Artist.from_url(query, fetch_songs=False)
         lists.append(artist)
         image_url = self._get_largest_image(artist.images)
@@ -429,6 +441,9 @@ class SpotifyDownloader:
     def _handle_user_playlists(
         self, lists: List[SongList], images_to_download: list
     ) -> bool:
+        """
+        Handles user playlists queries. Adds all playlists to lists and their images to images_to_download.
+        """
         user_playlists = get_all_user_playlists()
         lists.extend(user_playlists)
         for playlist in user_playlists:
@@ -443,6 +458,9 @@ class SpotifyDownloader:
     def _handle_saved_playlists(
         self, lists: List[SongList], images_to_download: list
     ) -> bool:
+        """
+        Handles saved playlists queries. Adds all saved playlists to lists and their images to images_to_download.
+        """
         saved_playlists = get_all_saved_playlists()
         lists.extend(saved_playlists)
         for playlist in saved_playlists:
@@ -455,6 +473,9 @@ class SpotifyDownloader:
         return True
 
     def _handle_saved_albums(self, images_to_download: list) -> bool:
+        """
+        Handles saved albums queries. Adds artist images for all saved albums to images_to_download.
+        """
         saved_albums = get_user_saved_albums()
         for album in saved_albums:
             artist_id = album.artist["id"]
@@ -475,6 +496,9 @@ class SpotifyDownloader:
         return True
 
     def _handle_user_followed_artists(self, images_to_download: list) -> bool:
+        """
+        Handles user followed artists queries. Adds images for all followed artists to images_to_download.
+        """
         followed_artists = get_user_followed_artists()
         for artist in followed_artists:
             image_url = self._get_largest_image(artist.images)
@@ -488,6 +512,9 @@ class SpotifyDownloader:
         return True
 
     def _handle_saved(self, query: str, lists: List[SongList]) -> bool:
+        """
+        Handles saved tracks queries. Adds the saved tracks to lists.
+        """
         lists.append(Saved.from_url(query, fetch_songs=False))
         return True
 
@@ -498,7 +525,7 @@ class SpotifyDownloader:
         Returns the dispatch dictionary for Spotify query types.
         Each entry maps a query type to a tuple of (checker function, handler function).
         Args:
-            songs (List[Song): List to populate with Song objects.
+            songs (List[Song]): List to populate with Song objects.
             lists (List[SongList]): List to populate with SongList objects.
             images_to_download (list): List to populate with image download info.
         Returns:
@@ -556,7 +583,7 @@ class SpotifyDownloader:
         lists: List[SongList] = []
         images_to_download = []
 
-        logger.info(f"Procesando query: {query}")
+        logger.info(f"Processing query: {query}")
         query = self.__normalize_query_url(query)
 
         dispatch = self._get_dispatch_dict(songs, lists, images_to_download)
@@ -568,25 +595,23 @@ class SpotifyDownloader:
                     handled = handler_fn(query)
                     break
             if not handled:
-                logger.warning(
-                    f"Tipo de query no soportado para guardar imágenes: {query}"
-                )
+                logger.warning(f"Unsupported query type for image saving: {query}")
                 return False
 
             songs = self._populate_songs_from_lists(lists)
 
-            # Filtrar canciones por tipo de álbum si aplica
+            # Filter songs by album type if specified
             original_length = len(songs)
             album_type = DOWNLOADER_OPTIONS["album_type"]
             if album_type:
                 songs = [song for song in songs if song.album_type == album_type]
                 logger.info(
-                    f"Omitidas {(original_length - len(songs))} canciones por tipo de álbum {album_type}"
+                    f"Skipped {(original_length - len(songs))} songs for Album Type {album_type}"
                 )
 
-            logger.debug(f"Encontradas {len(songs)} canciones en {len(lists)} listas")
+            logger.debug(f"Found {len(songs)} songs in {len(lists)} lists")
             if not songs:
-                logger.error("No hay canciones para descargar.")
+                logger.error("No songs to download.")
                 return False
 
             self._download_images(images=images_to_download)
@@ -601,7 +626,7 @@ class SpotifyDownloader:
             )
             self._gen_m3u_files(songs=songs, query=query)
         except Exception as e:
-            logger.error(f"Error de descarga para el query '{query}': {str(e)}")
+            logger.error(f"Download error for query '{query}': {str(e)}")
             return False
         return True
 
