@@ -1,0 +1,70 @@
+name: Bump config.py Version
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  version-release:
+    runs-on: ubuntu-latest
+    if: ${{ github.ref == 'refs/heads/main' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Get previous commit version
+        id: prev_version
+        run: |
+          import re, subprocess
+          path = 'config/config.py'
+          prev = subprocess.check_output(['git', 'show', 'HEAD^:config/config.py'], text=True)
+          match = re.search(r'VERSION\s*=\s*["\'](\d+\.\d+\.\d+)["\']', prev)
+          if match:
+              print(f"::set-output name=version::{match.group(1)}")
+          else:
+              print("VERSION not found")
+        shell: python
+      - name: Get current version from config.py
+        id: curr_version
+        run: |
+          import re
+          with open('config/config.py') as f:
+              content = f.read()
+          match = re.search(r'VERSION\s*=\s*["\'](\d+\.\d+\.\d+)["\']', content)
+          if match:
+              print(f"::set-output name=version::{match.group(1)}")
+          else:
+              print("VERSION not found")
+        shell: python
+      - name: Get changelog message
+        id: changelog
+        run: |
+          with open('CHANGELOG.md', 'r') as f:
+              lines = f.readlines()
+          # Busca la última sección de cambios (asume formato: ## vX.Y.Z)
+          version = '${{ steps.curr_version.outputs.version }}'
+          start = None
+          for i, line in enumerate(lines):
+              if line.strip().startswith(f'## v{version}'):
+                  start = i
+                  break
+          if start is not None:
+              body_lines = []
+              for line in lines[start+1:]:
+                  if line.strip().startswith('## v'):
+                      break
+                  body_lines.append(line)
+              body = ''.join(body_lines).strip()
+              print(f'::set-output name=body::{body}')
+          else:
+              print('::set-output name=body::No changelog entry found for this version.')
+        shell: python
+      - name: Create Release if version changed
+        if: steps.prev_version.outputs.version != steps.curr_version.outputs.version
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.curr_version.outputs.version }}
+          name: v${{ steps.curr_version.outputs.version }}
+          body: ${{ steps.changelog.outputs.body }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
