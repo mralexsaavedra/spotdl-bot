@@ -361,10 +361,16 @@ class SpotifyDownloader:
         return songs
 
     def _handle_track(
-        self, query: str, songs: List[Song], images_to_download: list
+        self, query: str, songs: List[Song], images_to_download: List[dict]
     ) -> bool:
         """
         Handles Spotify track queries. Adds the track to songs and its image to images_to_download.
+        Args:
+            query (str): Spotify query or URL.
+            songs (List[Song]): List of Song objects.
+            images_to_download (List[dict]): List of dicts with 'list_name' and 'image_url'.
+        Returns:
+            bool: True if added successfully, False otherwise.
         """
         song = Song.from_url(url=query)
         if not song:
@@ -382,10 +388,16 @@ class SpotifyDownloader:
         return True
 
     def _handle_playlist(
-        self, query: str, lists: List[SongList], images_to_download: list
+        self, query: str, lists: List[SongList], images_to_download: List[dict]
     ) -> bool:
         """
         Handles Spotify playlist queries. Adds the playlist to lists and its image to images_to_download.
+        Args:
+            query (str): Spotify query or URL.
+            lists (List[SongList]): List of SongList objects.
+            images_to_download (List[dict]): List of dicts with 'list_name' and 'image_url'.
+        Returns:
+            bool: True if added successfully, False otherwise.
         """
         playlist = Playlist.from_url(query, fetch_songs=False)
         lists.append(playlist)
@@ -398,10 +410,16 @@ class SpotifyDownloader:
         return True
 
     def _handle_album(
-        self, query: str, lists: List[SongList], images_to_download: list
+        self, query: str, lists: List[SongList], images_to_download: List[dict]
     ) -> bool:
         """
-        Handles Spotify album queries. Adds the album to lists and its artist image to images_to_download.
+        Handles Spotify album queries. Adds the album to lists and the artist's image to images_to_download.
+        Args:
+            query (str): Spotify query or URL.
+            lists (List[SongList]): List of SongList objects.
+            images_to_download (List[dict]): List of dicts with 'list_name' and 'image_url'.
+        Returns:
+            bool: True if added successfully, False otherwise.
         """
         album = Album.from_url(query, fetch_songs=False)
         lists.append(album)
@@ -421,10 +439,16 @@ class SpotifyDownloader:
         return True
 
     def _handle_artist(
-        self, query: str, lists: List[SongList], images_to_download: list
+        self, query: str, lists: List[SongList], images_to_download: List[dict]
     ) -> bool:
         """
         Handles Spotify artist queries. Adds the artist to lists and its image to images_to_download.
+        Args:
+            query (str): Spotify query or URL.
+            lists (List[SongList]): List of SongList objects.
+            images_to_download (List[dict]): List of dicts with 'list_name' and 'image_url'.
+        Returns:
+            bool: True if added successfully, False otherwise.
         """
         artist = Artist.from_url(query, fetch_songs=False)
         lists.append(artist)
@@ -439,10 +463,15 @@ class SpotifyDownloader:
         return True
 
     def _handle_user_playlists(
-        self, lists: List[SongList], images_to_download: list
+        self, lists: List[SongList], images_to_download: List[dict]
     ) -> bool:
         """
         Handles user playlists queries. Adds all playlists to lists and their images to images_to_download.
+        Args:
+            lists (List[SongList]): List of SongList objects.
+            images_to_download (List[dict]): List of dicts with 'list_name' and 'image_url'.
+        Returns:
+            bool: True if added successfully, False otherwise.
         """
         user_playlists = get_all_user_playlists()
         lists.extend(user_playlists)
@@ -456,10 +485,15 @@ class SpotifyDownloader:
         return True
 
     def _handle_saved_playlists(
-        self, lists: List[SongList], images_to_download: list
+        self, lists: List[SongList], images_to_download: List[dict]
     ) -> bool:
         """
         Handles saved playlists queries. Adds all saved playlists to lists and their images to images_to_download.
+        Args:
+            lists (List[SongList]): List of SongList objects.
+            images_to_download (List[dict]): List of dicts with 'list_name' and 'image_url'.
+        Returns:
+            bool: True if added successfully, False otherwise.
         """
         saved_playlists = get_all_saved_playlists()
         lists.extend(saved_playlists)
@@ -472,9 +506,13 @@ class SpotifyDownloader:
             )
         return True
 
-    def _handle_saved_albums(self, images_to_download: list) -> bool:
+    def _handle_saved_albums(self, images_to_download: List[dict]) -> bool:
         """
         Handles saved albums queries. Adds artist images for all saved albums to images_to_download.
+        Args:
+            images_to_download (List[dict]): List of dicts with 'list_name' and 'image_url'.
+        Returns:
+            bool: True if added successfully, False otherwise.
         """
         saved_albums = get_user_saved_albums()
         for album in saved_albums:
@@ -495,9 +533,13 @@ class SpotifyDownloader:
                 )
         return True
 
-    def _handle_user_followed_artists(self, images_to_download: list) -> bool:
+    def _handle_user_followed_artists(self, images_to_download: List[dict]) -> bool:
         """
         Handles user followed artists queries. Adds images for all followed artists to images_to_download.
+        Args:
+            images_to_download (List[dict]): List of dicts with 'list_name' and 'image_url'.
+        Returns:
+            bool: True if added successfully, False otherwise.
         """
         followed_artists = get_user_followed_artists()
         for artist in followed_artists:
