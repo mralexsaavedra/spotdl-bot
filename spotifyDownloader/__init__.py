@@ -617,7 +617,7 @@ class SpotifyDownloader:
             "saved": (self._is_spotify_saved, lambda q: self._handle_saved(q, lists)),
         }
 
-    def _get_user_followed_artists() -> List[Artist]:
+    def _get_user_followed_artists(self) -> List[Artist]:
         """
         Get all user playlists
 
