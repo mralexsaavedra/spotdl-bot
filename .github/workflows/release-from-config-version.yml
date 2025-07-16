@@ -33,6 +33,20 @@ jobs:
               print("VERSION not found")
         shell: python
 
+      - name: Get previous release version
+        id: prev_version
+        run: |
+          import re, subprocess
+          try:
+              tags = subprocess.check_output(['git', 'tag', '--sort=-creatordate'], text=True).splitlines()
+              latest_tag = next((t for t in tags if re.match(r'^v\d+\.\d+\.\d+$', t)), None)
+              if latest_tag:
+                  print(f"::set-output name=tag::{latest_tag[1:]}")
+              else:
+                  print("::set-output name=tag::")
+          except Exception:
+              print("::set-output name=tag::")
+
       - name: Get changelog message
         id: changelog
         run: |
@@ -58,7 +72,7 @@ jobs:
         shell: python
         
       - name: Create Release if version changed
-        if: steps.release_tag.outputs.tag != steps.curr_version.outputs.version
+        if: steps.prev_version.outputs.tag != steps.curr_version.outputs.version
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ steps.curr_version.outputs.version }}
