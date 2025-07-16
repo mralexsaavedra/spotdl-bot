@@ -495,7 +495,14 @@ class SpotifyDownloader:
         self, songs: List[Song], lists: List[SongList], images_to_download: list
     ):
         """
-        Retorna el diccionario de despacho para los tipos de query de Spotify.
+        Returns the dispatch dictionary for Spotify query types.
+        Each entry maps a query type to a tuple of (checker function, handler function).
+        Args:
+            songs (List[Song): List to populate with Song objects.
+            lists (List[SongList]): List to populate with SongList objects.
+            images_to_download (list): List to populate with image download info.
+        Returns:
+            dict: Dispatch dictionary for query handling.
         """
         return {
             "track": (
@@ -537,7 +544,13 @@ class SpotifyDownloader:
         self, downloader: Downloader, query: str, output: str
     ) -> bool:
         """
-        Busca contenido de Spotify según el query y lo descarga usando un dispatch dict modular.
+        Searches for Spotify content based on the query and downloads it using a modular dispatch dictionary.
+        Args:
+            downloader (Downloader): SpotDL Downloader instance.
+            query (str): Spotify URL or query to process.
+            output (str): Output path pattern for downloads.
+        Returns:
+            bool: True if download succeeded, False otherwise.
         """
         songs: List[Song] = []
         lists: List[SongList] = []
