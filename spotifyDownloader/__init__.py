@@ -307,13 +307,13 @@ class SpotifyDownloader:
             logger.warning(f"Error selecting largest image: {e}")
             return None
 
-    def _download_images(self, images: list) -> None:
+    def _download_images(self, images_to_download: list) -> None:
         """
         Downloads images from the provided list of image URLs.
         Args:
             images (list): List of dictionaries containing 'image_url' and 'list_name'.
         """
-        for item in images:
+        for item in images_to_download:
             list_name = item["list_name"]
             image_url = item["image_url"]
             if not image_url:
@@ -614,7 +614,7 @@ class SpotifyDownloader:
                 logger.error("No songs to download.")
                 return False
 
-            self._download_images(images=images_to_download)
+            self._download_images(images_to_download)
             downloader.download_multiple_songs(songs)
             self._update_sync_file(
                 {
