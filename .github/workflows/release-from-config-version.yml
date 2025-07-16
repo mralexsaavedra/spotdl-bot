@@ -73,7 +73,7 @@ jobs:
           else:
               novedades = '_No changelog entry found for this version._'
           # body = title + novedades_title + novedades + docker_title + docker_cmds
-          body = f"{title}{novedades_title}{novedades}{docker_title}{docker_cmds}"
+          body = "Esto es una prueba\n\n que pasa aqui\n hola que tal"
           print(f'::set-output name=body::{body}')
         shell: python
         
