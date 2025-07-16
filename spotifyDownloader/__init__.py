@@ -473,32 +473,7 @@ class SpotifyDownloader:
             )
 
             for index, song in enumerate(song_list.songs):
-                song_data = song.json
-                song_data["list_name"] = song_list.name
-                song_data["list_url"] = song_list.url
-                song_data["list_position"] = song.list_position
-                song_data["list_length"] = song_list.length
-
-                if DOWNLOADER_OPTIONS["playlist_numbering"]:
-                    song_data["track_number"] = song_data["list_position"]
-                    song_data["tracks_count"] = song_data["list_length"]
-                    song_data["album_name"] = song_data["list_name"]
-                    song_data["disc_number"] = 1
-                    song_data["disc_count"] = 1
-                    if isinstance(song_list, Playlist):
-                        song_data["album_artist"] = song_list.author_name
-                        song_data["cover_url"] = song_list.cover_url
-
-                if DOWNLOADER_OPTIONS["playlist_retain_track_cover"]:
-                    song_data["track_number"] = song_data["list_position"]
-                    song_data["tracks_count"] = song_data["list_length"]
-                    song_data["album_name"] = song_data["list_name"]
-                    song_data["disc_number"] = 1
-                    song_data["disc_count"] = 1
-                    song_data["cover_url"] = song_data["cover_url"]
-                    if isinstance(song_list, Playlist):
-                        song_data["album_artist"] = song_list.author_name
-
+                song_data = self._build_song_data(song, song_list)
                 songs.append(Song.from_dict(song_data))
 
         # removing songs for --ignore-albums
@@ -633,6 +608,40 @@ class SpotifyDownloader:
                     logger.error(f"Could not rename lrc file: {lrc_file}, error: {exc}")
             else:
                 logger.info(f"{lrc_file} does not exist.")
+
+    def _build_song_data(self, song, song_list):
+        """
+        Construye el diccionario de metadatos para una canción según la lista y configuración.
+        Args:
+            song (Song): La canción original.
+            song_list (SongList): La lista a la que pertenece la canción.
+        Returns:
+            dict: Diccionario de metadatos para Song.from_dict.
+        """
+        song_data = song.json.copy()
+        song_data["list_name"] = song_list.name
+        song_data["list_url"] = song_list.url
+        song_data["list_position"] = song.list_position
+        song_data["list_length"] = song_list.length
+        if DOWNLOADER_OPTIONS["playlist_numbering"]:
+            song_data["track_number"] = song_data["list_position"]
+            song_data["tracks_count"] = song_data["list_length"]
+            song_data["album_name"] = song_data["list_name"]
+            song_data["disc_number"] = 1
+            song_data["disc_count"] = 1
+            if isinstance(song_list, Playlist):
+                song_data["album_artist"] = song_list.author_name
+                song_data["cover_url"] = song_list.cover_url
+        if DOWNLOADER_OPTIONS["playlist_retain_track_cover"]:
+            song_data["track_number"] = song_data["list_position"]
+            song_data["tracks_count"] = song_data["list_length"]
+            song_data["album_name"] = song_data["list_name"]
+            song_data["disc_number"] = 1
+            song_data["disc_count"] = 1
+            song_data["cover_url"] = song_data["cover_url"]
+            if isinstance(song_list, Playlist):
+                song_data["album_artist"] = song_list.author_name
+        return song_data
 
     def download(self, bot: telebot.TeleBot, query: str) -> bool:
         """
