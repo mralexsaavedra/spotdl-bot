@@ -19,12 +19,11 @@ import telebot
 from loguru import logger
 from spotdl.utils.config import DEFAULT_CONFIG, DOWNLOADER_OPTIONS
 from spotdl.download.downloader import Downloader
-from spotdl.utils.spotify import SpotifyClient
+from spotdl.utils.spotify import SpotifyClient, SpotifyError
 from spotdl.utils.m3u import create_m3u_content
 from spotdl.utils.search import (
     get_all_user_playlists,
     get_user_saved_albums,
-    get_user_followed_artists,
     get_all_saved_playlists,
 )
 from spotdl.utils.formatter import create_file_name
@@ -506,7 +505,9 @@ class SpotifyDownloader:
             )
         return True
 
-    def _handle_saved_albums(self, images_to_download: List[dict]) -> bool:
+    def _handle_saved_albums(
+        self, lists: List[SongList], images_to_download: List[dict]
+    ) -> bool:
         """
         Handles saved albums queries. Adds artist images for all saved albums to images_to_download.
         Args:
@@ -515,6 +516,7 @@ class SpotifyDownloader:
             bool: True if added successfully, False otherwise.
         """
         saved_albums = get_user_saved_albums()
+        lists.extend(saved_albums)
         for album in saved_albums:
             artist_id = album.artist["id"]
             if not artist_id:
@@ -533,7 +535,9 @@ class SpotifyDownloader:
                 )
         return True
 
-    def _handle_user_followed_artists(self, images_to_download: List[dict]) -> bool:
+    def _handle_user_followed_artists(
+        self, lists: List[SongList], images_to_download: List[dict]
+    ) -> bool:
         """
         Handles user followed artists queries. Adds images for all followed artists to images_to_download.
         Args:
@@ -541,7 +545,8 @@ class SpotifyDownloader:
         Returns:
             bool: True if added successfully, False otherwise.
         """
-        followed_artists = get_user_followed_artists()
+        followed_artists = self._get_user_followed_artists()
+        lists.extend(followed_artists)
         for artist in followed_artists:
             image_url = self._get_largest_image(artist.images)
             if image_url:
@@ -600,14 +605,48 @@ class SpotifyDownloader:
             ),
             "saved_albums": (
                 self._is_spotify_saved_albums,
-                lambda q: self._handle_saved_albums(images_to_download),
+                lambda q: self._handle_saved_albums(lists, images_to_download),
             ),
             "user_followed_artists": (
                 self._is_spotify_user_followed_artists,
-                lambda q: self._handle_user_followed_artists(images_to_download),
+                lambda q: self._handle_user_followed_artists(lists, images_to_download),
             ),
             "saved": (self._is_spotify_saved, lambda q: self._handle_saved(q, lists)),
         }
+
+    def _get_user_followed_artists() -> List[Artist]:
+        """
+        Get all user playlists
+
+        ### Returns
+        - List of all user playlists
+        """
+        spotify_client = SpotifyClient()
+        if spotify_client.user_auth is False:  # type: ignore
+            raise SpotifyError("You must be logged in to use this function")
+
+        user_followed_response = spotify_client.current_user_followed_artists()
+        if user_followed_response is None:
+            raise SpotifyError("Couldn't get user followed artists")
+
+        user_followed_response = user_followed_response["artists"]
+        user_followed = user_followed_response["items"]
+
+        # Fetch all artists
+        while user_followed_response and user_followed_response["next"]:
+            response = spotify_client.next(user_followed_response)
+            if response is None:
+                break
+
+            user_followed_response = response["artists"]
+            user_followed.extend(user_followed_response["items"])
+
+        return [
+            Artist.from_url(
+                followed_artist["external_urls"]["spotify"], fetch_songs=False
+            )
+            for followed_artist in user_followed
+        ]
 
     def _search_and_download(
         self, downloader: Downloader, query: str, output: str
