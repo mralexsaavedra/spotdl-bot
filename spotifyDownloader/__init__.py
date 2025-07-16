@@ -332,6 +332,16 @@ class SpotifyDownloader:
             except Exception as e:
                 logger.error(f"Error saving image for {list_name}: {e}")
 
+    def __normalize_query_url(self, query: str) -> str:
+        """
+        Normalizes the Spotify query URL by removing any /intl-xxx/ segments.
+        Args:
+            query (str): The Spotify URL or query to normalize.
+        Returns:
+            str: The normalized query URL.
+        """
+        return re.sub(r"\/intl-\w+\/", "/", query)
+
     def _search_and_download(
         self, downloader: Downloader, query: str, output: str
     ) -> bool:
@@ -344,8 +354,7 @@ class SpotifyDownloader:
 
         logger.info(f"Processing query: {query}")
 
-        # Remove /intl-xxx/ from Spotify URLs with regex
-        query = re.sub(r"\/intl-\w+\/", "/", query)
+        query = self.__normalize_query_url(query)
 
         if self._is_spotify_track(query):
             song = Song.from_url(url=query)
