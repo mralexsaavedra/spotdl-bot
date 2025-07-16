@@ -491,20 +491,13 @@ class SpotifyDownloader:
         lists.append(Saved.from_url(query, fetch_songs=False))
         return True
 
-    def _search_and_download(
-        self, downloader: Downloader, query: str, output: str
-    ) -> bool:
+    def _get_dispatch_dict(
+        self, songs: List[Song], lists: List[SongList], images_to_download: list
+    ):
         """
-        Searches for Spotify content based on the query and downloads it using a dispatch dictionary.
+        Retorna el diccionario de despacho para los tipos de query de Spotify.
         """
-        songs: List[Song] = []
-        lists: List[SongList] = []
-        images_to_download = []
-
-        logger.info(f"Processing query: {query}")
-        query = self.__normalize_query_url(query)
-
-        dispatch = {
+        return {
             "track": (
                 self._is_spotify_track,
                 lambda q: self._handle_track(q, songs, images_to_download),
@@ -540,6 +533,21 @@ class SpotifyDownloader:
             "saved": (self._is_spotify_saved, lambda q: self._handle_saved(q, lists)),
         }
 
+    def _search_and_download(
+        self, downloader: Downloader, query: str, output: str
+    ) -> bool:
+        """
+        Busca contenido de Spotify según el query y lo descarga usando un dispatch dict modular.
+        """
+        songs: List[Song] = []
+        lists: List[SongList] = []
+        images_to_download = []
+
+        logger.info(f"Procesando query: {query}")
+        query = self.__normalize_query_url(query)
+
+        dispatch = self._get_dispatch_dict(songs, lists, images_to_download)
+
         handled = False
         try:
             for key, (check_fn, handler_fn) in dispatch.items():
@@ -547,23 +555,25 @@ class SpotifyDownloader:
                     handled = handler_fn(query)
                     break
             if not handled:
-                logger.warning(f"Unsupported query type for image saving: {query}")
+                logger.warning(
+                    f"Tipo de query no soportado para guardar imágenes: {query}"
+                )
                 return False
 
             songs = self._populate_songs_from_lists(lists)
 
-            # removing songs for --ignore-albums
+            # Filtrar canciones por tipo de álbum si aplica
             original_length = len(songs)
             album_type = DOWNLOADER_OPTIONS["album_type"]
             if album_type:
                 songs = [song for song in songs if song.album_type == album_type]
                 logger.info(
-                    f"Skipped {(original_length - len(songs))} songs for Album Type {album_type}"
+                    f"Omitidas {(original_length - len(songs))} canciones por tipo de álbum {album_type}"
                 )
 
-            logger.debug(f"Found {len(songs)} songs in {len(lists)} lists")
+            logger.debug(f"Encontradas {len(songs)} canciones en {len(lists)} listas")
             if not songs:
-                logger.error("No songs to download.")
+                logger.error("No hay canciones para descargar.")
                 return False
 
             self._download_images(images=images_to_download)
@@ -578,7 +588,7 @@ class SpotifyDownloader:
             )
             self._gen_m3u_files(songs=songs, query=query)
         except Exception as e:
-            logger.error(f"Download error for query '{query}': {str(e)}")
+            logger.error(f"Error de descarga para el query '{query}': {str(e)}")
             return False
         return True
 
