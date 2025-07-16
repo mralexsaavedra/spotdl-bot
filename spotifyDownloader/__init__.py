@@ -306,7 +306,7 @@ class SpotifyDownloader:
             logger.warning(f"Error selecting largest image: {e}")
             return None
 
-    def _download_images(self, images_to_download: list) -> None:
+    def _download_images(self, images_to_download: List[dict]) -> None:
         """
         Downloads images from the provided list of image URLs.
         Args:
@@ -319,6 +319,9 @@ class SpotifyDownloader:
                 logger.warning(f"No image URL for {list_name}, skipping.")
                 continue
             image_path = Path(f"{DOWNLOAD_DIR}/{list_name}/cover.jpg")
+            image_dir = image_path.parent
+            if not image_dir.exists():
+                image_dir.mkdir(parents=True, exist_ok=True)
             if image_path.exists():
                 logger.info(f"Image already exists, skipping download: {image_path}")
                 continue
@@ -341,7 +344,9 @@ class SpotifyDownloader:
         """
         return re.sub(r"\/intl-\w+\/", "/", query)
 
-    def _populate_songs_from_lists(self, lists: List[SongList]) -> List[Song]:
+    def _populate_songs_from_lists(
+        self, songs: List[Song], lists: List[SongList]
+    ) -> List[Song]:
         """
         Populates and returns a list of Song objects from the provided SongList objects.
         Args:
@@ -349,7 +354,6 @@ class SpotifyDownloader:
         Returns:
             List[Song]: List of Song objects.
         """
-        songs: List[Song] = []
         for song_list in lists:
             logger.info(
                 f"Found {len(song_list.urls)} songs in {song_list.name} ({song_list.__class__.__name__})"
@@ -357,7 +361,6 @@ class SpotifyDownloader:
             for index, song in enumerate(song_list.songs):
                 song_data = self._build_song_data(song, song_list)
                 songs.append(Song.from_dict(song_data))
-        return songs
 
     def _handle_track(
         self, query: str, songs: List[Song], images_to_download: List[dict]
@@ -679,7 +682,7 @@ class SpotifyDownloader:
                 logger.warning(f"Unsupported query type for image saving: {query}")
                 return False
 
-            songs = self._populate_songs_from_lists(lists)
+            self._populate_songs_from_lists(songs, lists)
 
             # Filter songs by album type if specified
             original_length = len(songs)
