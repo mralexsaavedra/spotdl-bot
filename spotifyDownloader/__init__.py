@@ -620,12 +620,12 @@ class SpotifyDownloader:
 
     def _build_song_data(self, song, song_list):
         """
-        Construye el diccionario de metadatos para una canción según la lista y configuración.
+        Builds the metadata dictionary for a song according to its list and configuration.
         Args:
-            song (Song): La canción original.
-            song_list (SongList): La lista a la que pertenece la canción.
+            song (Song): The original song object.
+            song_list (SongList): The list to which the song belongs.
         Returns:
-            dict: Diccionario de metadatos para Song.from_dict.
+            dict: Metadata dictionary for Song.from_dict.
         """
         song_data = song.json.copy()
         song_data["list_name"] = song_list.name
