@@ -52,7 +52,6 @@ jobs:
         run: |
           with open('CHANGELOG.md', 'r') as f:
               lines = f.readlines()
-          # Busca la última sección de cambios (asume formato: ## vX.Y.Z)
           version = '${{ steps.curr_version.outputs.version }}'
           start = None
           for i, line in enumerate(lines):
@@ -64,8 +63,12 @@ jobs:
               for line in lines[start+1:]:
                   if line.strip().startswith('## v'):
                       break
-                  body_lines.append(line)
-              body = ''.join(body_lines).strip()
+                  body_lines.append(line.rstrip())
+              title = f"# 🆕 SpotDL Bot v{version}\n"
+              novedades_title = "## 🚀 Novedades\n"
+              docker_title = "\n## 🐳 Docker\n"
+              docker_cmds = f"\n```bash\ndocker pull mralexandersaavedra/spotdl-bot:{version}\ndocker pull mralexandersaavedra/spotdl-bot:latest\n```\n"
+              body = title + novedades_title + '\n'.join(body_lines).strip() + docker_title + docker_cmds
               print(f'::set-output name=body::{body}')
           else:
               print('::set-output name=body::No changelog entry found for this version.')
