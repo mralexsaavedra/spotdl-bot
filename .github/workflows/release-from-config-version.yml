@@ -16,13 +16,15 @@ jobs:
         id: prev_version
         run: |
           import re, subprocess
-          path = 'config/config.py'
-          prev = subprocess.check_output(['git', 'show', 'HEAD^:config/config.py'], text=True)
-          match = re.search(r'VERSION\s*=\s*["\'](\d+\.\d+\.\d+)["\']', prev)
-          if match:
-              print(f"::set-output name=version::{match.group(1)}")
-          else:
-              print("VERSION not found")
+          try:
+              prev = subprocess.check_output(['git', 'show', 'HEAD^:config/config.py'], text=True)
+              match = re.search(r'VERSION\s*=\s*["\'](\d+\.\d+\.\d+)["\']', prev)
+              if match:
+                  print(f"::set-output name=version::{match.group(1)}")
+              else:
+                  print("::set-output name=version::")
+          except Exception:
+              print("::set-output name=version::")
         shell: python
       - name: Get current version from config.py
         id: curr_version
