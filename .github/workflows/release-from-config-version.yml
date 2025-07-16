@@ -46,6 +46,7 @@ jobs:
                   print("::set-output name=tag::")
           except Exception:
               print("::set-output name=tag::")
+        shell: python
 
       - name: Get changelog message
         id: changelog
