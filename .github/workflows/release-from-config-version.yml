@@ -72,7 +72,8 @@ jobs:
               novedades = '\n'.join(body_lines).strip()
           else:
               novedades = '_No changelog entry found for this version._'
-          body = title + novedades_title + novedades + docker_title + docker_cmds
+          # body = title + novedades_title + novedades + docker_title + docker_cmds
+          body = f"{title}{novedades_title}{novedades}{docker_title}{docker_cmds}"
           print(f'::set-output name=body::{body}')
         shell: python
         
