@@ -360,6 +360,137 @@ class SpotifyDownloader:
                 songs.append(Song.from_dict(song_data))
         return songs
 
+    def _handle_track(
+        self, query: str, songs: List[Song], images_to_download: list
+    ) -> bool:
+        song = Song.from_url(url=query)
+        if not song:
+            logger.warning(f"Track not found for query: {query}")
+            return False
+        songs.append(song)
+        image_url = self._get_largest_image(song.artist.get("images", []))
+        if image_url:
+            images_to_download.append(
+                {
+                    "list_name": song.artist["name"],
+                    "image_url": image_url,
+                }
+            )
+        return True
+
+    def _handle_playlist(
+        self, query: str, lists: List[SongList], images_to_download: list
+    ) -> bool:
+        playlist = Playlist.from_url(query, fetch_songs=False)
+        lists.append(playlist)
+        images_to_download.append(
+            {
+                "list_name": f"Playlists/{playlist.name}",
+                "image_url": playlist.cover_url,
+            }
+        )
+        return True
+
+    def _handle_album(
+        self, query: str, lists: List[SongList], images_to_download: list
+    ) -> bool:
+        album = Album.from_url(query, fetch_songs=False)
+        lists.append(album)
+        artist_id = album.artist["id"]
+        artist = Artist.from_url(artist_id, fetch_songs=False)
+        if not artist:
+            logger.warning(f"Artist not found for album: {album.name}")
+            return False
+        image_url = self._get_largest_image(artist.images)
+        if image_url:
+            images_to_download.append(
+                {
+                    "list_name": artist.name,
+                    "image_url": image_url,
+                }
+            )
+        return True
+
+    def _handle_artist(
+        self, query: str, lists: List[SongList], images_to_download: list
+    ) -> bool:
+        artist = Artist.from_url(query, fetch_songs=False)
+        lists.append(artist)
+        image_url = self._get_largest_image(artist.images)
+        if image_url:
+            images_to_download.append(
+                {
+                    "list_name": artist.name,
+                    "image_url": image_url,
+                }
+            )
+        return True
+
+    def _handle_user_playlists(
+        self, lists: List[SongList], images_to_download: list
+    ) -> bool:
+        user_playlists = get_all_user_playlists()
+        lists.extend(user_playlists)
+        for playlist in user_playlists:
+            images_to_download.append(
+                {
+                    "list_name": f"Playlists/{playlist.name}",
+                    "image_url": playlist.cover_url,
+                }
+            )
+        return True
+
+    def _handle_saved_playlists(
+        self, lists: List[SongList], images_to_download: list
+    ) -> bool:
+        saved_playlists = get_all_saved_playlists()
+        lists.extend(saved_playlists)
+        for playlist in saved_playlists:
+            images_to_download.append(
+                {
+                    "list_name": f"Playlists/{playlist.name}",
+                    "image_url": playlist.cover_url,
+                }
+            )
+        return True
+
+    def _handle_saved_albums(self, images_to_download: list) -> bool:
+        saved_albums = get_user_saved_albums()
+        for album in saved_albums:
+            artist_id = album.artist["id"]
+            if not artist_id:
+                continue
+            artist = Artist.from_url(artist_id, fetch_songs=False)
+            if not artist:
+                logger.warning(f"Artist not found for album: {album.name}")
+                continue
+            image_url = self._get_largest_image(artist.images)
+            if image_url:
+                images_to_download.append(
+                    {
+                        "list_name": artist.name,
+                        "image_url": image_url,
+                    }
+                )
+        return True
+
+    def _handle_user_followed_artists(self, images_to_download: list) -> bool:
+        followed_artists = get_user_followed_artists()
+        for artist in followed_artists:
+            image_url = self._get_largest_image(artist.images)
+            if image_url:
+                images_to_download.append(
+                    {
+                        "list_name": artist.name,
+                        "image_url": image_url,
+                    }
+                )
+        return True
+
+    def _handle_saved(self, query: str, lists: List[SongList]) -> bool:
+        lists.append(Saved.from_url(query, fetch_songs=False))
+        return True
+
     def _search_and_download(
         self, downloader: Downloader, query: str, output: str
     ) -> bool:
@@ -373,148 +504,47 @@ class SpotifyDownloader:
         logger.info(f"Processing query: {query}")
         query = self.__normalize_query_url(query)
 
-        def handle_track():
-            song = Song.from_url(url=query)
-            if not song:
-                logger.warning(f"Track not found for query: {query}")
-                return False
-            songs.append(song)
-            image_url = self._get_largest_image(song.artist.get("images", []))
-            if image_url:
-                images_to_download.append(
-                    {
-                        "list_name": song.artist["name"],
-                        "image_url": image_url,
-                    }
-                )
-            return True
-
-        def handle_playlist():
-            playlist = Playlist.from_url(query, fetch_songs=False)
-            lists.append(playlist)
-            images_to_download.append(
-                {
-                    "list_name": f"Playlists/{playlist.name}",
-                    "image_url": playlist.cover_url,
-                }
-            )
-            return True
-
-        def handle_album():
-            album = Album.from_url(query, fetch_songs=False)
-            lists.append(album)
-            artist_id = album.artist["id"]
-            artist = Artist.from_url(artist_id, fetch_songs=False)
-            if not artist:
-                logger.warning(f"Artist not found for album: {album.name}")
-                return False
-            image_url = self._get_largest_image(artist.images)
-            if image_url:
-                images_to_download.append(
-                    {
-                        "list_name": artist.name,
-                        "image_url": image_url,
-                    }
-                )
-            return True
-
-        def handle_artist():
-            artist = Artist.from_url(query, fetch_songs=False)
-            lists.append(artist)
-            image_url = self._get_largest_image(artist.images)
-            if image_url:
-                images_to_download.append(
-                    {
-                        "list_name": artist.name,
-                        "image_url": image_url,
-                    }
-                )
-            return True
-
-        def handle_user_playlists():
-            user_playlists = get_all_user_playlists()
-            lists.extend(user_playlists)
-            for playlist in user_playlists:
-                images_to_download.append(
-                    {
-                        "list_name": f"Playlists/{playlist.name}",
-                        "image_url": playlist.cover_url,
-                    }
-                )
-            return True
-
-        def handle_saved_playlists():
-            saved_playlists = get_all_saved_playlists()
-            lists.extend(saved_playlists)
-            for playlist in saved_playlists:
-                images_to_download.append(
-                    {
-                        "list_name": f"Playlists/{playlist.name}",
-                        "image_url": playlist.cover_url,
-                    }
-                )
-            return True
-
-        def handle_saved_albums():
-            saved_albums = get_user_saved_albums()
-            for album in saved_albums:
-                artist_id = album.artist["id"]
-                if not artist_id:
-                    continue
-                artist = Artist.from_url(artist_id, fetch_songs=False)
-                if not artist:
-                    logger.warning(f"Artist not found for album: {album.name}")
-                    continue
-                image_url = self._get_largest_image(artist.images)
-                if image_url:
-                    images_to_download.append(
-                        {
-                            "list_name": artist.name,
-                            "image_url": image_url,
-                        }
-                    )
-            return True
-
-        def handle_user_followed_artists():
-            followed_artists = get_user_followed_artists()
-            for artist in followed_artists:
-                image_url = self._get_largest_image(artist.images)
-                if image_url:
-                    images_to_download.append(
-                        {
-                            "list_name": artist.name,
-                            "image_url": image_url,
-                        }
-                    )
-            return True
-
-        def handle_saved():
-            lists.append(Saved.from_url(query, fetch_songs=False))
-            return True
-
         dispatch = {
-            "track": (self._is_spotify_track, handle_track),
-            "playlist": (self._is_spotify_playlist, handle_playlist),
-            "album": (self._is_spotify_album, handle_album),
-            "artist": (self._is_spotify_artist, handle_artist),
-            "user_playlists": (self._is_spotify_user_playlists, handle_user_playlists),
+            "track": (
+                self._is_spotify_track,
+                lambda q: self._handle_track(q, songs, images_to_download),
+            ),
+            "playlist": (
+                self._is_spotify_playlist,
+                lambda q: self._handle_playlist(q, lists, images_to_download),
+            ),
+            "album": (
+                self._is_spotify_album,
+                lambda q: self._handle_album(q, lists, images_to_download),
+            ),
+            "artist": (
+                self._is_spotify_artist,
+                lambda q: self._handle_artist(q, lists, images_to_download),
+            ),
+            "user_playlists": (
+                self._is_spotify_user_playlists,
+                lambda q: self._handle_user_playlists(lists, images_to_download),
+            ),
             "saved_playlists": (
                 self._is_spotify_saved_playlists,
-                handle_saved_playlists,
+                lambda q: self._handle_saved_playlists(lists, images_to_download),
             ),
-            "saved_albums": (self._is_spotify_saved_albums, handle_saved_albums),
+            "saved_albums": (
+                self._is_spotify_saved_albums,
+                lambda q: self._handle_saved_albums(images_to_download),
+            ),
             "user_followed_artists": (
                 self._is_spotify_user_followed_artists,
-                handle_user_followed_artists,
+                lambda q: self._handle_user_followed_artists(images_to_download),
             ),
-            "saved": (self._is_spotify_saved, handle_saved),
+            "saved": (self._is_spotify_saved, lambda q: self._handle_saved(q, lists)),
         }
 
         handled = False
         try:
             for key, (check_fn, handler_fn) in dispatch.items():
                 if check_fn(query):
-                    handled = handler_fn()
+                    handled = handler_fn(query)
                     break
             if not handled:
                 logger.warning(f"Unsupported query type for image saving: {query}")
