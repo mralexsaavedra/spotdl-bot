@@ -69,4 +69,4 @@ jobs:
           name: v${{ steps.curr_version.outputs.version }}
           body: ${{ steps.changelog.outputs.body }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
