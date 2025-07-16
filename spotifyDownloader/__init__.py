@@ -307,6 +307,31 @@ class SpotifyDownloader:
             logger.warning(f"Error selecting largest image: {e}")
             return None
 
+    def _download_images(self, images):
+        """
+        Downloads images from the provided list of image URLs.
+        Args:
+            images (list): List of dictionaries containing 'image_url' and 'list_name'.
+        """
+        for item in images:
+            list_name = item["list_name"]
+            image_url = item["image_url"]
+            if not image_url:
+                logger.warning(f"No image URL for {list_name}, skipping.")
+                continue
+            image_path = Path(f"{DOWNLOAD_DIR}/{list_name}/cover.jpg")
+            if image_path.exists():
+                logger.info(f"Image already exists, skipping download: {image_path}")
+                continue
+            try:
+                response = requests.get(image_url, timeout=10)
+                response.raise_for_status()
+                with open(image_path, "wb") as f:
+                    f.write(response.content)
+                logger.info(f"Image saved: {image_path}")
+            except Exception as e:
+                logger.error(f"Error saving image for {list_name}: {e}")
+
     def _search_and_download(
         self, downloader: Downloader, query: str, output: str
     ) -> bool:
@@ -440,24 +465,7 @@ class SpotifyDownloader:
             logger.warning(f"Unsupported query type for image saving: {query}")
             return
 
-        for item in images_to_download:
-            list_name = item["list_name"]
-            image_url = item["image_url"]
-            if not image_url:
-                logger.warning(f"No image URL for {list_name}, skipping.")
-                continue
-            image_path = Path(f"{DOWNLOAD_DIR}/{list_name}/cover.jpg")
-            if image_path.exists():
-                logger.info(f"Image already exists, skipping download: {image_path}")
-                continue
-            try:
-                response = requests.get(image_url, timeout=10)
-                response.raise_for_status()
-                with open(image_path, "wb") as f:
-                    f.write(response.content)
-                logger.info(f"Image saved: {image_path}")
-            except Exception as e:
-                logger.error(f"Error saving image for {list_name}: {e}")
+        self._download_images(images=images_to_download)
 
         for song_list in lists:
             logger.info(
