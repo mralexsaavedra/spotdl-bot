@@ -342,18 +342,35 @@ class SpotifyDownloader:
         """
         return re.sub(r"\/intl-\w+\/", "/", query)
 
+    def _populate_songs_from_lists(self, lists: List[SongList]) -> List[Song]:
+        """
+        Populates and returns a list of Song objects from the provided SongList objects.
+        Args:
+            lists (List[SongList]): List of SongList objects.
+        Returns:
+            List[Song]: List of Song objects.
+        """
+        songs: List[Song] = []
+        for song_list in lists:
+            logger.info(
+                f"Found {len(song_list.urls)} songs in {song_list.name} ({song_list.__class__.__name__})"
+            )
+            for index, song in enumerate(song_list.songs):
+                song_data = self._build_song_data(song, song_list)
+                songs.append(Song.from_dict(song_data))
+        return songs
+
     def _search_and_download(
         self, downloader: Downloader, query: str, output: str
     ) -> bool:
         """
-        Searches for Spotify content based on the query and downloads it.
+        Searches for Spotify content based on the query and downloads it using a dispatch dictionary.
         """
         songs: List[Song] = []
         lists: List[SongList] = []
         images_to_download = []
 
         logger.info(f"Processing query: {query}")
-
         query = self.__normalize_query_url(query)
 
         def handle_track():
@@ -494,36 +511,31 @@ class SpotifyDownloader:
         }
 
         handled = False
-        for key, (check_fn, handler_fn) in dispatch.items():
-            if check_fn(query):
-                handled = handler_fn()
-                break
-        if not handled:
-            logger.warning(f"Unsupported query type for image saving: {query}")
-            return
-
-        for song_list in lists:
-            logger.info(
-                f"Found {len(song_list.urls)} songs in {song_list.name} ({song_list.__class__.__name__})"
-            )
-            for index, song in enumerate(song_list.songs):
-                song_data = self._build_song_data(song, song_list)
-                songs.append(Song.from_dict(song_data))
-
-        # removing songs for --ignore-albums
-        original_length = len(songs)
-        album_type = DOWNLOADER_OPTIONS["album_type"]
-        if album_type:
-            songs = [song for song in songs if song.album_type == album_type]
-            logger.info(
-                f"Skipped {(original_length - len(songs))} songs for Album Type {album_type}"
-            )
-
-        logger.debug(f"Found {len(songs)} songs in {len(lists)} lists")
-        if not songs:
-            logger.error("No songs to download.")
-            return False
         try:
+            for key, (check_fn, handler_fn) in dispatch.items():
+                if check_fn(query):
+                    handled = handler_fn()
+                    break
+            if not handled:
+                logger.warning(f"Unsupported query type for image saving: {query}")
+                return False
+
+            songs = self._populate_songs_from_lists(lists)
+
+            # removing songs for --ignore-albums
+            original_length = len(songs)
+            album_type = DOWNLOADER_OPTIONS["album_type"]
+            if album_type:
+                songs = [song for song in songs if song.album_type == album_type]
+                logger.info(
+                    f"Skipped {(original_length - len(songs))} songs for Album Type {album_type}"
+                )
+
+            logger.debug(f"Found {len(songs)} songs in {len(lists)} lists")
+            if not songs:
+                logger.error("No songs to download.")
+                return False
+
             self._download_images(images=images_to_download)
             downloader.download_multiple_songs(songs)
             self._update_sync_file(
