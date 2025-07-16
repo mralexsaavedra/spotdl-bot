@@ -307,7 +307,7 @@ class SpotifyDownloader:
             logger.warning(f"Error selecting largest image: {e}")
             return None
 
-    def _download_images(self, images):
+    def _download_images(self, images: list) -> None:
         """
         Downloads images from the provided list of image URLs.
         Args:
@@ -618,7 +618,7 @@ class SpotifyDownloader:
             else:
                 logger.info(f"{lrc_file} does not exist.")
 
-    def _build_song_data(self, song, song_list):
+    def _build_song_data(self, song: Song, song_list: SongList) -> dict:
         """
         Builds the metadata dictionary for a song according to its list and configuration.
         Args:
