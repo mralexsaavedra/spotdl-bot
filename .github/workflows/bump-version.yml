@@ -1,4 +1,4 @@
-name: Bump config.py Version
+name: Release from config.py version
 
 on:
   push:
