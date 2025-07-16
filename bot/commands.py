@@ -45,10 +45,10 @@ def register_commands(bot: telebot.TeleBot):
         """Downloads all saved playlists."""
         spotdl.download(bot=bot, query="all-saved-playlists")
 
-    # @bot.message_handler(commands=["downloaduserfollowedartists"])
-    # def download_user_followed_artists_command(message):
-    #     """Downloads all playlists from followed artists."""
-    #     spotdl.download(bot=bot, query="all-user-followed-artists")
+    @bot.message_handler(commands=["downloaduserfollowedartists"])
+    def download_user_followed_artists_command(message):
+        """Downloads all playlists from followed artists."""
+        spotdl.download(bot=bot, query="all-user-followed-artists")
 
     @bot.message_handler(commands=["sync"])
     def sync_command(message):
@@ -114,10 +114,10 @@ def register_commands(bot: telebot.TeleBot):
                 "/downloaduserplaylists",
                 get_text("menu_option_download_user_playlists"),
             ),
-            # telebot.types.BotCommand(
-            #     "/downloaduserfollowedartists",
-            #     get_text("menu_option_download_user_followed_artists"),
-            # ),
+            telebot.types.BotCommand(
+                "/downloaduserfollowedartists",
+                get_text("menu_option_download_user_followed_artists"),
+            ),
             telebot.types.BotCommand("/sync", get_text("menu_option_sync")),
             telebot.types.BotCommand("/version", get_text("menu_option_version")),
             telebot.types.BotCommand("/donate", get_text("menu_option_donate")),
