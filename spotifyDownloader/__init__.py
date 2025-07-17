@@ -673,7 +673,6 @@ class SpotifyDownloader:
         user_followed_response = user_followed_response["artists"]
         user_followed = user_followed_response["items"]
 
-        # Fetch all artists
         while user_followed_response and user_followed_response["next"]:
             response = spotify_client.next(user_followed_response)
             if response is None:
@@ -718,8 +717,17 @@ class SpotifyDownloader:
             for key, (check_fn, handler_fn) in dispatch.items():
                 if check_fn(query):
                     handled = handler_fn(query)
-                    # Special case: saved albums handler returns True if albums were processed
-                    if key == "saved_albums" and handled:
+                    # Special case: paginated handlers return True if processed
+                    if (
+                        key
+                        in [
+                            "saved_albums",
+                            "user_playlists",
+                            "saved_playlists",
+                            "user_followed_artists",
+                        ]
+                        and handled
+                    ):
                         return True
                     break
             if not handled:
