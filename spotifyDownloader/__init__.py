@@ -462,10 +462,7 @@ class SpotifyDownloader:
 
     def _handle_user_playlists(self, downloader: Downloader) -> bool:
         """
-        Handles user playlists queries. Adds all playlists to lists and their images to images_to_download.
-        Args:
-            lists (List[SongList]): List of SongList objects.
-            images_to_download (List[dict]): List of dicts with 'list_name' and 'image_url'.
+        Handles user playlists queries. Downloads all user playlists for the user using pagination.
         Returns:
             bool: True if added successfully, False otherwise.
         """
@@ -499,26 +496,40 @@ class SpotifyDownloader:
 
         return True
 
-    def _handle_saved_playlists(
-        self, lists: List[SongList], images_to_download: List[dict]
-    ) -> bool:
+    def _handle_saved_playlists(self, downloader: Downloader) -> bool:
         """
-        Handles saved playlists queries. Adds all saved playlists to lists and their images to images_to_download.
-        Args:
-            lists (List[SongList]): List of SongList objects.
-            images_to_download (List[dict]): List of dicts with 'list_name' and 'image_url'.
+        Handles saved playlists queries. Downloads all saved playlists for the user using pagination.
         Returns:
             bool: True if added successfully, False otherwise.
         """
-        saved_playlists = get_all_saved_playlists()
-        lists.extend(saved_playlists)
-        for playlist in saved_playlists:
-            images_to_download.append(
-                {
-                    "list_name": f"Playlists/{playlist.name}",
-                    "image_url": playlist.cover_url,
-                }
-            )
+        spotify_client = SpotifyClient()
+        if spotify_client.user_auth is False:  # type: ignore
+            raise SpotifyError("You must be logged in to use this function")
+
+        user_resp = spotify_client.current_user()
+        if user_resp is None:
+            raise SpotifyError("Couldn't get user info")
+
+        user_id = user_resp["id"]
+
+        user_playlists_response = spotify_client.current_user_playlists()
+        if user_playlists_response is None:
+            raise SpotifyError("Couldn't get user playlists")
+
+        while user_playlists_response:
+            user_playlists = user_playlists_response.get("items", [])
+            for playlist in user_playlists:
+                if playlist["owner"]["id"] != user_id:
+                    self._search_and_download(
+                        downloader=downloader,
+                        query=playlist["external_urls"]["spotify"],
+                    )
+            next_response = user_playlists_response.get("next")
+            if next_response:
+                user_playlists_response = spotify_client.next(user_playlists_response)
+            else:
+                break
+
         return True
 
     def _handle_saved_albums(self, downloader: Downloader) -> bool:
@@ -618,11 +629,11 @@ class SpotifyDownloader:
             ),
             "user_playlists": (
                 self._is_spotify_user_playlists,
-                lambda q: self._handle_user_playlists(lists, images_to_download),
+                lambda q: self._handle_user_playlists(downloader),
             ),
             "saved_playlists": (
                 self._is_spotify_saved_playlists,
-                lambda q: self._handle_saved_playlists(lists, images_to_download),
+                lambda q: self._handle_saved_playlists(downloader),
             ),
             "saved_albums": (
                 self._is_spotify_saved_albums,
