@@ -460,9 +460,7 @@ class SpotifyDownloader:
             )
         return True
 
-    def _handle_user_playlists(
-        self, lists: List[SongList], images_to_download: List[dict]
-    ) -> bool:
+    def _handle_user_playlists(self, downloader: Downloader) -> bool:
         """
         Handles user playlists queries. Adds all playlists to lists and their images to images_to_download.
         Args:
@@ -471,15 +469,34 @@ class SpotifyDownloader:
         Returns:
             bool: True if added successfully, False otherwise.
         """
-        user_playlists = get_all_user_playlists()
-        lists.extend(user_playlists)
-        for playlist in user_playlists:
-            images_to_download.append(
-                {
-                    "list_name": f"Playlists/{playlist.name}",
-                    "image_url": playlist.cover_url,
-                }
-            )
+        spotify_client = SpotifyClient()
+        if spotify_client.user_auth is False:  # type: ignore
+            raise SpotifyError("You must be logged in to use this function")
+
+        user_resp = spotify_client.current_user()
+        if user_resp is None:
+            raise SpotifyError("Couldn't get user info")
+
+        user_id = user_resp["id"]
+
+        user_playlists_response = spotify_client.current_user_playlists()
+        if user_playlists_response is None:
+            raise SpotifyError("Couldn't get user playlists")
+
+        while user_playlists_response:
+            user_playlists = user_playlists_response.get("items", [])
+            for playlist in user_playlists:
+                if playlist["owner"]["id"] == user_id:
+                    self._search_and_download(
+                        downloader=downloader,
+                        query=playlist["external_urls"]["spotify"],
+                    )
+            next_response = user_playlists_response.get("next")
+            if next_response:
+                user_playlists_response = spotify_client.next(user_playlists_response)
+            else:
+                break
+
         return True
 
     def _handle_saved_playlists(
