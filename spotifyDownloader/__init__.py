@@ -514,14 +514,11 @@ class SpotifyDownloader:
         if spotify_client.user_auth is False:  # type: ignore
             raise SpotifyError("You must be logged in to use this function")
 
-        user_saved_albums_response = spotify_client.current_user_saved_albums(
-            limit=2, offset=4
-        )
+        user_saved_albums_response = spotify_client.current_user_saved_albums()
         if user_saved_albums_response is None:
             raise SpotifyError("Couldn't get user saved albums")
 
-        page_count = 0
-        while user_saved_albums_response and page_count < 2:
+        while user_saved_albums_response:
             user_saved_albums = user_saved_albums_response.get("items", [])
             for item in user_saved_albums:
                 self._search_and_download(
@@ -533,7 +530,6 @@ class SpotifyDownloader:
                 user_saved_albums_response = spotify_client.next(
                     user_saved_albums_response
                 )
-                page_count += 1
             else:
                 break
 
