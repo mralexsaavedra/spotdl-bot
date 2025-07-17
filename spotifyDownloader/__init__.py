@@ -21,11 +21,7 @@ from spotdl.utils.config import DEFAULT_CONFIG, DOWNLOADER_OPTIONS
 from spotdl.download.downloader import Downloader
 from spotdl.utils.spotify import SpotifyClient, SpotifyError
 from spotdl.utils.m3u import create_m3u_content
-from spotdl.utils.search import (
-    get_all_user_playlists,
-    get_user_saved_albums,
-    get_all_saved_playlists,
-)
+from spotdl.utils.search import get_all_user_playlists, get_all_saved_playlists
 from spotdl.utils.formatter import create_file_name
 from spotdl.types.song import SongList
 from spotdl.types.playlist import Playlist
@@ -508,34 +504,39 @@ class SpotifyDownloader:
             )
         return True
 
-    def _handle_saved_albums(
-        self, lists: List[SongList], images_to_download: List[dict]
-    ) -> bool:
+    def _handle_saved_albums(self, downloader: Downloader) -> bool:
         """
-        Handles saved albums queries. Adds artist images for all saved albums to images_to_download.
-        Args:
-            images_to_download (List[dict]): List of dicts with 'list_name' and 'image_url'.
+        Handles saved albums queries. Downloads all saved albums for the user using pagination.
         Returns:
-            bool: True if added successfully, False otherwise.
+            bool: True if all albums were downloaded successfully, False otherwise.
         """
-        saved_albums = get_user_saved_albums()
-        lists.extend(saved_albums)
-        for album in saved_albums:
-            artist_id = album.artist["id"]
-            if not artist_id:
-                continue
-            artist = Artist.from_url(artist_id, fetch_songs=False)
-            if not artist:
-                logger.warning(f"Artist not found for album: {album.name}")
-                continue
-            image_url = self._get_largest_image(artist.images)
-            if image_url:
-                images_to_download.append(
-                    {
-                        "list_name": artist.name,
-                        "image_url": image_url,
-                    }
+        spotify_client = SpotifyClient()
+        if spotify_client.user_auth is False:  # type: ignore
+            raise SpotifyError("You must be logged in to use this function")
+
+        user_saved_albums_response = spotify_client.current_user_saved_albums(
+            limit=2, offset=4
+        )
+        if user_saved_albums_response is None:
+            raise SpotifyError("Couldn't get user saved albums")
+
+        page_count = 0
+        while user_saved_albums_response and page_count < 2:
+            user_saved_albums = user_saved_albums_response.get("items", [])
+            for item in user_saved_albums:
+                self._search_and_download(
+                    downloader=downloader,
+                    query=item["album"]["external_urls"]["spotify"],
                 )
+            next_response = user_saved_albums_response.get("next")
+            if next_response:
+                user_saved_albums_response = spotify_client.next(
+                    user_saved_albums_response
+                )
+                page_count += 1
+            else:
+                break
+
         return True
 
     def _handle_user_followed_artists(
@@ -569,7 +570,11 @@ class SpotifyDownloader:
         return True
 
     def _get_dispatch_dict(
-        self, songs: List[Song], lists: List[SongList], images_to_download: list
+        self,
+        songs: List[Song],
+        lists: List[SongList],
+        images_to_download: list,
+        downloader: Downloader,
     ):
         """
         Returns the dispatch dictionary for Spotify query types.
@@ -608,7 +613,7 @@ class SpotifyDownloader:
             ),
             "saved_albums": (
                 self._is_spotify_saved_albums,
-                lambda q: self._handle_saved_albums(lists, images_to_download),
+                lambda q: self._handle_saved_albums(downloader),
             ),
             "user_followed_artists": (
                 self._is_spotify_user_followed_artists,
@@ -652,7 +657,7 @@ class SpotifyDownloader:
         ]
 
     def _search_and_download(
-        self, downloader: Downloader, query: str, output: str
+        self, downloader: Downloader, query: str, output: str | None = None
     ) -> bool:
         """
         Searches for Spotify content based on the query and downloads it using a modular dispatch dictionary.
@@ -667,16 +672,22 @@ class SpotifyDownloader:
         lists: List[SongList] = []
         images_to_download = []
 
+        if not output:
+            output = downloader.settings["output"]
+
         logger.info(f"Processing query: {query}")
         query = self.__normalize_query_url(query)
 
-        dispatch = self._get_dispatch_dict(songs, lists, images_to_download)
+        dispatch = self._get_dispatch_dict(songs, lists, images_to_download, downloader)
 
         handled = False
         try:
             for key, (check_fn, handler_fn) in dispatch.items():
                 if check_fn(query):
                     handled = handler_fn(query)
+                    # Special case: saved albums handler returns True if albums were processed
+                    if key == "saved_albums" and handled:
+                        return True
                     break
             if not handled:
                 logger.warning(f"Unsupported query type for image saving: {query}")
@@ -867,9 +878,7 @@ class SpotifyDownloader:
             downloader.settings["output"] = f"{DOWNLOAD_DIR}/{output_pattern}"
             logger.info(f"Output pattern set to: {downloader.settings['output']}")
 
-            success = self._search_and_download(
-                downloader=downloader, query=query, output=downloader.settings["output"]
-            )
+            success = self._search_and_download(downloader=downloader, query=query)
             if not success:
                 logger.error(f"Failed to download songs for query: {query}")
                 send_message(bot=bot, message=get_text("error_download_failed"))
