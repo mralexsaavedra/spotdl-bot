@@ -548,10 +548,10 @@ class SpotifyDownloader:
 
         while user_saved_albums_response:
             user_saved_albums = user_saved_albums_response.get("items", [])
-            for item in user_saved_albums:
+            for saved_salbum in user_saved_albums:
                 self._search_and_download(
                     downloader=downloader,
-                    query=item["album"]["external_urls"]["spotify"],
+                    query=saved_salbum["album"]["external_urls"]["spotify"],
                 )
             next_response = user_saved_albums_response.get("next")
             if next_response:
@@ -563,27 +563,36 @@ class SpotifyDownloader:
 
         return True
 
-    def _handle_user_followed_artists(
-        self, lists: List[SongList], images_to_download: List[dict]
-    ) -> bool:
+    def _handle_user_followed_artists(self, downloader: Downloader) -> bool:
         """
-        Handles user followed artists queries. Adds images for all followed artists to images_to_download.
-        Args:
-            images_to_download (List[dict]): List of dicts with 'list_name' and 'image_url'.
+        Handles user followed artists queries. Downloads all user followed artists for the user using pagination.
         Returns:
             bool: True if added successfully, False otherwise.
         """
-        followed_artists = self._get_user_followed_artists()
-        lists.extend(followed_artists)
-        for artist in followed_artists:
-            image_url = self._get_largest_image(artist.images)
-            if image_url:
-                images_to_download.append(
-                    {
-                        "list_name": artist.name,
-                        "image_url": image_url,
-                    }
+        spotify_client = SpotifyClient()
+        if spotify_client.user_auth is False:  # type: ignore
+            raise SpotifyError("You must be logged in to use this function")
+
+        user_followed_response = spotify_client.current_user_followed_artists()
+        if user_followed_response is None:
+            raise SpotifyError("Couldn't get user followed artists")
+
+        user_followed_response = user_followed_response["artists"]
+        while user_followed_response:
+            user_followed = user_followed_response.get("items", [])
+            for artist in user_followed:
+                self._search_and_download(
+                    downloader=downloader,
+                    query=artist["external_urls"]["spotify"],
                 )
+            next_response = user_followed_response.get("next")
+            if next_response:
+                response = spotify_client.next(user_followed_response)
+                if response is None:
+                    break
+                user_followed_response = response["artists"]
+            else:
+                break
         return True
 
     def _handle_saved(self, query: str, lists: List[SongList]) -> bool:
@@ -641,7 +650,7 @@ class SpotifyDownloader:
             ),
             "user_followed_artists": (
                 self._is_spotify_user_followed_artists,
-                lambda q: self._handle_user_followed_artists(lists, images_to_download),
+                lambda q: self._handle_user_followed_artists(downloader),
             ),
             "saved": (self._is_spotify_saved, lambda q: self._handle_saved(q, lists)),
         }
