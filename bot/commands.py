@@ -27,21 +27,23 @@ def register_commands(bot: telebot.TeleBot):
         markup = InlineKeyboardMarkup(row_width=1)
         markup.add(
             InlineKeyboardButton(
-                get_text("button_saved_song"), callback_data="downloadsavedsongs"
+                get_text("button_download_saved_songs"), callback_data="download|saved"
             ),
             InlineKeyboardButton(
-                get_text("button_saved_albums"), callback_data="downloadsavedalbums"
+                get_text("button_download_saved_albums"),
+                callback_data="download|all-user-saved-albums",
             ),
             InlineKeyboardButton(
-                get_text("button_saved_playlists"),
-                callback_data="downloadsavedplaylists",
+                get_text("button_download_saved_playlists"),
+                callback_data="download|all-saved-playlists",
             ),
             InlineKeyboardButton(
-                get_text("button_user_playlists"), callback_data="downloaduserplaylists"
+                get_text("button_download_user_playlists"),
+                callback_data="download|all-user-playlists",
             ),
             # InlineKeyboardButton(
-            #     get_text("button_user_followed_artists"),
-            #     callback_data="downloaduserfollowedartists"
+            #     get_text("button_download_user_followed_artists"),
+            #     callback_data="download|all-user-followed-artists"
             # ),
         )
         send_message(
@@ -50,7 +52,44 @@ def register_commands(bot: telebot.TeleBot):
 
     @bot.message_handler(commands=["sync"])
     def sync_command(message):
-        spotdl.sync(bot=bot)
+        markup = InlineKeyboardMarkup(row_width=1)
+        markup.add(
+            InlineKeyboardButton(
+                get_text("button_sync_songs"), callback_data="sync|songs"
+            ),
+            InlineKeyboardButton(
+                get_text("button_sync_albums"),
+                callback_data="sync|albums",
+            ),
+            InlineKeyboardButton(
+                get_text("button_sync_artists"),
+                callback_data="sync|artists",
+            ),
+            InlineKeyboardButton(
+                get_text("button_sync_playlists"),
+                callback_data="sync|playlists",
+            ),
+            InlineKeyboardButton(
+                get_text("button_sync_saved_songs"), callback_data="sync|saved"
+            ),
+            InlineKeyboardButton(
+                get_text("button_sync_saved_albums"),
+                callback_data="sync|all-user-saved-albums",
+            ),
+            InlineKeyboardButton(
+                get_text("button_sync_saved_playlists"),
+                callback_data="sync|all-saved-playlists",
+            ),
+            InlineKeyboardButton(
+                get_text("button_sync_user_playlists"),
+                callback_data="sync|all-user-playlists",
+            ),
+            # InlineKeyboardButton(
+            #     get_text("button_sync_user_followed_artists"),
+            #     callback_data="sync|all-user-followed-artists"
+            # ),
+        )
+        send_message(bot=bot, message=get_text("sync_menu_prompt"), reply_markup=markup)
 
     # --- Utilities ---
     @bot.message_handler(commands=["version"])
@@ -81,22 +120,14 @@ def register_commands(bot: telebot.TeleBot):
 
         data = parse_call_data(call.data)
         comando = data["comando"]
-        query = ""
+        query = data.get("query")
 
-        if comando == "downloadsavedsongs":
-            query = "saved"
-        elif comando == "downloadsavedalbums":
-            query = "all-user-saved-albums"
-        elif comando == "downloadsavedplaylists":
-            query = "all-saved-playlists"
-        elif comando == "downloaduserplaylists":
-            query = "all-user-playlists"
-        elif comando == "downloaduserfollowedartists":
-            query = "all-user-followed-artists"
+        if comando == "download":
+            spotdl.download(bot=bot, query=query)
+        elif comando == "sync":
+            spotdl.sync(bot=bot, query=query)
         else:
             return
-
-        spotdl.download(bot=bot, query=query)
 
     # --- Direct URLs ---
     @bot.message_handler(func=lambda message: is_spotify_url(message.text))
