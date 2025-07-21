@@ -7,7 +7,7 @@
   "auth_oauth_error": "❌ OAuth error: $1",
   "auth_success": "🔑 Spotify OAuth token acquired successfully.",
   "auth_unexpected_error": "❌ Unexpected error: $1",
-  "bot_description": "🎶 Easily download music from Spotify using commands or by sending a URL.\nUse /start to see the menu and all available options.",
+  "bot_description": "🎶 Easily download music from Spotify using commands or by sending a URL. Use /start to see the menu and all available options.",
   "bot_started_title": "🚀 *SpotDL Bot started*",
   "bot_status_label": "🟢 *Status:* Active",
   "bot_version_info": "⚙️ _Version: $1_\nDeveloped with ❤️ by [@mralexsaavedra](https://mralexsaavedra.com)\n\nHave suggestions or found a bug? Feel free to reach out!\n\n🔗 [DockerHub](https://hub.docker.com/r/mralexandersaavedra/spotdl-bot)\n🔗 [GitHub](https://github.com/mralexsaavedra/spotdl-bot)",
