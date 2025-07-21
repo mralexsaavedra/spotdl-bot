@@ -225,6 +225,25 @@ class SpotifyDownloader:
             logger.error(f"Error writing JSON file {path}: {e}")
             return False
 
+    def _get_query_sync(self, query: str) -> str:
+        """
+        Retrieves the sync data for a given query from the sync file.
+        Args:
+            query (str): The Spotify query to look for in the sync file.
+        Returns:
+            dict: The sync data for the query, or an empty dict if not found.
+        """
+        if self._is_spotify_track(query):
+            return "songs"
+        elif self._is_spotify_playlist(query):
+            return "playlists"
+        elif self._is_spotify_album(query):
+            return "albums"
+        elif self._is_spotify_artist(query):
+            return "artists"
+        else:
+            return query
+
     def _update_sync_file(self, query_dict: dict) -> None:
         """
         Update the sync file by removing any existing entry for the query and adding the new one.
@@ -232,15 +251,17 @@ class SpotifyDownloader:
             query_dict (dict): The query dictionary to add/update in the sync file.
         """
         all_queries = []
+        query = query_dict["query"]
+        sync_query = self._get_query_sync(query)
         sync_path = Path(SYNC_JSON_PATH)
         if sync_path.exists():
             data = self._read_json_file(sync_path)
-            all_queries = data.get("queries", [])
+            all_queries = data.get(sync_query, [])
         # Remove any existing entry for this query
-        all_queries = [q for q in all_queries if q.get("query") != query_dict["query"]]
+        all_queries = [q for q in all_queries if q.get("query") != query]
         # Add the updated query
         all_queries.append(query_dict)
-        self._write_json_file(sync_path, {"queries": all_queries})
+        self._write_json_file(sync_path, {sync_query: all_queries})
 
     def _gen_m3u_files(self, songs: List[Song], query: str) -> None:
         """
@@ -706,7 +727,7 @@ class SpotifyDownloader:
                     "query": query,
                     "songs": [song.json for song in songs],
                     "output": output,
-                }
+                },
             )
             self._gen_m3u_files(songs=songs, query=query)
         except Exception as e:
