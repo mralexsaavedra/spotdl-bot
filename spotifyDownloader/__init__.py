@@ -999,12 +999,12 @@ class SpotifyDownloader:
                 self._update_sync_file(
                     {
                         "type": "sync",
-                        "query": query,
+                        "query": query["query"],
                         "songs": [song.json for song in songs],
                         "output": query["output"],
                     },
                 )
-                self._gen_m3u_files(songs=songs, query=query)
+                self._gen_m3u_files(songs=songs, query=query["query"])
             finally:
                 self._close_downloader(downloader)
 
