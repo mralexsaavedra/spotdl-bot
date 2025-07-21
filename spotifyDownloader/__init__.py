@@ -246,22 +246,26 @@ class SpotifyDownloader:
 
     def _update_sync_file(self, query_dict: dict) -> None:
         """
-        Update the sync file by removing any existing entry for the query and adding the new one.
+        Update the sync file by removing any existing entry for the query and adding the new one,
+        but preserve all other sync types and queries.
         Args:
             query_dict (dict): The query dictionary to add/update in the sync file.
         """
-        all_queries = []
         query = query_dict["query"]
         sync_query = self._get_query_sync(query)
         sync_path = Path(SYNC_JSON_PATH)
+        data = {}
         if sync_path.exists():
             data = self._read_json_file(sync_path)
-            all_queries = data.get(sync_query, [])
+        # Get all queries for this sync type
+        all_queries = data.get(sync_query, [])
         # Remove any existing entry for this query
         all_queries = [q for q in all_queries if q.get("query") != query]
         # Add the updated query
         all_queries.append(query_dict)
-        self._write_json_file(sync_path, {sync_query: all_queries})
+        # Update only the relevant sync type, preserve others
+        data[sync_query] = all_queries
+        self._write_json_file(sync_path, data)
 
     def _gen_m3u_files(self, songs: List[Song], query: str) -> None:
         """
