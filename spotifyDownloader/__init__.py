@@ -25,6 +25,7 @@ from spotdl.utils.search import (
     get_all_user_playlists,
     get_user_saved_albums,
     get_all_saved_playlists,
+    parse_query,
 )
 from spotdl.utils.formatter import create_file_name
 from spotdl.types.song import SongList
@@ -935,7 +936,16 @@ class SpotifyDownloader:
             downloader = self._create_downloader()
             try:
                 downloader.settings["output"] = query["output"]
-                songs = self._search(query["query"])
+                songs = parse_query(
+                    query=[query["query"]],
+                    threads=downloader.settings["threads"],
+                    use_ytm_data=downloader.settings["ytm_data"],
+                    playlist_numbering=downloader.settings["playlist_numbering"],
+                    album_type=downloader.settings["album_type"],
+                    playlist_retain_track_cover=downloader.settings[
+                        "playlist_retain_track_cover"
+                    ],
+                )
 
                 old_files = []
                 for entry in query["songs"]:
@@ -985,15 +995,16 @@ class SpotifyDownloader:
                     else:
                         logger.info(f"{len(to_delete)} old songs were deleted.")
 
-                success = self._search_and_download(
-                    downloader=downloader, query=query["query"], output=query["output"]
+                downloader.download_multiple_songs(songs)
+                self._update_sync_file(
+                    {
+                        "type": "sync",
+                        "query": query,
+                        "songs": [song.json for song in songs],
+                        "output": query["output"],
+                    },
                 )
-                if not success:
-                    logger.error(
-                        f"Failed to download songs for query: {query['query']}"
-                    )
-                    send_message(bot=bot, message=get_text("error_download_failed"))
-                    continue
+                self._gen_m3u_files(songs=songs, query=query)
             finally:
                 self._close_downloader(downloader)
 
