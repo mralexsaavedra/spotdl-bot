@@ -24,7 +24,6 @@ def register_commands(bot: telebot.TeleBot):
     @bot.message_handler(commands=["download"])
     def download_command(message):
         """Requests a Spotify URL to download."""
-        # send_message(bot, message=get_text("download_prompt_url"))
         markup = InlineKeyboardMarkup(row_width=1)
         markup.add(
             InlineKeyboardButton(
@@ -48,31 +47,6 @@ def register_commands(bot: telebot.TeleBot):
         send_message(
             bot=bot, message=get_text("download_menu_prompt"), reply_markup=markup
         )
-
-    @bot.message_handler(commands=["downloadsavedsongs"])
-    def download_saved_song_command(message):
-        """Downloads songs saved by the user."""
-        spotdl.download(bot=bot, query="saved")
-
-    @bot.message_handler(commands=["downloadsavedalbums"])
-    def download_saved_albums_command(message):
-        """Downloads albums saved by the user."""
-        spotdl.download(bot=bot, query="all-user-saved-albums")
-
-    @bot.message_handler(commands=["downloaduserplaylists"])
-    def download_user_playlists_command(message):
-        """Downloads playlists saved by the user."""
-        spotdl.download(bot=bot, query="all-user-playlists")
-
-    @bot.message_handler(commands=["downloadsavedplaylists"])
-    def download_saved_playlists_command(message):
-        """Downloads all saved playlists."""
-        spotdl.download(bot=bot, query="all-saved-playlists")
-
-    # @bot.message_handler(commands=["downloaduserfollowedartists"])
-    # def download_user_followed_artists_command(message):
-    #     """Downloads all playlists from followed artists."""
-    #     spotdl.download(bot=bot, query="all-user-followed-artists")
 
     @bot.message_handler(commands=["sync"])
     def sync_command(message):
@@ -107,17 +81,22 @@ def register_commands(bot: telebot.TeleBot):
 
         data = parse_call_data(call.data)
         comando = data["comando"]
+        query = ""
 
         if comando == "downloadsavedsongs":
-            spotdl.download(bot=bot, query="saved")
+            query = "saved"
         elif comando == "downloadsavedalbums":
-            spotdl.download(bot=bot, query="all-user-saved-albums")
+            query = "all-user-saved-albums"
         elif comando == "downloadsavedplaylists":
-            spotdl.download(bot=bot, query="all-saved-playlists")
+            query = "all-saved-playlists"
         elif comando == "downloaduserplaylists":
-            spotdl.download(bot=bot, query="all-user-playlists")
+            query = "all-user-playlists"
         elif comando == "downloaduserfollowedartists":
-            spotdl.download(bot=bot, query="all-user-followed-artists")
+            query = "all-user-followed-artists"
+        else:
+            return
+
+        spotdl.download(bot=bot, query=query)
 
     # --- Direct URLs ---
     @bot.message_handler(func=lambda message: is_spotify_url(message.text))
@@ -141,25 +120,7 @@ def register_commands(bot: telebot.TeleBot):
     bot.set_my_commands(
         [
             telebot.types.BotCommand("/start", get_text("menu_option_start")),
-            telebot.types.BotCommand("/download", get_text("menu_option_download_url")),
-            # telebot.types.BotCommand(
-            #     "/downloadsavedsongs", get_text("menu_option_download_saved_songs")
-            # ),
-            # telebot.types.BotCommand(
-            #     "/downloadsavedalbums", get_text("menu_option_download_saved_albums")
-            # ),
-            # telebot.types.BotCommand(
-            #     "/downloadsavedplaylists",
-            #     get_text("menu_option_download_saved_playlists"),
-            # ),
-            # telebot.types.BotCommand(
-            #     "/downloaduserplaylists",
-            #     get_text("menu_option_download_user_playlists"),
-            # ),
-            # telebot.types.BotCommand(
-            #     "/downloaduserfollowedartists",
-            #     get_text("menu_option_download_user_followed_artists"),
-            # ),
+            telebot.types.BotCommand("/download", get_text("menu_option_download")),
             telebot.types.BotCommand("/sync", get_text("menu_option_sync")),
             telebot.types.BotCommand("/version", get_text("menu_option_version")),
             telebot.types.BotCommand("/donate", get_text("menu_option_donate")),
