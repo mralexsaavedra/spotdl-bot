@@ -36,11 +36,8 @@ SPOTIFY_CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
 SPOTIFY_REDIRECT_URI = os.getenv("SPOTIFY_REDIRECT_URI")
 
 CALL_PATTERNS = {
-    "downloadsavedsongs": [],
-    "downloadsavedalbums": [],
-    "downloadsavedplaylists": [],
-    "downloaduserplaylists": [],
-    "downloaduserfollowedartists": [],
+    "download": ["query"],
+    "sync": ["query"],
 }
 
 

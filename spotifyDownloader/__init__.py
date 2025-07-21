@@ -885,7 +885,7 @@ class SpotifyDownloader:
             self._close_downloader(downloader)
             self._delete_status_message(bot, message_id)
 
-    def sync(self, bot: telebot.TeleBot) -> None:
+    def sync(self, bot: telebot.TeleBot, query: str) -> None:
         """
         Sync function.
         Downloads new songs and removes those no longer present in the playlists/albums/etc.
@@ -901,12 +901,12 @@ class SpotifyDownloader:
             self._delete_status_message(bot, message_id)
             return
         sync_queries = self._read_json_file(sync_json_path)
-        if not sync_queries or "queries" not in sync_queries:
+        if not sync_queries or query not in sync_queries:
             logger.error(f"Invalid or empty sync file: {sync_json_path}")
             send_message(bot=bot, message=get_text("error_sync_file_invalid"))
             self._delete_status_message(bot, message_id)
             return
-        for query in sync_queries.get("queries", []):
+        for query in sync_queries.get(query, []):
             downloader = self._create_downloader()
             try:
                 downloader.settings["output"] = query["output"]
