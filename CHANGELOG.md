@@ -10,8 +10,13 @@ Todas las versiones y cambios importantes del proyecto.
 - Integración con CHANGELOG.md para el cuerpo de la release.
 - Corrección de errores en workflows para primer commit y permisos.
 
-## 0.1.6
+## v0.1.6
 - Mejoras en las claves de traducción y descripciones de comandos
 - Limpieza de comandos obsoletos en menús y archivos de traducción
 - Mejoras menores de UI/UX en el bot de Telegram
+
+## v0.1.7
+- Corrección en la lógica de actualización del archivo de sincronización para evitar sobrescritura de datos
+- Refactor del método sync para mayor robustez y claridad
+- Mejoras menores en la gestión de queries y sincronización
 
