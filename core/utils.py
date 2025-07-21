@@ -1,6 +1,6 @@
 import re
 import telebot
-from config.config import TELEGRAM_GROUP
+from config.config import CALL_PATTERNS, TELEGRAM_GROUP
 from loguru import logger
 
 
@@ -68,3 +68,23 @@ def delete_message(bot: telebot.TeleBot, message_id: int) -> None:
         bot.delete_message(TELEGRAM_GROUP, message_id)
     except Exception as e:
         logger.warning(f"Failed to delete message {message_id}: {e}")
+
+
+def parse_call_data(call_data):
+    parts = call_data.split("|")
+    comando = parts[0]
+    args = parts[1:]
+
+    if comando not in CALL_PATTERNS:
+        raise ValueError(f"COMMAND NOT IN PATTERN: {comando}")
+
+    expected_keys = CALL_PATTERNS[comando]
+
+    if len(args) != len(expected_keys):
+        raise ValueError(
+            f"INCORRECT LENGTH CALLBACK DATA FOR '{comando}': IT WAS EXPECTED {len(expected_keys)}"
+        )
+
+    parsed = {"comando": comando}
+    parsed.update(dict(zip(expected_keys, args)))
+    return parsed

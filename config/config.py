@@ -14,7 +14,7 @@ class ConfigError(Exception):
 if not os.getenv("RUNNING_IN_DOCKER"):
     load_dotenv()
 
-VERSION = "0.1.5"
+VERSION = "0.1.6"
 
 # Directory paths (with defaults for Docker)
 DOWNLOAD_DIR = os.getenv("DOWNLOAD_DIR", "/music")
@@ -34,6 +34,14 @@ TELEGRAM_ADMIN = os.getenv("TELEGRAM_ADMIN")
 SPOTIFY_CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
 SPOTIFY_CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
 SPOTIFY_REDIRECT_URI = os.getenv("SPOTIFY_REDIRECT_URI")
+
+CALL_PATTERNS = {
+    "downloadsavedsongs": [],
+    "downloadsavedalbums": [],
+    "downloadsavedplaylists": [],
+    "downloaduserplaylists": [],
+    "downloaduserfollowedartists": [],
+}
 
 
 def require_env(var_value, var_name, description):
