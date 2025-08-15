@@ -1,5 +1,5 @@
 requests==2.32.4
-spotdl==4.2.11
+spotdl==4.4.0
 pyTelegramBotAPI==4.27.0
 python-dotenv==1.1.1
 loguru==0.7.3
