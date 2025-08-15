@@ -34,7 +34,7 @@ class Song:
     name: str
     artists: List[str]
     artist: str
-    artist_images: List[str]
+    artist_images: List[Dict[str, Any]]
     genres: List[str]
     disc_number: int
     disc_count: int
