@@ -34,6 +34,7 @@ class Song:
     name: str
     artists: List[str]
     artist: str
+    artist_images: List[str]
     genres: List[str]
     disc_number: int
     disc_count: int
@@ -103,7 +104,8 @@ class Song:
         return cls(
             name=raw_track_meta["name"],
             artists=[artist["name"] for artist in raw_track_meta["artists"]],
-            artist=raw_track_meta["artists"][0],
+            artist=raw_track_meta["artists"][0]["name"],
+            artist_images=raw_artist_meta["images"],
             artist_id=primary_artist_id,
             album_id=album_id,
             album_name=raw_album_meta["name"],
