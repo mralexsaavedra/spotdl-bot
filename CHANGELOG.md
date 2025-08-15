@@ -20,3 +20,9 @@ Todas las versiones y cambios importantes del proyecto.
 - Refactor del método sync para mayor robustez y claridad
 - Mejoras menores en la gestión de queries y sincronización
 
+## v0.1.8
+- Actualizado a la última versión de spotdl (v4.4.0)
+
+## v0.1.9
+- Corrección en la extracción de metadatos del artista
+
