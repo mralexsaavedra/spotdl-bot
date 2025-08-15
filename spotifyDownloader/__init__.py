@@ -405,11 +405,11 @@ class SpotifyDownloader:
             logger.warning(f"Track not found for query: {query}")
             return False
         songs.append(song)
-        image_url = self._get_largest_image(song.artist_images)
+        image_url = self._get_largest_image(song.artist.get("images", []))
         if image_url:
             images_to_download.append(
                 {
-                    "list_name": song.artist,
+                    "list_name": song.artist["name"],
                     "image_url": image_url,
                 }
             )
