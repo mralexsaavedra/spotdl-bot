@@ -1,4 +1,4 @@
-name: Release from config.py version
+name: Release from settings.py version
 
 on:
   push:
@@ -20,11 +20,11 @@ jobs:
           TAG=${RAW_TAG#v}
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
-      - name: Get current version from config.py
+      - name: Get current version from settings.py
         id: curr_version
         run: |
           import re
-          with open('config/config.py') as f:
+          with open('settings/settings.py') as f:
               content = f.read()
           match = re.search(r'VERSION\s*=\s*["\'](\d+\.\d+\.\d+)["\']', content)
           if match:

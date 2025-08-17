@@ -1,6 +1,6 @@
 import threading
 from spotifyDownloader import SpotifyDownloader
-from config.config import VERSION
+from settings.settings import VERSION
 from core.locale import get_text
 from core.utils import delete_message, is_spotify_url, parse_call_data, send_message
 import telebot

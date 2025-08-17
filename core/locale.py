@@ -2,7 +2,7 @@ import sys
 import os
 import json
 from typing import Dict, Any, List
-from config.config import LANGUAGE, LOCALE_DIR
+from settings.settings import LANGUAGE, LOCALE_DIR
 from loguru import logger
 
 try:

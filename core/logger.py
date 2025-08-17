@@ -1,4 +1,4 @@
-from config.config import LOG_DIR, LOG_LEVEL
+from settings.settings import LOG_DIR, LOG_LEVEL
 from loguru import logger
 import logging
 import os

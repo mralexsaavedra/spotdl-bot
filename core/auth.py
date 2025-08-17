@@ -1,4 +1,4 @@
-from config.config import (
+from settings.settings import (
     CACHE_DIR,
     SPOTIFY_CLIENT_ID,
     SPOTIFY_CLIENT_SECRET,

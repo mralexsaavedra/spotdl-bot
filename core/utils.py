@@ -1,6 +1,6 @@
 import re
 import telebot
-from config.config import CALL_PATTERNS, TELEGRAM_GROUP
+from settings.settings import CALL_PATTERNS, TELEGRAM_GROUP
 from loguru import logger
 
 

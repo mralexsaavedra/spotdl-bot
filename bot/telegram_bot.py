@@ -1,4 +1,4 @@
-from config.config import TELEGRAM_TOKEN, VERSION
+from settings.settings import TELEGRAM_TOKEN, VERSION
 from bot.commands import register_commands
 from core.locale import get_text
 from core.utils import send_message
