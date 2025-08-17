@@ -14,7 +14,7 @@ class ConfigError(Exception):
 if not os.getenv("RUNNING_IN_DOCKER"):
     load_dotenv()
 
-VERSION = "0.1.9"
+VERSION = "0.1.10"
 
 # Directory paths (with defaults for Docker)
 DOWNLOAD_DIR = os.getenv("DOWNLOAD_DIR", "/music")

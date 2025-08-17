@@ -26,3 +26,6 @@ Todas las versiones y cambios importantes del proyecto.
 ## v0.1.9
 - Corrección en la extracción de metadatos del artista
 
+## v0.1.10
+- Se ha eliminado el archivo Song para importarlo directamente de la libreria spotdl
+
