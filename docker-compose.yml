@@ -16,4 +16,5 @@ services:
       - ./music:/music # CAMBIA ESTA RUTA A TU DIRECTORIO DE MÚSICA
       - ./cache:/app/cache # CAMBIA ESTA RUTA AL DIRECTORIO QUE QUIERAS PARA LA CACHE
       - ./logs:/app/logs # CAMBIA ESTA RUTA AL DIRECTORIO QUE QUIERAS PARA LOS LOGS
+      - ./config:/root/.spotdl # CAMBIA ESTA RUTA AL DIRECTORIO QUE QUIERAS PARA LA CONFIGURACIÓN
     restart: unless-stopped
