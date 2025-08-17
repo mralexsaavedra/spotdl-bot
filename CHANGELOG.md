@@ -29,3 +29,10 @@ Todas las versiones y cambios importantes del proyecto.
 ## v0.1.10
 - Se ha eliminado el archivo Song para importarlo directamente de la libreria spotdl
 
+## v0.1.11
+- Migración de config.py a settings.py y renombrado de la carpeta a settings/
+- Actualización de todos los imports para usar settings.settings
+- Corrección en el entrypoint para generación automática de config.json de SpotDL
+- Documentación mejorada sobre el volumen de configuración y ubicación de config.json
+- Tip añadido en el README para acelerar descargas desactivando lyrics_providers
+
