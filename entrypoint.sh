@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-spotdl --generate-config <<< "y"
+yes | spotdl --generate-config
 
 USER_ID=${PUID:-1000}
 GROUP_ID=${PGID:-1000}
