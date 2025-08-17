@@ -14,7 +14,6 @@ import json
 import requests
 import re
 from spotifyDownloader.artist import Artist
-from spotifyDownloader.song import Song
 import telebot
 from loguru import logger
 from spotdl.utils.config import DEFAULT_CONFIG, DOWNLOADER_OPTIONS
@@ -28,10 +27,10 @@ from spotdl.utils.search import (
     parse_query,
 )
 from spotdl.utils.formatter import create_file_name
-from spotdl.types.song import SongList
 from spotdl.types.playlist import Playlist
 from spotdl.types.album import Album
 from spotdl.types.saved import Saved
+from spotdl.types.song import Song, SongList
 
 SYNC_JSON_PATH = f"{CACHE_DIR}/sync.spotdl"
 
@@ -386,7 +385,8 @@ class SpotifyDownloader:
             )
             for index, song in enumerate(song_list.songs):
                 song_data = self._build_song_data(song, song_list)
-                songs.append(Song.from_dict(song_data))
+                song = Song.from_dict(song_data)
+                songs.append(song)
 
     def _handle_track(
         self, query: str, songs: List[Song], images_to_download: List[dict]
@@ -405,11 +405,12 @@ class SpotifyDownloader:
             logger.warning(f"Track not found for query: {query}")
             return False
         songs.append(song)
-        image_url = self._get_largest_image(song.artist.get("images", []))
+        artist = Artist.from_url(song.artist_id, fetch_songs=False)
+        image_url = self._get_largest_image(artist.images)
         if image_url:
             images_to_download.append(
                 {
-                    "list_name": song.artist["name"],
+                    "list_name": artist.name,
                     "image_url": image_url,
                 }
             )
