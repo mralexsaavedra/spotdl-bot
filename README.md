@@ -65,6 +65,10 @@ Bot de Telegram que permite descargar canciones, álbumes y playlists completas 
 
 > **Importante:** Para que el bot funcione correctamente y pueda descargar tu música, debes vincular tu cuenta de Spotify siguiendo las instrucciones de la sección [¿Cómo vinculo mi cuenta de Spotify con el bot?](#cómo-vinculo-mi-cuenta-de-spotify-con-el-bot).
 
+> **Importante:** El contenedor crea automáticamente un volumen para la configuración de SpotDL. En este volumen puedes encontrar el archivo `config.json` generado por la herramienta [SpotDL](https://spotdl.readthedocs.io/en/latest/usage/#default-config).  
+
+> **Tip:** Si en el archivo `config.json` de SpotDL la propiedad `lyrics_providers` se establece como un array vacío (`[]`), no se obtendrán las letras de las canciones y las descargas serán más rápidas.
+
 ---
 
 ## 🔑 Variables de entorno
@@ -157,8 +161,9 @@ docker run -d --name spotdl-bot \
   -e PUID=1000 \
   -e TZ=Europe/Madrid \
   -v $(pwd)/music:/music \
-  -v $(pwd)/cache:/cache \
-  -v $(pwd)/logs:/logs \
+  -v $(pwd)/cache:/app/cache \
+  -v $(pwd)/logs:/app/logs \
+  -v $(pwd)/config:/root/.spotdl \
   mralexandersaavedra/spotdl-bot
 ```
 
@@ -189,6 +194,7 @@ services:
       - ./music:/music # CAMBIA ESTA RUTA A TU DIRECTORIO DE MÚSICA
       - ./cache:/app/cache # CAMBIA ESTA RUTA AL DIRECTORIO QUE QUIERAS PARA LA CACHE
       - ./logs:/app/logs # CAMBIA ESTA RUTA AL DIRECTORIO QUE QUIERAS PARA LOS LOGS
+      - ./config:/root/.spotdl # CAMBIA ESTA RUTA AL DIRECTORIO QUE QUIERAS PARA LA CONFIGURACIÓN
     restart: unless-stopped
 ```
 
