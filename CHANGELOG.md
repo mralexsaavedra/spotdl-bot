@@ -36,3 +36,6 @@ Todas las versiones y cambios importantes del proyecto.
 - Documentación mejorada sobre el volumen de configuración y ubicación de config.json
 - Tip añadido en el README para acelerar descargas desactivando lyrics_providers
 
+## v0.1.12
+- Actualizado a la última versión de spotdl (v4.4.1)
+
