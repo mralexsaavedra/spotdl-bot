@@ -38,4 +38,7 @@ Todas las versiones y cambios importantes del proyecto.
 
 ## v0.1.12
 - Actualizado a la última versión de spotdl (v4.4.1)
+- 
+## v0.1.13
+- Actualizado a la última versión de spotdl (v4.4.2)
 
