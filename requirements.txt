@@ -3,3 +3,4 @@ spotdl==4.4.2
 pyTelegramBotAPI==4.27.0
 python-dotenv==1.1.1
 loguru==0.7.3
+yt-dlp==2025.09.26
