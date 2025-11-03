@@ -45,3 +45,6 @@ Todas las versiones y cambios importantes del proyecto.
 ## v0.1.14
 - Actualizado a la última versión de yt-dlp (v2025.09.26)
 
+## v0.1.15
+- Actualizado a la última versión de spotdl (v4.4.1)
+
